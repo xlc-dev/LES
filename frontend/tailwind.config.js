@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ["./src/**/*.svelte", "./index.html"],
   theme: {
     extend: {
@@ -11,6 +12,7 @@ export default {
         "les-bg-dark": "#12121B",
         "les-highlight": "#2a2a3d",
         "les-frame": "#dadada",
+        "les-table-cell": "#373737"
       },
       transitionProperty: {
         width: "width",
