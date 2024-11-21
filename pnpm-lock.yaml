@@ -15,8 +15,8 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0(chart.js@4.4.6)
       svelte:
-        specifier: ^5.1.10
-        version: 5.2.1
+        specifier: ^5.2.7
+        version: 5.2.7
       xlsx:
         specifier: ^0.18.5
         version: 0.18.5
@@ -29,10 +29,10 @@ importers:
         version: 1.1.4
       '@rsbuild/plugin-svelte':
         specifier: ^1.0.3
-        version: 1.0.5(@rsbuild/core@1.1.4)(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.2.1)(typescript@5.6.3)
+        version: 1.0.5(@rsbuild/core@1.1.4)(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.2.7)(typescript@5.6.3)
       svelte-check:
         specifier: ^4.0.9
-        version: 4.0.9(svelte@5.2.1)(typescript@5.6.3)
+        version: 4.0.9(svelte@5.2.7)(typescript@5.6.3)
       tailwindcss:
         specifier: ^3.4.15
         version: 3.4.15
@@ -750,8 +750,8 @@ packages:
       typescript:
         optional: true
 
-  svelte@5.2.1:
-    resolution: {integrity: sha512-WzyA7VUVlDTLPt+m71bLD5BXasavqvAo68DelxWaPo8dNEZ3tmeq3DSJPsWqnG37cG2hfn7HaD3x882qF+7UOw==}
+  svelte@5.2.7:
+    resolution: {integrity: sha512-cEhPGuLHiH2+Z8B1FwQgiZJgA39uUmJR4516TKrM5zrp0/cuwJkfhUfcTxhAkznanAF5fXUKzvYR4o+Ksx3ZCQ==}
     engines: {node: '>=18'}
 
   tailwindcss@3.4.15:
@@ -928,11 +928,11 @@ snapshots:
       '@swc/helpers': 0.5.15
       core-js: 3.39.0
 
-  '@rsbuild/plugin-svelte@1.0.5(@rsbuild/core@1.1.4)(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.2.1)(typescript@5.6.3)':
+  '@rsbuild/plugin-svelte@1.0.5(@rsbuild/core@1.1.4)(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.2.7)(typescript@5.6.3)':
     dependencies:
       '@rsbuild/core': 1.1.4
-      svelte-loader: 3.2.4(svelte@5.2.1)
-      svelte-preprocess: 6.0.3(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.2.1)(typescript@5.6.3)
+      svelte-loader: 3.2.4(svelte@5.2.7)
+      svelte-preprocess: 6.0.3(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.2.7)(typescript@5.6.3)
     transitivePeerDependencies:
       - '@babel/core'
       - coffeescript
@@ -1391,40 +1391,40 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  svelte-check@4.0.9(svelte@5.2.1)(typescript@5.6.3):
+  svelte-check@4.0.9(svelte@5.2.7)(typescript@5.6.3):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
       chokidar: 4.0.1
       fdir: 6.4.2
       picocolors: 1.1.1
       sade: 1.8.1
-      svelte: 5.2.1
+      svelte: 5.2.7
       typescript: 5.6.3
     transitivePeerDependencies:
       - picomatch
 
   svelte-dev-helper@1.1.9: {}
 
-  svelte-hmr@0.14.12(svelte@5.2.1):
+  svelte-hmr@0.14.12(svelte@5.2.7):
     dependencies:
-      svelte: 5.2.1
+      svelte: 5.2.7
 
-  svelte-loader@3.2.4(svelte@5.2.1):
+  svelte-loader@3.2.4(svelte@5.2.7):
     dependencies:
       loader-utils: 2.0.4
-      svelte: 5.2.1
+      svelte: 5.2.7
       svelte-dev-helper: 1.1.9
-      svelte-hmr: 0.14.12(svelte@5.2.1)
+      svelte-hmr: 0.14.12(svelte@5.2.7)
 
-  svelte-preprocess@6.0.3(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.2.1)(typescript@5.6.3):
+  svelte-preprocess@6.0.3(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.2.7)(typescript@5.6.3):
     dependencies:
-      svelte: 5.2.1
+      svelte: 5.2.7
     optionalDependencies:
       postcss: 8.4.49
       postcss-load-config: 4.0.2(postcss@8.4.49)
       typescript: 5.6.3
 
-  svelte@5.2.1:
+  svelte@5.2.7:
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@jridgewell/sourcemap-codec': 1.5.0
