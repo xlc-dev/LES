@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "roboto";
+  src: url("/public/roboto.ttf");
+}
+
+body {
+  font-family: "roboto", sans-serif;
+}
+
+@layer base {
+  input[type="checkbox"],
+  input[type="radio"] {
+    @apply cursor-pointer w-4 h-4;
+    accent-color: theme("colors.les-highlight");
+    accent-color: var(--tw-color-les-highlight);
+  }
+}
