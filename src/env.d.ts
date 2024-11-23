@@ -36,17 +36,34 @@ type CustomOption = {
   formData: any;
 };
 
+type Energyflow = {
+  headers: string[];
+  data: {
+    name: string;
+    energyUsage: number;
+    solarPanels: number;
+  }[];
+};
+
 type StepperData = {
   steps: {
     title: string;
     selectedOption: Option | null;
     formData: { [key: string]: any } | null;
-    twinWorld?: TwinWorld; // Optional field to store Twin World data
+    twinWorld?: TwinWorld;
+    energyflow?: Energyflow;
   }[];
 };
 
+type ApplianceTypes =
+  | "Washing Machine"
+  | "Tumble Dryer"
+  | "Dishwasher"
+  | "Stove"
+  | "Electric Vehicle";
+
 type Appliance = {
-  name: string; // e.g., "Washing Machine"
+  name: ApplianceTypes;
   power: number; // in Watts, gt 0
   duration: number; // in hours, gt 0
   dailyUsage: number; // times used per day, gt 0
