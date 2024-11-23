@@ -3,10 +3,15 @@
   import Chart from "./Chart.svelte";
   import Sidebar from "./Sidebar.svelte";
 
-  import { getEfficiencyResults, getRuntime } from "./state.svelte";
+  import {
+    getEfficiencyResults,
+    getRuntime,
+    getStepperData,
+  } from "./state.svelte";
 
   const efficiencyResults = getEfficiencyResults();
   const runtime = getRuntime();
+  const stepperData = getStepperData();
 
   let sumEfficiencyIndividual: number = $derived.by(() => {
     const results = efficiencyResults.efficiencyResults;
@@ -46,7 +51,9 @@
         <tbody>
           <tr class="border-b border-gray-400">
             <td class="p-2">Number of Households:</td>
-            <!-- <td class="min-w-40 p-2">{stepperData.households.length}</td> -->
+            <td class="min-w-40 p-2"
+              >{stepperData.stepperData?.steps[0].twinWorld?.households.length}
+            </td>
           </tr>
           {#if sumEfficiencyIndividual !== null}
             <tr class="border-b border-gray-400">
