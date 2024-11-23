@@ -41,22 +41,28 @@ type StepperData = {
     title: string;
     selectedOption: Option | null;
     formData: { [key: string]: any } | null;
+    twinWorld?: TwinWorld; // Optional field to store Twin World data
   }[];
 };
 
 type Appliance = {
-  name: string; // gt 1
-  power: number; // gt 0
-  duration: number; // gt 0
-  dailyUsage: number; // gt 0
+  name: string; // e.g., "Washing Machine"
+  power: number; // in Watts, gt 0
+  duration: number; // in hours, gt 0
+  dailyUsage: number; // times used per day, gt 0
 };
 
 type Household = {
   name: string; // gt 1
   size: number; // default 1, ge 1 le 5
-  energyUsage: number; // ge 0
+  energyUsage: number; // in kWh, ge 0
   solarPanels: number; // ge 0
   appliances?: Appliance[];
+};
+
+type TwinWorld = {
+  description: string;
+  households: Household[];
 };
 
 type EfficiencyResult = {
