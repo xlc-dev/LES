@@ -1,9 +1,11 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { getDashboard, getStepperData } from "./state.svelte";
-
   import { getSteps, defaultTwinWorlds } from "./twinworlds.svelte";
 
-  const steps = getSteps().steps;
+  const steps: Step[] = getSteps().steps;
+
+  let editor: HTMLElement | null = $state(null);
 
   let editMode: boolean = $state(false);
   let editedOption: Option | null = $state(null);
@@ -13,6 +15,12 @@
   let selectedOptions: (Option | null)[] = $state(
     Array(steps.length).fill(null),
   );
+
+  let households: Household[] = $state([]);
+  let newHouseholdName: string = $state("");
+  let editHouseholdId: string | null = $state(null);
+  let newApplianceName: string = $state("");
+  let editApplianceId: string | null = $state(null);
 
   function goToStep(index: number) {
     if (selectedOptions[index] || index === currentStep) {
@@ -54,6 +62,7 @@
           selectedOption: Option | null;
           formData: { [key: string]: any } | null;
           twinWorld?: TwinWorld;
+          energyflow?: Energyflow;
         } = {
           title: step.title,
           selectedOption: selected,
@@ -65,8 +74,14 @@
             defaultTwinWorlds[selected.label as keyof typeof defaultTwinWorlds];
           if (twinWorldData) {
             stepData.twinWorld = twinWorldData;
-            console.log(stepData.twinWorld);
           }
+        }
+
+        if (step.title === "Twin World" && selected && selected.isCustom) {
+          stepData.twinWorld = {
+            description: "Custom Twin World",
+            households: households,
+          };
         }
 
         return stepData;
@@ -81,7 +96,23 @@
     selectedOption = option;
   }
 
-  function validateField(field: FormField) {
+  function getAvailableAppliances(household: Household): string[] {
+    const allAppliances = [
+      "Washing Machine",
+      "Tumble Dryer",
+      "Dishwasher",
+      "Stove",
+      "Electric Vehicle",
+    ];
+    const addedAppliances = household.appliances?.map((a) => a.name) || [];
+    return allAppliances.filter(
+      (appliance) =>
+        appliance === "Electric Vehicle" ||
+        !addedAppliances.includes(appliance),
+    );
+  }
+
+  function validateField(field: FormField): boolean {
     if (field.required && (!field.value || field.value.trim() === "")) {
       field.error = "This field is required.";
       return false;
@@ -117,7 +148,7 @@
     return true;
   }
 
-  function validateForm(fields: FormField[]) {
+  function validateForm(fields: FormField[]): boolean {
     let isValid = true;
     for (const field of fields) {
       if (!validateField(field)) {
@@ -127,7 +158,7 @@
     return isValid;
   }
 
-  function getFormData(fields: FormField[]) {
+  function getFormData(fields: FormField[]): { [key: string]: any } {
     const data: any = {};
     for (const field of fields) {
       data[field.label] = field.value;
@@ -189,7 +220,7 @@
           "customOption_" +
           Date.now() +
           "_" +
-          Math.random().toString(36).substr(2, 9);
+          Math.random().toString(36).substring(2, 9);
         const customOption: CustomOption = {
           id: customOptionId,
           option: {
@@ -208,13 +239,17 @@
         for (const field of fields) {
           field.value = "";
         }
+
+        selectedOption = customOption.option;
       }
     }
   }
 
   function saveCustomOption(stepIndex: number, customOption: CustomOption) {
     const key = "customOptionsStep" + stepIndex;
-    let customOptions = JSON.parse(localStorage.getItem(key) || "[]");
+    let customOptions: CustomOption[] = JSON.parse(
+      localStorage.getItem(key) || "[]",
+    );
     customOptions.push(customOption);
     localStorage.setItem(key, JSON.stringify(customOptions));
   }
@@ -228,6 +263,13 @@
       for (const customOption of customOptions) {
         steps[i].options.push(customOption.option);
       }
+    }
+
+    const twinWorldData = getStepperData().stepperData!.steps.find(
+      (s) => s.title === "Twin World" && s.twinWorld?.households,
+    );
+    if (twinWorldData && twinWorldData.twinWorld?.households) {
+      households = twinWorldData.twinWorld.households;
     }
   }
 
@@ -243,10 +285,10 @@
     localStorage.setItem(key, JSON.stringify(customOptions));
 
     steps[stepIndex].options = steps[stepIndex].options.filter(
-      (opt) => opt !== option,
+      (opt) => opt.id !== option.id,
     );
 
-    if (selectedOption === option) {
+    if (selectedOption?.id === option.id) {
       selectedOption = null;
     }
   }
@@ -278,30 +320,129 @@
     }
   }
 
-  let editor: HTMLElement | null = $state(null);
+  function addHousehold() {
+    if (!newHouseholdName.trim()) return;
+    if (households.find((h) => h.name === newHouseholdName.trim())) return;
+    const newHousehold: Household = {
+      name: newHouseholdName.trim(),
+      size: 1,
+      energyUsage: 0,
+      solarPanels: 0,
+      appliances: [],
+    };
+    households.push(newHousehold);
+    newHouseholdName = "";
+    saveHouseholds();
+  }
+
+  function editHousehold(household: Household) {
+    editHouseholdId = household.name;
+    newHouseholdName = household.name;
+  }
+
+  function updateHousehold() {
+    if (!newHouseholdName.trim() || !editHouseholdId) return;
+    const existing = households.find(
+      (h) => h.name === newHouseholdName.trim() && h.name !== editHouseholdId,
+    );
+    if (existing) return;
+    const household = households.find((h) => h.name === editHouseholdId);
+    if (household) {
+      household.name = newHouseholdName.trim();
+      saveHouseholds();
+      editHouseholdId = null;
+      newHouseholdName = "";
+      households = [...households];
+    }
+  }
+
+  function deleteHousehold(household: Household) {
+    if (!confirm(`Delete household ${household.name}?`)) return;
+    households = households.filter((h) => h.name !== household.name);
+    saveHouseholds();
+  }
+
+  function saveHouseholds() {
+    const stepperData = getStepperData().stepperData!;
+    stepperData.steps = stepperData.steps.map((s) => {
+      if (s.title === "Twin World" && s.twinWorld) {
+        s.twinWorld.households = households;
+      }
+      return s;
+    });
+    getStepperData().setStepperData(stepperData);
+  }
+
+  function addAppliance(household: Household) {
+    if (!newApplianceName.trim()) return;
+    if (household.appliances?.find((a) => a.name === newApplianceName.trim()))
+      return;
+    const newAppliance: Appliance = {
+      name: newApplianceName.trim() as ApplianceTypes,
+      power: 1000,
+      duration: 1,
+      dailyUsage: 1,
+    };
+    if (!household.appliances) {
+      household.appliances = [];
+    }
+    household.appliances.push(newAppliance);
+    newApplianceName = "";
+    saveHouseholds();
+  }
+
+  function updateAppliance() {
+    if (!newApplianceName.trim() || !editApplianceId) return;
+    for (const h of households) {
+      const existing = h.appliances?.find(
+        (a) => a.name === newApplianceName.trim() && a.name !== editApplianceId,
+      );
+      if (existing) return;
+    }
+    for (const h of households) {
+      const appliance = h.appliances?.find((a) => a.name === editApplianceId);
+      if (appliance) {
+        appliance.name = newApplianceName.trim() as ApplianceTypes;
+        saveHouseholds();
+        editApplianceId = null;
+        newApplianceName = "";
+        households = [...households];
+        break;
+      }
+    }
+  }
+
+  function deleteAppliance(appliance: Appliance, household: Household) {
+    if (!confirm(`Delete appliance ${appliance.name}?`)) return;
+    household.appliances = household.appliances?.filter(
+      (a) => a.name !== appliance.name,
+    );
+    saveHouseholds();
+  }
 
   $effect(() => {
-    if (!editor || !document.getElementById("editor")) {
-      return;
-    }
-    // @ts-ignore
-    let aceEditor = ace.edit("editor", {
-      mode: "ace/mode/javascript",
-      selectionStyle: "text",
-      autoScrollEditorIntoView: true,
-      animatedScroll: true,
-      fontSize: "15px",
-    });
-    const currentFormFields = steps[currentStep].formFields;
-    const editorField = currentFormFields.find(
-      (field) => field.type === "editor",
-    );
-    if (editorField && editorField.value) {
-      aceEditor.setValue(editorField.value, 999);
+    if (editor && document.getElementById("editor")) {
+      // @ts-ignore
+      let aceEditor = ace.edit("editor", {
+        mode: "ace/mode/javascript",
+        selectionStyle: "text",
+        autoScrollEditorIntoView: true,
+        animatedScroll: true,
+        fontSize: "15px",
+      });
+      const currentFormFields = steps[currentStep].formFields;
+      const editorField = currentFormFields.find(
+        (field) => field.type === "editor",
+      );
+      if (editorField && editorField.value) {
+        aceEditor.setValue(editorField.value, -1);
+      }
     }
   });
 
-  loadCustomOptions();
+  onMount(() => {
+    loadCustomOptions();
+  });
 </script>
 
 {#snippet progressBar(
@@ -397,7 +538,7 @@
               </button>
               {#if option.isCustom}
                 <button
-                  class="text-blue-500 hover:underline ml-2"
+                  class="text-les-highlight hover:underline ml-2"
                   onclick={() => editCustomOption(option)}
                 >
                   Edit
@@ -428,16 +569,17 @@
           {:else if selectedOption}
             {selectedOption.description}
           {:else}
-            {options[0].description}
+            {options[0]?.description}
           {/if}
         </p>
       </div>
     </div>
     <div class="flex justify-between mt-4">
       <button
-        class="bg-gray-300 text-gray-700 px-4 py-2 rounded disabled:opacity-50 transition-colors duration-200"
-        class:cursor-not-allowed={currentStep === 0}
-        class:hover:bg-gray-400={currentStep !== 0}
+        class="bg-gray-300 text-gray-700 px-4 py-2 rounded disabled:opacity-50 transition-colors duration-200
+        {currentStep !== 0
+          ? 'hover:bg-gray-400 cursor-pointer'
+          : 'cursor-not-allowed'}"
         onclick={previousStep}
         disabled={currentStep === 0}
       >
@@ -445,9 +587,10 @@
       </button>
       {#if currentStep < steps.length - 1}
         <button
-          class="bg-les-highlight text-white px-4 py-2 rounded disabled:opacity-50 transition-colors duration-200"
-          class:cursor-not-allowed={!selectedOption}
-          class:hover:bg-sidebar={selectedOption}
+          class="bg-les-highlight text-white px-4 py-2 rounded disabled:opacity-50 transition-colors duration-200
+          {selectedOption
+            ? 'hover:bg-sidebar cursor-pointer'
+            : 'cursor-not-allowed'}"
           onclick={nextStep}
           disabled={!selectedOption}
         >
@@ -455,9 +598,11 @@
         </button>
       {:else}
         <button
-          class="bg-les-highlight text-white px-4 py-2 rounded disabled:opacity-50 transition-colors duration-200"
+          class="bg-les-highlight text-white px-4 py-2 rounded disabled:opacity-50 transition-colors duration-200
+          {selectedOption
+            ? 'hover:bg-sidebar cursor-pointer'
+            : 'cursor-not-allowed'}"
           onclick={finish}
-          class:hover:bg-sidebar={selectedOption}
           disabled={!selectedOption}
         >
           Finish
@@ -490,7 +635,7 @@
           {#if field.type === "input"}
             <input
               type="text"
-              class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight"
+              class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight focus:outline-none focus:ring-2 focus:ring-les-highlight"
               placeholder={field.placeholder}
               bind:value={field.value}
               required={field.required}
@@ -500,7 +645,7 @@
 
           {#if field.type === "textarea"}
             <textarea
-              class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight"
+              class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight focus:outline-none focus:ring-2 focus:ring-les-highlight"
               placeholder={field.placeholder}
               bind:value={field.value}
               required={field.required}
@@ -542,6 +687,144 @@
   </div>
 {/snippet}
 
+{#snippet customTwinWorld()}
+  <div
+    class="rounded-lg border-4 border-gray-400 bg-white p-4 shadow-lg w-full"
+  >
+    <h2 class="text-xl text-center text-les-highlight font-bold mb-4">
+      Households
+    </h2>
+    <div class="space-y-4">
+      <div>
+        <input
+          type="text"
+          class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight focus:outline-none focus:ring-2 focus:ring-les-highlight"
+          placeholder="Household Name"
+          bind:value={newHouseholdName}
+          onkeydown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              editHouseholdId ? updateHousehold() : addHousehold();
+            }
+          }}
+        />
+        {#if households.some((h) => h.name === newHouseholdName.trim())}
+          <span class="text-red-500 text-sm mt-1"
+            >Household name already exists.</span
+          >
+        {/if}
+        {#if editHouseholdId}
+          <div class="flex space-x-2 mt-2">
+            <button
+              class="bg-les-highlight text-white px-3 py-1 rounded hover:bg-sidebar transition"
+              onclick={updateHousehold}
+            >
+              Update
+            </button>
+            <button
+              class="bg-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-400 transition"
+              onclick={() => {
+                editHouseholdId = null;
+                newHouseholdName = "";
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        {:else}
+          <button
+            class={`bg-les-highlight text-white px-3 py-1 rounded transition w-full mt-2
+              ${
+                households.some((h) => h.name === newHouseholdName.trim()) ||
+                !newHouseholdName.trim()
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "cursor-pointer hover:bg-sidebar"
+              }`}
+            onclick={addHousehold}
+            disabled={households.some(
+              (h) => h.name === newHouseholdName.trim(),
+            ) || !newHouseholdName.trim()}
+          >
+            Add
+          </button>
+        {/if}
+      </div>
+      <ul class="space-y-3">
+        {#each households as household}
+          <li class="border border-gray-300 p-3 rounded">
+            <div class="flex justify-between items-center">
+              <span class="font-semibold text-les-highlight">
+                {household.name}
+              </span>
+              <div class="space-x-1">
+                <button
+                  class="text-les-highlight text-sm hover:underline"
+                  onclick={() => editHousehold(household)}
+                >
+                  Edit
+                </button>
+                <button
+                  class="text-red-500 text-sm hover:underline"
+                  onclick={() => deleteHousehold(household)}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+            <div class="mt-2 ml-2">
+              <h3 class="font-semibold text-les-highlight text-sm mb-1">
+                Appliances
+              </h3>
+              <select
+                class="border border-gray-300 rounded p-2 w-full text-les-highlight focus:outline-none focus:ring focus:ring-les-highlight text-sm"
+                bind:value={newApplianceName}
+                onkeydown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    editApplianceId
+                      ? updateAppliance()
+                      : addAppliance(household);
+                  }
+                }}
+              >
+                <option disabled value="">Select Appliance</option>
+                {#each getAvailableAppliances(household) as appliance}
+                  <option value={appliance}>{appliance}</option>
+                {/each}
+              </select>
+              <button
+                class={`bg-les-highlight text-white px-2 py-1 rounded transition w-full mt-1 text-sm
+                    ${!newApplianceName.trim() ? "bg-gray-400 cursor-not-allowed" : "cursor-pointer hover:bg-sidebar"}`}
+                onclick={() => addAppliance(household)}
+                disabled={!newApplianceName.trim()}
+              >
+                Add
+              </button>
+              <ul class="space-y-1 mt-2">
+                {#each household.appliances! as appliance}
+                  <li class="border border-gray-200 p-2 rounded">
+                    <div class="flex justify-between items-center">
+                      <span class="text-les-highlight text-sm">
+                        {appliance.name}
+                      </span>
+                      <button
+                        class="text-red-500 text-xs hover:underline"
+                        onclick={() => deleteAppliance(appliance, household)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                {/each}
+              </ul>
+            </div>
+          </li>
+        {/each}
+      </ul>
+    </div>
+  </div>
+{/snippet}
+
 <div
   class="flex flex-col items-center justify-center mx-auto xl:max-w-6xl max-w-2xl px-2 py-4 space-y-8"
 >
@@ -556,4 +839,7 @@
     "Create Custom " + steps[currentStep].title,
     steps[currentStep].formFields,
   )}
+  {#if steps[currentStep].title === "Twin World" && selectedOption?.isCustom}
+    {@render customTwinWorld()}
+  {/if}
 </div>
