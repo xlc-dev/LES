@@ -3,6 +3,23 @@
 
 type ComponentList = "Dashboard" | "Schedulable Loads" | "Simulation" | "Stop";
 
+let appData: AppData = {
+  stepperData: {
+    steps: steps.map((step) => ({
+      title: step.title,
+      selectedOption: null,
+      formData: null,
+      twinWorld:
+        step.title === "Twin World"
+          ? { description: "", households: [] }
+          : undefined,
+      energyflow: undefined,
+    })),
+  },
+  customOptions: {},
+  households: [],
+};
+
 type Option = {
   label: string;
   description: string;
@@ -13,8 +30,9 @@ type Option = {
 type FormField = {
   label: string;
   description?: string;
-  type: "input" | "textarea" | "editor";
+  type: "input" | "textarea" | "editor" | "file";
   dataType?: "string" | "int" | "float";
+  file?: FileList;
   placeholder?: string;
   value?: string;
   required?: boolean;
@@ -39,9 +57,9 @@ type CustomOption = {
 type Energyflow = {
   headers: string[];
   data: {
-    name: string;
-    energyUsage: number;
-    solarPanels: number;
+    timestamp: string;
+    energy_used: number;
+    solar_produced: number;
   }[];
 };
 
@@ -67,6 +85,7 @@ type Appliance = {
   power: number; // in Watts, gt 0
   duration: number; // in hours, gt 0
   dailyUsage: number; // times used per day, gt 0
+  availability: boolean[];
 };
 
 type Household = {
@@ -90,7 +109,6 @@ type EfficiencyResult = {
 };
 
 type ApplianceTimeDaily = {
-  id: number;
   day: number;
   bitmap_plan_energy?: number;
   bitmap_plan_no_energy?: number;
