@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { getDashboard, getStepperData } from "./state.svelte";
   import { getSteps, defaultTwinWorlds } from "./twinworlds.svelte";
+  import { readCSV } from "./utils.ts";
 
   const steps: Step[] = getSteps().steps;
   const stepperData = getStepperData();
@@ -13,9 +14,7 @@
   let currentStep: number = $state(0);
   let selectedOption: Option | null = $state(null);
   let hoveredOption: Option | null = $state(null);
-  let selectedOptions: (Option | null)[] = $state(
-    Array(steps.length).fill(null),
-  );
+  let selectedOptions: (Option | null)[] = $state(Array(steps.length).fill(null));
 
   let households: Household[] = $state([]);
   let newHouseholdName: string = $state("");
@@ -30,10 +29,7 @@
         title: step.title,
         selectedOption: null,
         formData: null,
-        twinWorld:
-          step.title === "Twin World"
-            ? { description: "", households: [] }
-            : undefined,
+        twinWorld: step.title === "Twin World" ? { description: "", households: [] } : undefined,
         energyflow: undefined,
       })),
     },
@@ -41,13 +37,27 @@
     households: [],
   });
 
-  $inspect(appData.stepperData.steps[3].energyflow);
+  function wipestorage() {
+    if (localStorage.getItem("appData") !== null) {
+      localStorage.clear();
+      location.reload();
+    }
+  }
 
   function saveAppData() {
     localStorage.setItem("appData", JSON.stringify(appData));
   }
 
-  function loadAppData() {
+  async function loadDefaultEnergyflow(): Promise<Energyflow | null> {
+    try {
+      return await readCSV("/energyflowZoetermeer.csv");
+    } catch (error) {
+      console.error("Error loading default energyflow data:", error);
+      return null;
+    }
+  }
+
+  async function loadAppData() {
     const storedData = localStorage.getItem("appData");
     if (storedData) {
       try {
@@ -66,22 +76,25 @@
         initializeDefaultData();
       }
     } else {
-      initializeDefaultData();
+      await initializeDefaultData();
     }
   }
 
-  function initializeDefaultData() {
+  async function initializeDefaultData() {
+    const defaultEnergyflow = await loadDefaultEnergyflow();
+
+    if (!defaultEnergyflow) {
+      throw new Error("Failed to load default energy flow.");
+    }
+
     appData = {
       stepperData: {
-        steps: steps.map((step) => ({
+        steps: steps.map((step, index) => ({
           title: step.title,
           selectedOption: null,
           formData: null,
-          twinWorld:
-            step.title === "Twin World"
-              ? { description: "", households: [] }
-              : undefined,
-          energyflow: undefined,
+          twinWorld: step.title === "Twin World" ? { description: "", households: [] } : undefined,
+          energyflow: index === 3 ? defaultEnergyflow : undefined,
         })),
       },
       customOptions: {},
@@ -149,8 +162,7 @@
       };
 
       if (step.title === "Twin World" && selected && !selected.isCustom) {
-        const twinWorldData =
-          defaultTwinWorlds[selected.label as keyof typeof defaultTwinWorlds];
+        const twinWorldData = defaultTwinWorlds[selected.label as keyof typeof defaultTwinWorlds];
         if (twinWorldData) {
           stepData.twinWorld = twinWorldData;
         }
@@ -185,19 +197,15 @@
       "Electric Vehicle",
     ];
     const addedAppliances = household.appliances?.map((a) => a.name) || [];
-    return allAppliances.filter(
-      (appliance) => !addedAppliances.includes(appliance),
-    );
+    return allAppliances.filter((appliance) => !addedAppliances.includes(appliance));
   }
 
   function validateField(field: FormField): boolean {
     if (field.required) {
-      if (field.type === "file") {
-        if (!field.file || field.file.length === 0) {
-          field.error = "This field is required.";
-          return false;
-        }
-      } else if (!field.value || field.value.trim() === "") {
+      if (field.type === "file" && !field.file) {
+        field.error = "This field is required.";
+        return false;
+      } else if (field.type !== "file" && (!field.value || field.value.trim() === "")) {
         field.error = "This field is required.";
         return false;
       }
@@ -214,10 +222,7 @@
         field.error = "Please enter a valid number.";
         return false;
       }
-      if (
-        (field.dataType === "int" || field.dataType === "float") &&
-        !isNaN(numValue)
-      ) {
+      if ((field.dataType === "int" || field.dataType === "float") && !isNaN(numValue)) {
         if (field.min !== undefined && numValue < field.min) {
           field.error = `Value must be at least ${field.min}.`;
           return false;
@@ -251,6 +256,16 @@
     return data;
   }
 
+  function handleFileChange(field: FormField, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      field.file = file;
+    } else {
+      field.file = undefined;
+    }
+  }
+
   function submitForm(e: Event) {
     e.preventDefault();
     const fields = steps[currentStep].formFields;
@@ -262,94 +277,84 @@
       editorField.value = aceEditor.getValue();
     }
 
-    if (validateForm(fields)) {
-      const formData = getFormData(fields);
+    const nameField = fields.find((f) => f.label === "Name");
+    const descriptionField = fields.find((f) => f.label === "Description");
 
+    if (!nameField?.value || !descriptionField?.value) {
+      console.error("Name and Description are required to create or edit an option.");
+      return;
+    }
+
+    const formData = getFormData(fields);
+    const fileField = fields.find((field) => field.type === "file");
+
+    const handleNewOrEditedOption = (energyflow?: Energyflow) => {
       if (editMode && editedOption) {
-        const editedOptionId = editedOption.id;
-        if (!editedOptionId) return;
+        const customOption = appData.customOptions[currentStep]?.find(
+          (co) => co.id === editedOption.id
+        );
+        if (customOption) {
+          customOption.option.label = nameField.value;
+          customOption.option.description = descriptionField.value;
+          customOption.option.energyflow = energyflow || customOption.option.energyflow;
+          customOption.formData = formData;
 
-        const stepIndex = currentStep;
-        const customOptions = appData.customOptions[stepIndex] || [];
-
-        const index = customOptions.findIndex((co) => co.id === editedOptionId);
-        if (index !== -1) {
-          customOptions[index].option.label = formData["Name"];
-          customOptions[index].option.description = formData["Description"];
-          customOptions[index].formData = formData;
-
-          appData.customOptions[stepIndex] = customOptions;
           saveAppData();
 
-          const optIndex = steps[stepIndex].options.findIndex(
-            (opt) => opt.id === editedOptionId,
+          const optionIndex = steps[currentStep].options.findIndex(
+            (opt) => opt.id === editedOption.id
           );
-          if (optIndex !== -1) {
-            steps[stepIndex].options[optIndex] = customOptions[index].option;
+          if (optionIndex !== -1) {
+            steps[currentStep].options[optionIndex] = customOption.option;
           }
 
-          if (selectedOption && selectedOption.id === editedOptionId) {
-            selectedOption = customOptions[index].option;
+          if (selectedOption && selectedOption.id === editedOption.id) {
+            selectedOption = customOption.option;
           }
 
-          if (
-            selectedOptions[currentStep] &&
-            selectedOptions[currentStep]?.id === editedOptionId
-          ) {
-            selectedOptions[currentStep] = customOptions[index].option;
-          }
-
-          if (editor) {
-            // @ts-ignore
-            const aceEditor = ace.edit("editor");
-            aceEditor.setValue("", -1);
-          }
-
-          editMode = false;
-          editedOption = null;
-
-          for (const field of fields) {
-            field.value = "";
-          }
+          selectedOptions[currentStep] = customOption.option;
         }
+        editMode = false;
+        editedOption = null;
       } else {
         const customOptionId =
-          "customOption_" +
-          Date.now() +
-          "_" +
-          Math.random().toString(36).substring(2, 9);
+          "customOption_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9);
         const customOption: CustomOption = {
           id: customOptionId,
           option: {
-            label: formData["Name"],
-            description: formData["Description"],
+            label: nameField.value,
+            description: descriptionField.value,
             id: customOptionId,
             isCustom: true,
+            energyflow,
           },
-          formData: formData,
+          formData,
         };
-
-        steps[currentStep].options.push(customOption.option);
 
         if (!appData.customOptions[currentStep]) {
           appData.customOptions[currentStep] = [];
         }
         appData.customOptions[currentStep].push(customOption);
-        saveAppData();
-
-        if (editor) {
-          // @ts-ignore
-          const aceEditor = ace.edit("editor");
-          aceEditor.setValue("", -1);
-        }
-
-        for (const field of fields) {
-          field.value = "";
-        }
-
+        steps[currentStep].options.push(customOption.option);
         selectedOption = customOption.option;
+        saveAppData();
       }
+    };
 
+    if (fileField?.file) {
+      readCSV(fileField.file)
+        .then((energyflow) => {
+          handleNewOrEditedOption(energyflow);
+        })
+        .catch((error) => {
+          console.error("Error reading file:", error);
+          fileField.error = `Error reading file: ${error.message}`;
+        });
+    } else {
+      handleNewOrEditedOption();
+    }
+
+    if (validateForm(fields)) {
       saveHouseholds();
     }
   }
@@ -359,15 +364,11 @@
     const stepIndex = currentStep;
     const customOptions = appData.customOptions[stepIndex] || [];
 
-    const updatedCustomOptions = customOptions.filter(
-      (co) => co.id !== option.id,
-    );
+    const updatedCustomOptions = customOptions.filter((co) => co.id !== option.id);
     appData.customOptions[stepIndex] = updatedCustomOptions;
     saveAppData();
 
-    steps[stepIndex].options = steps[stepIndex].options.filter(
-      (opt) => opt.id !== option.id,
-    );
+    steps[stepIndex].options = steps[stepIndex].options.filter((opt) => opt.id !== option.id);
 
     if (selectedOption?.id === option.id) {
       selectedOption = null;
@@ -437,7 +438,7 @@
   function updateHousehold() {
     if (!newHouseholdName.trim() || !editHouseholdId) return;
     const existing = households.find(
-      (h) => h.name === newHouseholdName.trim() && h.name !== editHouseholdId,
+      (h) => h.name === newHouseholdName.trim() && h.name !== editHouseholdId
     );
     if (existing) return;
     const household = households.find((h) => h.name === editHouseholdId);
@@ -459,13 +460,11 @@
 
   function saveHouseholds() {
     // Update the Twin World step with the latest households
-    const twinWorldStep = appData.stepperData.steps.find(
-      (s) => s.title === "Twin World",
-    );
+    const twinWorldStep = appData.stepperData.steps.find((s) => s.title === "Twin World");
     if (twinWorldStep && twinWorldStep.twinWorld) {
       twinWorldStep.twinWorld.households = [...households];
       appData.stepperData.steps = appData.stepperData.steps.map((s) =>
-        s.title === "Twin World" ? twinWorldStep : s,
+        s.title === "Twin World" ? twinWorldStep : s
       );
       saveAppData();
     }
@@ -496,9 +495,7 @@
     const editId = editApplianceIds[household.name];
     if (!name.trim() || !editId) return;
     for (const h of households) {
-      const existing = h.appliances?.find(
-        (a) => a.name === name.trim() && a.name !== editId,
-      );
+      const existing = h.appliances?.find((a) => a.name === name.trim() && a.name !== editId);
       if (existing) return;
     }
     for (const h of households) {
@@ -517,9 +514,7 @@
 
   function deleteAppliance(appliance: Appliance, household: Household) {
     if (!confirm(`Delete appliance ${appliance.name}?`)) return;
-    household.appliances = household.appliances?.filter(
-      (a) => a.name !== appliance.name,
-    );
+    household.appliances = household.appliances?.filter((a) => a.name !== appliance.name);
     appData.households = households;
     saveAppData();
   }
@@ -528,16 +523,11 @@
     if (!openAppliances[householdName]) {
       openAppliances = { ...openAppliances, [householdName]: {} };
     }
-    openAppliances[householdName][applianceName] =
-      !openAppliances[householdName][applianceName];
+    openAppliances[householdName][applianceName] = !openAppliances[householdName][applianceName];
     openAppliances = { ...openAppliances };
   }
 
-  function handleAvailabilityChange(
-    appliance: Appliance,
-    hour: number,
-    event: Event,
-  ) {
+  function handleAvailabilityChange(appliance: Appliance, hour: number, event: Event) {
     const target = event.target as HTMLInputElement;
     appliance.availability[hour] = target.checked;
     appData.households = households;
@@ -555,23 +545,17 @@
         fontSize: "15px",
       });
       const currentFormFields = steps[currentStep].formFields;
-      const editorField = currentFormFields.find(
-        (field) => field.type === "editor",
-      );
+      const editorField = currentFormFields.find((field) => field.type === "editor");
       if (editorField && editorField.value) {
         aceEditor.setValue(editorField.value, -1);
       }
     }
   });
 
-  onMount(() => loadAppData());
+  onMount(async () => await loadAppData());
 </script>
 
-{#snippet progressBar(
-  steps: string[],
-  selectedOptions: (Option | null)[],
-  currentStep: number,
-)}
+{#snippet progressBar(steps: string[], selectedOptions: (Option | null)[], currentStep: number)}
   <div class="flex flex-col items-center w-full">
     <div class="flex w-full mb-2">
       {#each steps as step}
@@ -588,33 +572,26 @@
             <div
               class="flex-1 h-0.5 {selectedOptions[index - 1]
                 ? 'bg-les-highlight'
-                : 'bg-gray-300'}"
-            ></div>
+                : 'bg-gray-300'}">
+            </div>
           {:else}
             <div class="flex-1"></div>
           {/if}
 
           <button
             class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center focus:outline-none z-10
-            {selectedOptions[index]
-              ? 'bg-les-highlight text-white'
-              : 'bg-gray-300 text-gray-600'}
-            {selectedOptions[index] && index !== currentStep
-              ? 'hover:bg-sidebar'
-              : ''}
+            {selectedOptions[index] ? 'bg-les-highlight text-white' : 'bg-gray-300 text-gray-600'}
+            {selectedOptions[index] && index !== currentStep ? 'hover:bg-sidebar' : ''}
             disabled:opacity-50"
             onclick={() => goToStep(index)}
-            disabled={!selectedOptions[index] && index !== currentStep}
-          >
+            disabled={!selectedOptions[index] && index !== currentStep}>
             {index + 1}
           </button>
 
           {#if index !== steps.length - 1}
             <div
-              class="flex-1 h-0.5 {selectedOptions[index]
-                ? 'bg-les-highlight'
-                : 'bg-gray-300'}"
-            ></div>
+              class="flex-1 h-0.5 {selectedOptions[index] ? 'bg-les-highlight' : 'bg-gray-300'}">
+            </div>
           {:else}
             <div class="flex-1"></div>
           {/if}
@@ -637,9 +614,7 @@
 {/snippet}
 
 {#snippet cardoptions(title: string, options: Option[])}
-  <div
-    class="rounded-lg border-4 border-gray-400 bg-white p-6 w-full shadow-lg"
-  >
+  <div class="rounded-lg border-4 border-gray-400 bg-white p-6 w-full shadow-lg">
     <h1 class="text-2xl text-center text-les-highlight font-bold">{title}</h1>
     <div class="flex flex-col lg:flex-row">
       <div class="lg:w-1/2 p-4">
@@ -648,27 +623,23 @@
           {#each options as option}
             <li class="flex items-center">
               <button
-                class="hover:underline {selectedOption &&
-                selectedOption.label === option.label
+                class="hover:underline {selectedOption && selectedOption.label === option.label
                   ? 'text-sidebar font-bold'
                   : 'text-les-highlight'} flex-1 text-left"
                 onmouseenter={() => (hoveredOption = option)}
                 onmouseleave={() => (hoveredOption = null)}
-                onclick={() => selectOption(option)}
-              >
+                onclick={() => selectOption(option)}>
                 {option.label}
               </button>
               {#if option.isCustom}
                 <button
                   class="text-les-highlight hover:underline ml-2"
-                  onclick={() => editCustomOption(option)}
-                >
+                  onclick={() => editCustomOption(option)}>
                   Edit
                 </button>
                 <button
                   class="text-red-500 hover:underline ml-2"
-                  onclick={() => deleteCustomOption(option)}
-                >
+                  onclick={() => deleteCustomOption(option)}>
                   Delete
                 </button>
               {/if}
@@ -677,14 +648,10 @@
         </ul>
       </div>
 
-      <div
-        class="w-full h-0.5 bg-gray-300 lg:w-0.5 lg:h-72 lg:self-center"
-      ></div>
+      <div class="w-full h-0.5 bg-gray-300 lg:w-0.5 lg:h-72 lg:self-center"></div>
 
       <div class="lg:w-1/2 p-4">
-        <h2 class="text-2xl font-semibold mb-4 text-les-highlight">
-          Description
-        </h2>
+        <h2 class="text-2xl font-semibold mb-4 text-les-highlight">Description</h2>
         <p class="text-gray-700">
           {#if hoveredOption}
             {hoveredOption.description}
@@ -699,34 +666,25 @@
     <div class="flex justify-between mt-4">
       <button
         class="bg-gray-300 text-gray-700 px-4 py-2 rounded disabled:opacity-50 transition-colors duration-200
-        {currentStep !== 0
-          ? 'hover:bg-gray-400 cursor-pointer'
-          : 'cursor-not-allowed'}"
+        {currentStep !== 0 ? 'hover:bg-gray-400 cursor-pointer' : 'cursor-not-allowed'}"
         onclick={previousStep}
-        disabled={currentStep === 0}
-      >
+        disabled={currentStep === 0}>
         Previous
       </button>
       {#if currentStep < steps.length - 1}
         <button
           class="bg-les-highlight text-white px-4 py-2 rounded disabled:opacity-50 transition-colors duration-200
-          {selectedOption
-            ? 'hover:bg-sidebar cursor-pointer'
-            : 'cursor-not-allowed'}"
+          {selectedOption ? 'hover:bg-sidebar cursor-pointer' : 'cursor-not-allowed'}"
           onclick={nextStep}
-          disabled={!selectedOption}
-        >
+          disabled={!selectedOption}>
           Next
         </button>
       {:else}
         <button
           class="bg-les-highlight text-white px-4 py-2 rounded disabled:opacity-50 transition-colors duration-200
-          {selectedOption
-            ? 'hover:bg-sidebar cursor-pointer'
-            : 'cursor-not-allowed'}"
+          {selectedOption ? 'hover:bg-sidebar cursor-pointer' : 'cursor-not-allowed'}"
           onclick={finish}
-          disabled={!selectedOption}
-        >
+          disabled={!selectedOption}>
           Finish
         </button>
       {/if}
@@ -735,19 +693,14 @@
 {/snippet}
 
 {#snippet cardforms(title: string, fields: FormField[])}
-  <div
-    class="rounded-lg border-4 border-gray-400 bg-white p-6 w-full shadow-lg"
-  >
+  <div class="rounded-lg border-4 border-gray-400 bg-white p-6 w-full shadow-lg">
     <h1 class="text-2xl text-center text-les-highlight font-bold">
       {editMode ? "Edit Custom " + editedOption?.label : title}
     </h1>
     <form class="space-y-4" onsubmit={submitForm}>
       {#each fields as field}
         <div class="flex flex-col">
-          <label
-            class="text-les-highlight font-semibold mb-1"
-            for={field.label}
-          >
+          <label class="text-les-highlight font-semibold mb-1" for={field.label}>
             {field.label}
           </label>
           {#if field.description}
@@ -761,8 +714,7 @@
               placeholder={field.placeholder}
               bind:value={field.value}
               required={field.required}
-              oninput={() => validateField(field)}
-            />
+              oninput={() => validateField(field)} />
           {/if}
 
           {#if field.type === "textarea"}
@@ -772,16 +724,15 @@
               bind:value={field.value}
               required={field.required}
               rows="5"
-              oninput={() => validateField(field)}
-            ></textarea>
+              oninput={() => validateField(field)}></textarea>
           {/if}
 
           {#if field.type === "editor"}
             <div
               bind:this={editor}
               id="editor"
-              class="border-2 border-gray-300 rounded-lg p-2 h-64 text-les-highlight"
-            ></div>
+              class="border-2 border-gray-300 rounded-lg p-2 h-64 text-les-highlight">
+            </div>
           {/if}
           {#if field.error}
             <span class="text-red-500 text-sm mt-1">{field.error}</span>
@@ -791,24 +742,24 @@
             <input
               type="file"
               class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight focus:outline-none focus:ring-2 focus:ring-les-highlight"
-              bind:files={field.file}
-            />
+              onchange={(event) => handleFileChange(field, event)} />
+            {#if field.file}
+              <span class="text-green-500 text-sm mt-1">Selected File: {field.file.name}</span>
+            {/if}
           {/if}
         </div>
       {/each}
       <div class="flex space-x-4">
         <button
           type="submit"
-          class="bg-les-highlight text-white px-4 py-2 rounded transition-colors duration-200 hover:bg-sidebar"
-        >
+          class="bg-les-highlight text-white px-4 py-2 rounded transition-colors duration-200 hover:bg-sidebar">
           {editMode ? "Update" : "Create"}
         </button>
         {#if editMode}
           <button
             type="button"
             class="bg-gray-300 text-gray-700 px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-400"
-            onclick={cancelEdit}
-          >
+            onclick={cancelEdit}>
             Cancel
           </button>
         {/if}
@@ -818,12 +769,8 @@
 {/snippet}
 
 {#snippet customTwinWorld()}
-  <div
-    class="rounded-lg border-4 border-gray-400 bg-white p-4 shadow-lg w-full"
-  >
-    <h2 class="text-xl text-center text-les-highlight font-bold mb-4">
-      Households
-    </h2>
+  <div class="rounded-lg border-4 border-gray-400 bg-white p-4 shadow-lg w-full">
+    <h2 class="text-xl text-center text-les-highlight font-bold mb-4">Households</h2>
     <div class="space-y-4">
       <div>
         <input
@@ -836,19 +783,15 @@
               e.preventDefault();
               editHouseholdId ? updateHousehold() : addHousehold();
             }
-          }}
-        />
+          }} />
         {#if households.some((h) => h.name === newHouseholdName.trim())}
-          <span class="text-red-500 text-sm mt-1"
-            >Household name already exists.</span
-          >
+          <span class="text-red-500 text-sm mt-1">Household name already exists.</span>
         {/if}
         {#if editHouseholdId}
           <div class="flex space-x-2 mt-2">
             <button
               class="bg-les-highlight text-white px-3 py-1 rounded hover:bg-sidebar transition"
-              onclick={updateHousehold}
-            >
+              onclick={updateHousehold}>
               Update
             </button>
             <button
@@ -856,8 +799,7 @@
               onclick={() => {
                 editHouseholdId = null;
                 newHouseholdName = "";
-              }}
-            >
+              }}>
               Cancel
             </button>
           </div>
@@ -871,10 +813,8 @@
                   : "bg-les-highlight cursor-pointer hover:bg-sidebar"
               }`}
             onclick={addHousehold}
-            disabled={households.some(
-              (h) => h.name === newHouseholdName.trim(),
-            ) || !newHouseholdName.trim()}
-          >
+            disabled={households.some((h) => h.name === newHouseholdName.trim()) ||
+              !newHouseholdName.trim()}>
             Add
           </button>
         {/if}
@@ -889,22 +829,18 @@
               <div class="space-x-1">
                 <button
                   class="text-les-highlight text-sm hover:underline"
-                  onclick={() => editHousehold(household)}
-                >
+                  onclick={() => editHousehold(household)}>
                   Edit
                 </button>
                 <button
                   class="text-red-500 text-sm hover:underline"
-                  onclick={() => deleteHousehold(household)}
-                >
+                  onclick={() => deleteHousehold(household)}>
                   Delete
                 </button>
               </div>
             </div>
             <div class="mt-2 ml-2">
-              <h3 class="font-semibold text-les-highlight text-sm mb-1">
-                Appliances
-              </h3>
+              <h3 class="font-semibold text-les-highlight text-sm mb-1">Appliances</h3>
               <select
                 class="border border-gray-300 rounded p-2 w-full text-les-highlight focus:outline-none focus:ring focus:ring-les-highlight text-sm"
                 bind:value={newApplianceNames[household.name]}
@@ -915,8 +851,7 @@
                       ? updateAppliance(household)
                       : addAppliance(household);
                   }
-                }}
-              >
+                }}>
                 <option disabled value="">Select Appliance</option>
                 {#each getAvailableAppliances(household) as appliance}
                   <option value={appliance}>{appliance}</option>
@@ -926,8 +861,7 @@
                 class={`text-white px-2 py-1 rounded transition w-full mt-1 text-sm
                     ${!newApplianceNames[household.name]?.trim() ? "bg-gray-400 cursor-not-allowed" : "bg-les-highlight cursor-pointer hover:bg-sidebar"}`}
                 onclick={() => addAppliance(household)}
-                disabled={!newApplianceNames[household.name]?.trim()}
-              >
+                disabled={!newApplianceNames[household.name]?.trim()}>
                 Add
               </button>
               <ul class="space-y-1 mt-2">
@@ -939,16 +873,13 @@
                       </span>
                       <button
                         class="text-red-500 text-xs hover:underline"
-                        onclick={() => deleteAppliance(appliance, household)}
-                      >
+                        onclick={() => deleteAppliance(appliance, household)}>
                         Delete
                       </button>
                     </div>
                     <button
                       class="mt-2 text-les-highlight text-sm underline"
-                      onclick={() =>
-                        toggleAvailability(household.name, appliance.name)}
-                    >
+                      onclick={() => toggleAvailability(household.name, appliance.name)}>
                       {openAppliances[household.name]?.[appliance.name]
                         ? "Hide Availability"
                         : "Show Availability"}
@@ -957,15 +888,11 @@
                       <div class="mt-2">
                         <div class="grid grid-cols-6 gap-1">
                           {#each Array(24) as _, hour}
-                            <label
-                              class="flex items-center text-les-highlight text-xs gap-1"
-                            >
+                            <label class="flex items-center text-les-highlight text-xs gap-1">
                               <input
                                 type="checkbox"
                                 checked={appliance.availability[hour]}
-                                onchange={(e) =>
-                                  handleAvailabilityChange(appliance, hour, e)}
-                              />
+                                onchange={(e) => handleAvailabilityChange(appliance, hour, e)} />
                               <p>{hour}:00</p>
                             </label>
                           {/each}
@@ -984,19 +911,18 @@
 {/snippet}
 
 <div
-  class="flex flex-col items-center justify-center mx-auto xl:max-w-6xl max-w-2xl px-2 py-4 space-y-8"
->
+  class="flex flex-col items-center justify-center mx-auto xl:max-w-6xl max-w-2xl px-2 py-4 space-y-8">
+  <button onclick={wipestorage} class="bg-red-700 text-white px-4 py-2 rounded"
+    >Clear Storage</button>
+
   {@render progressBar(
     steps.map((step) => step.title),
     selectedOptions,
-    currentStep,
+    currentStep
   )}
 
   {@render cardoptions(steps[currentStep].title, steps[currentStep].options)}
-  {@render cardforms(
-    "Create Custom " + steps[currentStep].title,
-    steps[currentStep].formFields,
-  )}
+  {@render cardforms("Create Custom " + steps[currentStep].title, steps[currentStep].formFields)}
   {#if steps[currentStep].title === "Twin World" && selectedOption?.isCustom}
     {@render customTwinWorld()}
   {/if}
