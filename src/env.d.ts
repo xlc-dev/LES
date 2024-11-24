@@ -10,9 +10,9 @@ interface AppData {
 }
 
 type Option = {
-  label: string;
+  id: string;
   description: string;
-  id?: string;
+  label: string;
   isCustom?: boolean;
 };
 
@@ -21,7 +21,7 @@ type FormField = {
   description?: string;
   type: "input" | "textarea" | "editor" | "file";
   dataType?: "string" | "int" | "float";
-  file?: FileList;
+  file?: File;
   placeholder?: string;
   value?: string;
   required?: boolean;
@@ -39,8 +39,8 @@ type Step = {
 
 type CustomOption = {
   id: string;
-  option: Option;
-  formData: any;
+  option: Option & { energyflow?: Energyflow };
+  formData: Record<string, any>;
 };
 
 type Energyflow = {
@@ -56,9 +56,8 @@ type StepperData = {
   steps: {
     title: string;
     selectedOption: Option | null;
-    formData: { [key: string]: any } | null;
+    formData: Record<string, any> | null;
     twinWorld?: TwinWorld;
-    energyflow?: Energyflow;
   }[];
 };
 
@@ -71,17 +70,17 @@ type ApplianceTypes =
 
 type Appliance = {
   name: ApplianceTypes;
-  power: number; // in Watts, gt 0
-  duration: number; // in hours, gt 0
-  dailyUsage: number; // times used per day, gt 0
+  power: number;
+  duration: number;
+  dailyUsage: number;
   availability: boolean[];
 };
 
 type Household = {
-  name: string; // gt 1
-  size: number; // default 1, ge 1 le 5
-  energyUsage: number; // in kWh, ge 0
-  solarPanels: number; // ge 0
+  name: string;
+  size: number;
+  energyUsage: number;
+  solarPanels: number;
   appliances?: Appliance[];
 };
 
