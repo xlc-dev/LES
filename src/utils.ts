@@ -4,6 +4,15 @@ export const getRandomInt = (min: number, max: number): number => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
+export function s2ab(s: string): ArrayBuffer {
+  const buffer = new ArrayBuffer(s.length);
+  const view = new Uint8Array(buffer);
+  for (let i = 0; i < s.length; i++) {
+    view[i] = s.charCodeAt(i) & 0xff;
+  }
+  return buffer;
+}
+
 export async function readCSV(url: string): Promise<Energyflow> {
   try {
     const response = await fetch(url);
