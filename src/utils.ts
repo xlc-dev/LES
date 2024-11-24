@@ -21,21 +21,31 @@ export function s2ab(s: string): ArrayBuffer {
   return buffer;
 }
 
-export async function readCSV(url: string): Promise<Energyflow> {
+export async function readCSV(input: string | File): Promise<Energyflow> {
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch CSV file: ${response.statusText}`);
+    let csvText: string;
+
+    if (input instanceof File) {
+      csvText = await input.text();
+    } else {
+      const response = await fetch(input);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch CSV file: ${response.statusText}`);
+      }
+      csvText = await response.text();
     }
 
-    const csvText = await response.text();
+    if (!csvText.trim()) {
+      throw new Error("The CSV file is empty or contains only whitespace.");
+    }
+
     const workbook = XLSX.read(csvText, { type: "string" });
     const firstSheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[firstSheetName];
     const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
     if (jsonData.length === 0) {
-      throw new Error("CSV file is empty");
+      throw new Error("The CSV file is empty.");
     }
 
     const headers = jsonData[0] as string[];
