@@ -17,6 +17,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
     "@rsbuild/core": "^1.1.4",
     "@rsbuild/plugin-svelte": "^1.0.5",
     "prettier": "^3.3.3",
