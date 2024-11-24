@@ -24,7 +24,7 @@
   let editApplianceIds: Record<string, string | null> = $state({});
   let openAppliances: Record<string, Record<string, boolean>> = $state({});
 
-  let appData: AppData = {
+  let appData: AppData = $state({
     stepperData: {
       steps: steps.map((step) => ({
         title: step.title,
@@ -39,7 +39,9 @@
     },
     customOptions: {},
     households: [],
-  };
+  });
+
+  $inspect(appData.stepperData.steps[3].energyflow);
 
   function saveAppData() {
     localStorage.setItem("appData", JSON.stringify(appData));
@@ -189,12 +191,19 @@
   }
 
   function validateField(field: FormField): boolean {
-    if (field.required && (!field.value || field.value.trim() === "")) {
-      field.error = "This field is required.";
-      return false;
+    if (field.required) {
+      if (field.type === "file") {
+        if (!field.file || field.file.length === 0) {
+          field.error = "This field is required.";
+          return false;
+        }
+      } else if (!field.value || field.value.trim() === "") {
+        field.error = "This field is required.";
+        return false;
+      }
     }
 
-    if (field.value && field.dataType) {
+    if (field.type !== "file" && field.value && field.dataType) {
       const value = field.value.trim();
       const numValue = parseFloat(value);
       if (field.dataType === "int" && !/^\d+$/.test(value)) {
@@ -245,6 +254,14 @@
   function submitForm(e: Event) {
     e.preventDefault();
     const fields = steps[currentStep].formFields;
+
+    const editorField = fields.find((field) => field.type === "editor");
+    if (editorField && editor) {
+      // @ts-ignore
+      const aceEditor = ace.edit("editor");
+      editorField.value = aceEditor.getValue();
+    }
+
     if (validateForm(fields)) {
       const formData = getFormData(fields);
 
@@ -282,6 +299,12 @@
             selectedOptions[currentStep] = customOptions[index].option;
           }
 
+          if (editor) {
+            // @ts-ignore
+            const aceEditor = ace.edit("editor");
+            aceEditor.setValue("", -1);
+          }
+
           editMode = false;
           editedOption = null;
 
@@ -313,6 +336,12 @@
         }
         appData.customOptions[currentStep].push(customOption);
         saveAppData();
+
+        if (editor) {
+          // @ts-ignore
+          const aceEditor = ace.edit("editor");
+          aceEditor.setValue("", -1);
+        }
 
         for (const field of fields) {
           field.value = "";
@@ -356,6 +385,12 @@
       const fields = steps[currentStep].formFields;
       for (const field of fields) {
         field.value = customOption.formData[field.label];
+
+        if (field.type === "editor" && editor) {
+          // @ts-ignore
+          const aceEditor = ace.edit("editor");
+          aceEditor.setValue(customOption.formData[field.label] || "", -1);
+        }
       }
       editMode = true;
       editedOption = option;
@@ -366,6 +401,13 @@
     editMode = false;
     editedOption = null;
     const fields = steps[currentStep].formFields;
+
+    if (editor) {
+      // @ts-ignore
+      const aceEditor = ace.edit("editor");
+      aceEditor.setValue("", -1);
+    }
+
     for (const field of fields) {
       field.value = "";
     }
