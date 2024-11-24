@@ -13,7 +13,12 @@
 
   const initializeCharts = () => {
     chartContainers.forEach((container, index) => {
-      charts[index] = new Chart(container.getContext("2d"), {
+      const ctx = container.getContext("2d");
+      if (!ctx) {
+        console.error(`Failed to get 2D context for chart at index ${index}`);
+        return;
+      }
+      charts[index] = new Chart(ctx, {
         type: "line",
         data: {
           labels: [],
@@ -32,7 +37,7 @@
             y: {
               beginAtZero: true,
               ticks: {
-                color: getAxisTextColor(),
+                color: "#",
               },
               title: {
                 display: true,
@@ -41,7 +46,7 @@
             },
             x: {
               ticks: {
-                color: getAxisTextColor(),
+                color: "#2a2a3d",
               },
             },
           },
@@ -50,7 +55,7 @@
               onClick: () => {}, // Disable legend click
               onHover: () => {}, // Disable legend hover
               labels: {
-                color: getAxisTextColor(),
+                color: "#2a2a3d",
               },
             },
             zoom: {
@@ -84,15 +89,16 @@
 
       // Update chart labels and datasets
       chart.data.labels = latestData.map((_, i) => `Day ${i + 1}`);
+      const key = solarDataKeys[index] as keyof EfficiencyResult;
       chart.data.datasets[0].data = latestData.map(
-        (item) => item[solarDataKeys[index]],
+        (item) => item[key] as number,
       );
       chart.update();
     });
   };
 
   // Keys corresponding to efficiency data properties
-  const solarDataKeys: string[] = [
+  const solarDataKeys: (keyof EfficiencyResult)[] = [
     "solarEnergyIndividual",
     "solarEnergyTotal",
     "internalBoughtEnergyPrice",
@@ -158,50 +164,14 @@
    */
   const getColor = (index: number, array: string[]): string => array[index];
 
-  /**
-   * Get the axis text color based on Tailwind CSS dark mode.
-   * @returns {string} - The axis text color.
-   */
-  const getAxisTextColor = (): string =>
-    darkModeEnabled() ? "#FFFFFF" : "#000000";
-
-  /**
-   * Check if Tailwind CSS dark mode is enabled.
-   * @returns {boolean} - True if dark mode is enabled, false otherwise.
-   */
-  const darkModeEnabled = (): boolean =>
-    localStorage.getItem("darkMode") === "true";
-
-  // Listen for dark mode changes
-  const observer = new MutationObserver((mutationsList) => {
-    for (const mutation of mutationsList) {
-      if (
-        mutation.type === "attributes" &&
-        mutation.attributeName === "class"
-      ) {
-        charts.forEach((chart) => {
-          chart.options.scales.y.ticks.color = getAxisTextColor();
-          chart.options.scales.x.ticks.color = getAxisTextColor();
-          chart.options.plugins.legend.labels.color = getAxisTextColor();
-          chart.update();
-        });
-      }
-    }
-  });
-
   onMount(() => {
     initializeCharts();
     updateCharts(efficiencyResults.efficiencyResults);
     Chart.register(zoomPlugin);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
   });
 
   onDestroy(() => {
     charts.forEach((chart) => chart?.destroy());
-    observer.disconnect();
   });
 
   $effect(() => {
