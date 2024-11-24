@@ -40,9 +40,9 @@ export async function readCSV(url: string): Promise<Energyflow> {
 
     const headers = jsonData[0] as string[];
     const data = jsonData.slice(1).map((row) => ({
-      name: row[0],
-      energyUsage: Number(row[1]),
-      solarPanels: Number(row[2]),
+      timestamp: row[0],
+      energy_used: Number(row[1]),
+      solar_produced: Number(row[2]),
     }));
 
     return { headers, data };

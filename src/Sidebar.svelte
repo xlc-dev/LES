@@ -15,24 +15,21 @@
     <div class="mt-4 flex flex-col items-start justify-center gap-3">
       <button
         class={`flex w-full items-center gap-3 p-4 transition-colors duration-200 hover:bg-les-gray-700 ${component.currentComponent === "Dashboard" ? "bg-les-gray-700" : ""}`}
-        on:click={() => component.setComponent("Dashboard")}
-      >
+        on:click={() => component.setComponent("Dashboard")}>
         <img src="/rectangle.png" alt="" />
         <p>Dashboard</p>
       </button>
 
       <button
         class={`flex w-full items-center gap-3 p-4 transition-colors duration-200 hover:bg-les-gray-700 ${component.currentComponent === "Simulation" ? "bg-les-gray-700" : ""}`}
-        on:click={() => component.setComponent("Simulation")}
-      >
+        on:click={() => component.setComponent("Simulation")}>
         <img src="/adjustment.png" alt="" />
         <p>Simulation</p>
       </button>
 
       <button
         class={`flex w-full items-center gap-3 p-4 transition-colors duration-200 hover:bg-les-gray-700 ${component.currentComponent === "Schedulable Loads" ? "bg-les-gray-700" : ""}`}
-        on:click={() => component.setComponent("Schedulable Loads")}
-      >
+        on:click={() => component.setComponent("Schedulable Loads")}>
         <img src="/calendar.png" alt="" />
         <p>Schedulable Loads</p>
       </button>
@@ -58,9 +55,8 @@
 
     <button
       id="stop-button"
-      class="flex w-full items-center gap-3 bg-red-950 hover:bg-red-800 p-4 py-6 mt-4 transition-colors duration-200 hover:brightness-110"
-      on:click={() => component.setComponent("Stop")}
-    >
+      class="mt-4 flex w-full items-center gap-3 bg-red-950 p-4 py-6 transition-colors duration-200 hover:bg-red-800 hover:brightness-110"
+      on:click={() => component.setComponent("Stop")}>
       <img src="/stop.png" alt="" />
       <p>Stop Simulation</p>
     </button>

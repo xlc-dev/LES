@@ -9,11 +9,11 @@ The frequency of use and power usage are randomized for each appliance.
 const createTwinWorld = (
   baseHouseholdCount: number,
   variation: number,
-  description: string,
+  description: string
 ): TwinWorld => {
   const householdCount = getRandomInt(
     Math.max(1, baseHouseholdCount - variation),
-    baseHouseholdCount + variation,
+    baseHouseholdCount + variation
   );
 
   return {
@@ -50,12 +50,12 @@ export const defaultTwinWorlds: { [key: string]: TwinWorld } = {
   "Twin World small": createTwinWorld(
     25,
     5,
-    `A small twin world consisting of roughly 25 households. ${TWIN_WORLD_DESCRIPTION}`,
+    `A small twin world consisting of roughly 25 households. ${TWIN_WORLD_DESCRIPTION}`
   ),
   "Twin World large": createTwinWorld(
     75,
     5,
-    `A large twin world consisting of roughly 75 households. ${TWIN_WORLD_DESCRIPTION}`,
+    `A large twin world consisting of roughly 75 households. ${TWIN_WORLD_DESCRIPTION}`
   ),
 };
 
@@ -160,8 +160,7 @@ const steps: Step[] = $state([
       },
       {
         label: "Solar Panel Capacity",
-        description:
-          "Enter the average yield of a single solar panel in a year",
+        description: "Enter the average yield of a single solar panel in a year",
         type: "input",
         dataType: "int",
         placeholder: "340",
@@ -233,8 +232,7 @@ const steps: Step[] = $state([
       },
       {
         label: "Cost Model Algorithm",
-        description:
-          "A custom formula used to determine the internal buying and selling price",
+        description: "A custom formula used to determine the internal buying and selling price",
         type: "editor",
         required: true,
         value: `function costModel() {\n\treturn buyCustomer * ratio + sellCustomer * (1 - ratio);\n}\n`,
@@ -281,8 +279,7 @@ const steps: Step[] = $state([
       },
       {
         label: "Custom Algorithm",
-        description:
-          "A custom algorithm used to determine when an appliance will be planned in",
+        description: "A custom algorithm used to determine when an appliance will be planned in",
         type: "editor",
         required: true,
         value: `function run() {\n\treturn true;\n}\n`,
@@ -316,8 +313,7 @@ const steps: Step[] = $state([
       },
       {
         label: "Solar Panels Factor",
-        description:
-          "The amount of solar panels for the household in the supplied energy table",
+        description: "The amount of solar panels for the household in the supplied energy table",
         type: "input",
         dataType: "int",
         placeholder: "25",

@@ -3,22 +3,11 @@
 
 type ComponentList = "Dashboard" | "Schedulable Loads" | "Simulation" | "Stop";
 
-let appData: AppData = {
-  stepperData: {
-    steps: steps.map((step) => ({
-      title: step.title,
-      selectedOption: null,
-      formData: null,
-      twinWorld:
-        step.title === "Twin World"
-          ? { description: "", households: [] }
-          : undefined,
-      energyflow: undefined,
-    })),
-  },
-  customOptions: {},
-  households: [],
-};
+interface AppData {
+  stepperData: StepperData;
+  customOptions: Record<number, CustomOption[]>;
+  households: Household[];
+}
 
 type Option = {
   label: string;

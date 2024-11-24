@@ -47,36 +47,29 @@
     results.forEach((result, index) => {
       const dayNumber = index + 1;
       graphData.graph1.push(
-        `internalBoughtEnergyPrice x: Day ${dayNumber}, y: ${result.internalBoughtEnergyPrice}`,
+        `internalBoughtEnergyPrice x: Day ${dayNumber}, y: ${result.internalBoughtEnergyPrice}`
       );
       graphData.graph2.push(
-        `solarEnergyIndividual x: Day ${dayNumber}, y: ${result.solarEnergyIndividual}`,
+        `solarEnergyIndividual x: Day ${dayNumber}, y: ${result.solarEnergyIndividual}`
       );
-      graphData.graph3.push(
-        `solarEnergyTotal x: Day ${dayNumber}, y: ${result.solarEnergyTotal}`,
-      );
-      graphData.graph4.push(
-        `totalAmountSaved x: Day ${dayNumber}, y: ${result.totalAmountSaved}`,
-      );
+      graphData.graph3.push(`solarEnergyTotal x: Day ${dayNumber}, y: ${result.solarEnergyTotal}`);
+      graphData.graph4.push(`totalAmountSaved x: Day ${dayNumber}, y: ${result.totalAmountSaved}`);
     });
 
     return graphData;
   }
 
-  function processGraphDataAndAddToWorkbook(
-    graphData: GraphData,
-    workbook: XLSX.WorkBook,
-  ): void {
+  function processGraphDataAndAddToWorkbook(graphData: GraphData, workbook: XLSX.WorkBook): void {
     Object.keys(graphData).forEach((graphKey) => {
-      const graphPoints: GraphPoint[] = graphData[
-        graphKey as keyof GraphData
-      ].map((point: string) => {
-        const [xPart, yPart] = point.split(",");
-        return {
-          X: xPart.split(":")[1].trim(),
-          Y: yPart.split(":")[1].trim(),
-        };
-      });
+      const graphPoints: GraphPoint[] = graphData[graphKey as keyof GraphData].map(
+        (point: string) => {
+          const [xPart, yPart] = point.split(",");
+          return {
+            X: xPart.split(":")[1].trim(),
+            Y: yPart.split(":")[1].trim(),
+          };
+        }
+      );
 
       const worksheet = XLSX.utils.json_to_sheet(graphPoints);
       XLSX.utils.book_append_sheet(workbook, worksheet, graphKey);
@@ -88,16 +81,10 @@
 
     const sumEfficiencyIndividual = results.reduce(
       (acc, result) => acc + result.solarEnergyIndividual,
-      0,
+      0
     );
-    const sumEfficiencyTotal = results.reduce(
-      (acc, result) => acc + result.solarEnergyTotal,
-      0,
-    );
-    const sumTotalMoneySaved = results.reduce(
-      (acc, result) => acc + result.totalAmountSaved,
-      0,
-    );
+    const sumEfficiencyTotal = results.reduce((acc, result) => acc + result.solarEnergyTotal, 0);
+    const sumTotalMoneySaved = results.reduce((acc, result) => acc + result.totalAmountSaved, 0);
     const sumEfficiencyNoSolar = sumEfficiencyTotal - sumEfficiencyIndividual;
 
     const stepper = stepperData.stepperData;
@@ -188,25 +175,20 @@
 </script>
 
 <div class="mx-auto max-w-3xl pt-8">
-  <h1 class="text-center text-4xl font-bold pb-4">
-    Statistics for your session
-  </h1>
+  <h1 class="pb-4 text-center text-4xl font-bold">Statistics for your session</h1>
   <Chart />
   <div
-    class="relative mb-8 mt-8 grid grid-cols-2 gap-4 rounded-lg bg-white p-4 shadow border-4 border-gray-400 text-les-highlight"
-  >
+    class="relative mb-8 mt-8 grid grid-cols-2 gap-4 rounded-lg border-4 border-gray-400 bg-white p-4 text-les-highlight shadow">
     <p class="absolute left-1/2 mt-4 -translate-x-1/2 transform">
       Runtime: {runtime.runtime} seconds
     </p>
     <div class="col-span-2 mt-8 flex justify-between">
       <button
-        class="rounded-lg bg-blue-500 px-6 py-3 transition-colors duration-200 hover:bg-blue-600 text-white"
-        onclick={newSessionButton}>New session</button
-      >
+        class="rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600"
+        onclick={newSessionButton}>New session</button>
       <button
-        class="rounded-lg bg-blue-500 px-6 py-3 transition-colors duration-200 hover:bg-blue-600 text-white"
-        onclick={downloadExcel}>Download</button
-      >
+        class="rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600"
+        onclick={downloadExcel}>Download</button>
     </div>
   </div>
 </div>

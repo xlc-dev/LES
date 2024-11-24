@@ -90,9 +90,7 @@
       // Update chart labels and datasets
       chart.data.labels = latestData.map((_, i) => `Day ${i + 1}`);
       const key = solarDataKeys[index] as keyof EfficiencyResult;
-      chart.data.datasets[0].data = latestData.map(
-        (item) => item[key] as number,
-      );
+      chart.data.datasets[0].data = latestData.map((item) => item[key] as number);
       chart.update();
     });
   };
@@ -181,9 +179,7 @@
   });
 </script>
 
-<div
-  class="grid grid-cols-2 gap-4 rounded-lg p-4 bg-white border-4 border-gray-400"
->
+<div class="grid grid-cols-2 gap-4 rounded-lg border-4 border-gray-400 bg-white p-4">
   {#each Array(4) as _, index (index)}
     <div>
       <canvas bind:this={chartContainers[index]}></canvas>

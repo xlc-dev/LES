@@ -1,12 +1,12 @@
 {
-  "name": "LES",
+  "namae": "LES",
   "private": true,
   "version": "1.0.0",
   "scripts": {
     "build": "rsbuild build",
-    "check": "biome check --write",
+    "check": "prettier --check .",
     "dev": "rsbuild dev --open",
-    "format": "biome format --write",
+    "format": "prettier --write .",
     "preview": "rsbuild preview",
     "svelte-check": "svelte-check --tsconfig ./tsconfig.json"
   },
@@ -17,9 +17,11 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
     "@rsbuild/core": "^1.1.4",
     "@rsbuild/plugin-svelte": "^1.0.5",
+    "prettier": "^3.3.3",
+    "prettier-plugin-svelte": "^3.3.2",
+    "prettier-plugin-tailwindcss": "^0.6.9",
     "svelte-check": "^4.1.0",
     "tailwindcss": "^3.4.15",
     "typescript": "^5.7.2"
