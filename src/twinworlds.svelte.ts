@@ -1,21 +1,18 @@
+import { getRandomInt, shuffleArray } from "./utils";
+
 const TWIN_WORLD_DESCRIPTION = `
 Each house consists of 1 to 5 inhabitants. The schedulable appliances are:
 Washing machine, tumble dryer, dishwasher, kitchen appliances, and Electrical Vehicle.
 The frequency of use and power usage are randomized for each appliance.
 `;
 
-const getRandomInt = (min: number, max: number): number => {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-};
-
 const createTwinWorld = (
-  name: string,
   baseHouseholdCount: number,
   variation: number,
   description: string,
 ): TwinWorld => {
   const householdCount = getRandomInt(
-    baseHouseholdCount - variation,
+    Math.max(1, baseHouseholdCount - variation),
     baseHouseholdCount + variation,
   );
 
@@ -23,45 +20,113 @@ const createTwinWorld = (
     description,
     households: Array.from({ length: householdCount }, (_, i) => ({
       name: `Household ${i + 1}`,
-      size: getRandomInt(1, 5), // 1 to 5 inhabitants
-      energyUsage: getRandomInt(0, 10000), // 0 to 10,000 kWh
-      solarPanels: getRandomInt(0, 20), // 0 to 20 panels
+      size: getRandomInt(1, 6),
+      energyUsage: getRandomInt(3000, 15000),
+      solarPanels: getRandomInt(0, 30),
       appliances: generateRandomAppliances(),
     })),
   };
 };
 
-function generateRandomAppliances(): Appliance[] {
-  const applianceNames = [
-    "Washing Machine",
-    "Tumble Dryer",
-    "Dishwasher",
-    "Kitchen Appliances",
-    "Electrical Vehicle",
-  ];
+function generateEVAvailability(): boolean[] {
+  const availability = Array(24).fill(false);
+  const chargeStart = getRandomInt(20, 22); // 8 PM to 10 PM
+  const chargeDuration = getRandomInt(2, 4); // 2 to 4 hours
 
-  return applianceNames.map((name) => ({
-    name,
-    power: Math.floor(Math.random() * 1000) + 500, // Example: 500W to 1500W
-    duration: Math.floor(Math.random() * 3) + 1, // Example: 1 to 3 hours
-    dailyUsage: Math.floor(Math.random() * 5) + 1, // Example: 1 to 5 times a day
-  }));
+  for (let i = 0; i < chargeDuration; i++) {
+    const hour = (chargeStart + i) % 24;
+    availability[hour] = true;
+  }
+
+  return availability;
+}
+
+function getRandomHours(possibleHours: number[]): number[] {
+  const count = getRandomInt(1, possibleHours.length);
+  return shuffleArray(possibleHours).slice(0, count);
 }
 
 export const defaultTwinWorlds: { [key: string]: TwinWorld } = {
   "Twin World small": createTwinWorld(
-    "Twin World small",
-    25, // baseHouseholdCount
-    5, // variation
+    25,
+    5,
     `A small twin world consisting of roughly 25 households. ${TWIN_WORLD_DESCRIPTION}`,
   ),
   "Twin World large": createTwinWorld(
-    "Twin World large",
-    75, // baseHouseholdCount
-    5, // variation
+    75,
+    5,
     `A large twin world consisting of roughly 75 households. ${TWIN_WORLD_DESCRIPTION}`,
   ),
 };
+
+function generateRandomAppliances(): Appliance[] {
+  const applianceNames: ApplianceTypes[] = [
+    "Washing Machine",
+    "Tumble Dryer",
+    "Stove",
+    "Dishwasher",
+    "Electric Vehicle",
+  ];
+
+  const appliances: Appliance[] = [];
+
+  applianceNames.forEach((name) => {
+    if (name !== "Electric Vehicle") {
+      if (Math.random() < 0.8) {
+        appliances.push({
+          name,
+          power: getRandomInt(500, 2000),
+          duration: getRandomInt(1, 4),
+          dailyUsage: getRandomInt(1, 6),
+          availability: generateAvailability(name),
+        });
+      }
+    }
+  });
+
+  if (Math.random() < 0.7) {
+    const numberOfVehicles = Math.random() < 0.5 ? 1 : 2;
+    for (let i = 0; i < numberOfVehicles; i++) {
+      appliances.push({
+        name: "Electric Vehicle",
+        power: getRandomInt(5000, 25000),
+        duration: getRandomInt(2, 5),
+        dailyUsage: 1,
+        availability: generateEVAvailability(),
+      });
+    }
+  }
+
+  return appliances;
+}
+
+function generateAvailability(applianceName: string): boolean[] {
+  const availability = Array(24).fill(false);
+  let activeHours: number[] = [];
+
+  switch (applianceName) {
+    case "Washing Machine":
+      activeHours = getRandomHours([6, 7, 18, 19]);
+      break;
+    case "Tumble Dryer":
+      activeHours = getRandomHours([7, 8, 19, 20]);
+      break;
+    case "Stove":
+      activeHours = getRandomHours([12, 13, 18, 19]);
+      break;
+    case "Dishwasher":
+      activeHours = getRandomHours([19, 20]);
+      break;
+    default:
+      activeHours = [];
+  }
+
+  activeHours.forEach((hour) => {
+    availability[hour] = true;
+  });
+
+  return availability;
+}
 
 const steps: Step[] = $state([
   {
@@ -268,6 +333,12 @@ const steps: Step[] = $state([
         placeholder: "7000",
         required: true,
         min: 0,
+      },
+      {
+        label: "Energyflow CSV",
+        description: "Upload a energyflow CSV file to use for the simulation",
+        type: "file",
+        required: true,
       },
     ],
   },
