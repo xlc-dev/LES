@@ -2,6 +2,8 @@
   import * as XLSX from "xlsx";
   import Chart from "./Chart.svelte";
 
+  import { s2ab } from "./utils";
+
   import {
     getRuntime,
     getEfficiencyResults,
@@ -14,15 +16,6 @@
   const efficiencyResults = getEfficiencyResults();
   const stepperData = getStepperData();
   const timeDailies = getTimeDailies();
-
-  function s2ab(s: string): ArrayBuffer {
-    const buffer = new ArrayBuffer(s.length);
-    const view = new Uint8Array(buffer);
-    for (let i = 0; i < s.length; i++) {
-      view[i] = s.charCodeAt(i) & 0xff;
-    }
-    return buffer;
-  }
 
   interface GraphData {
     graph1: string[];
@@ -112,27 +105,27 @@
     return [
       {
         label: "Number of Households",
-        value: stepper?.households.length ?? 0,
+        value: stepper?.steps[0].twinWorld!.households.length,
       },
       {
         label: "Cost Model Price Network Buy Consumer",
-        value: stepper?.costmodel.price_network_buy_consumer ?? 0,
+        value: stepper?.costmodel.price_network_buy_consumer,
       },
       {
         label: "Cost Model Price Network Sell Consumer",
-        value: stepper?.costmodel.price_network_sell_consumer ?? 0,
+        value: stepper?.costmodel.price_network_sell_consumer,
       },
       {
         label: "Twin World Energy Usage Factor",
-        value: stepper?.energyflow.energy_usage_factor ?? 0,
+        value: stepper?.steps[4].energyflow!.data,
       },
       {
         label: "Twin World Solar Panels Factor",
-        value: stepper?.energyflow.solar_panels_factor ?? 0,
+        value: stepper?.energyflow.solar_panels_factor,
       },
       {
         label: "Algorithm Max Temperature",
-        value: stepper?.algorithm.max_temperature ?? 0,
+        value: stepper?.algorithm.max_temperature,
       },
       {
         label: "Total Saved by Own Solar Panels",
