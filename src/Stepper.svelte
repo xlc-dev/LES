@@ -4,6 +4,7 @@
   import { getSteps, defaultTwinWorlds } from "./twinworlds.svelte";
 
   const steps: Step[] = getSteps().steps;
+  const stepperData = getStepperData();
 
   let editor: HTMLElement | null = $state(null);
 
@@ -19,14 +20,83 @@
   let households: Household[] = $state([]);
   let newHouseholdName: string = $state("");
   let editHouseholdId: string | null = $state(null);
-  let newApplianceName: string = $state("");
-  let editApplianceId: string | null = $state(null);
+  let newApplianceNames: Record<string, string> = $state({});
+  let editApplianceIds: Record<string, string | null> = $state({});
+  let openAppliances: Record<string, Record<string, boolean>> = $state({});
+
+  let appData: AppData = {
+    stepperData: {
+      steps: steps.map((step) => ({
+        title: step.title,
+        selectedOption: null,
+        formData: null,
+        twinWorld:
+          step.title === "Twin World"
+            ? { description: "", households: [] }
+            : undefined,
+        energyflow: undefined,
+      })),
+    },
+    customOptions: {},
+    households: [],
+  };
+
+  function saveAppData() {
+    localStorage.setItem("appData", JSON.stringify(appData));
+  }
+
+  function loadAppData() {
+    const storedData = localStorage.getItem("appData");
+    if (storedData) {
+      try {
+        appData = JSON.parse(storedData);
+        stepperData.setStepperData(appData.stepperData);
+        households = appData.households;
+
+        for (let i = 0; i < steps.length; i++) {
+          const customOptions = appData.customOptions[i] || [];
+          for (const customOption of customOptions) {
+            steps[i].options.push(customOption.option);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to parse appData from localStorage:", error);
+        initializeDefaultData();
+      }
+    } else {
+      initializeDefaultData();
+    }
+  }
+
+  function initializeDefaultData() {
+    appData = {
+      stepperData: {
+        steps: steps.map((step) => ({
+          title: step.title,
+          selectedOption: null,
+          formData: null,
+          twinWorld:
+            step.title === "Twin World"
+              ? { description: "", households: [] }
+              : undefined,
+          energyflow: undefined,
+        })),
+      },
+      customOptions: {},
+      households: [],
+    };
+    saveAppData();
+  }
 
   function goToStep(index: number) {
     if (selectedOptions[index] || index === currentStep) {
       currentStep = index;
       selectedOption = selectedOptions[currentStep];
       hoveredOption = null;
+      editMode = false;
+      editedOption = null;
+      newHouseholdName = "";
+      editHouseholdId = null;
     }
   }
 
@@ -37,6 +107,10 @@
         currentStep += 1;
         selectedOption = selectedOptions[currentStep];
         hoveredOption = null;
+        editMode = false;
+        editedOption = null;
+        newHouseholdName = "";
+        editHouseholdId = null;
       }
     }
   }
@@ -46,6 +120,10 @@
       currentStep -= 1;
       selectedOption = selectedOptions[currentStep];
       hoveredOption = null;
+      editMode = false;
+      editedOption = null;
+      newHouseholdName = "";
+      editHouseholdId = null;
     }
   }
 
@@ -54,41 +132,41 @@
       selectedOptions[currentStep] = selectedOption;
     }
 
-    const stepperData: StepperData = {
-      steps: steps.map((step, index) => {
-        const selected = selectedOptions[index];
-        const stepData: {
-          title: string;
-          selectedOption: Option | null;
-          formData: { [key: string]: any } | null;
-          twinWorld?: TwinWorld;
-          energyflow?: Energyflow;
-        } = {
-          title: step.title,
-          selectedOption: selected,
-          formData: selected ? getFormData(step.formFields) : null,
+    appData.stepperData.steps = steps.map((step, index) => {
+      const selected = selectedOptions[index];
+      const stepData: {
+        title: string;
+        selectedOption: Option | null;
+        formData: { [key: string]: any } | null;
+        twinWorld?: TwinWorld;
+        energyflow?: Energyflow;
+      } = {
+        title: step.title,
+        selectedOption: selected,
+        formData: selected ? getFormData(step.formFields) : null,
+      };
+
+      if (step.title === "Twin World" && selected && !selected.isCustom) {
+        const twinWorldData =
+          defaultTwinWorlds[selected.label as keyof typeof defaultTwinWorlds];
+        if (twinWorldData) {
+          stepData.twinWorld = twinWorldData;
+        }
+      }
+
+      if (step.title === "Twin World" && selected && selected.isCustom) {
+        stepData.twinWorld = {
+          description: "Custom Twin World",
+          households: households,
         };
+      }
 
-        if (step.title === "Twin World" && selected && !selected.isCustom) {
-          const twinWorldData =
-            defaultTwinWorlds[selected.label as keyof typeof defaultTwinWorlds];
-          if (twinWorldData) {
-            stepData.twinWorld = twinWorldData;
-          }
-        }
+      return stepData;
+    });
 
-        if (step.title === "Twin World" && selected && selected.isCustom) {
-          stepData.twinWorld = {
-            description: "Custom Twin World",
-            households: households,
-          };
-        }
-
-        return stepData;
-      }),
-    };
-
-    getStepperData().setStepperData(stepperData);
+    stepperData.setStepperData(appData.stepperData);
+    appData.households = households;
+    saveAppData();
     getDashboard().setDashboard(true);
   }
 
@@ -97,7 +175,7 @@
   }
 
   function getAvailableAppliances(household: Household): string[] {
-    const allAppliances = [
+    const allAppliances: ApplianceTypes[] = [
       "Washing Machine",
       "Tumble Dryer",
       "Dishwasher",
@@ -106,9 +184,7 @@
     ];
     const addedAppliances = household.appliances?.map((a) => a.name) || [];
     return allAppliances.filter(
-      (appliance) =>
-        appliance === "Electric Vehicle" ||
-        !addedAppliances.includes(appliance),
+      (appliance) => !addedAppliances.includes(appliance),
     );
   }
 
@@ -177,10 +253,7 @@
         if (!editedOptionId) return;
 
         const stepIndex = currentStep;
-        const key = "customOptionsStep" + stepIndex;
-        let customOptions: CustomOption[] = JSON.parse(
-          localStorage.getItem(key) || "[]",
-        );
+        const customOptions = appData.customOptions[stepIndex] || [];
 
         const index = customOptions.findIndex((co) => co.id === editedOptionId);
         if (index !== -1) {
@@ -188,7 +261,8 @@
           customOptions[index].option.description = formData["Description"];
           customOptions[index].formData = formData;
 
-          localStorage.setItem(key, JSON.stringify(customOptions));
+          appData.customOptions[stepIndex] = customOptions;
+          saveAppData();
 
           const optIndex = steps[stepIndex].options.findIndex(
             (opt) => opt.id === editedOptionId,
@@ -234,7 +308,11 @@
 
         steps[currentStep].options.push(customOption.option);
 
-        saveCustomOption(currentStep, customOption);
+        if (!appData.customOptions[currentStep]) {
+          appData.customOptions[currentStep] = [];
+        }
+        appData.customOptions[currentStep].push(customOption);
+        saveAppData();
 
         for (const field of fields) {
           field.value = "";
@@ -242,47 +320,21 @@
 
         selectedOption = customOption.option;
       }
-    }
-  }
 
-  function saveCustomOption(stepIndex: number, customOption: CustomOption) {
-    const key = "customOptionsStep" + stepIndex;
-    let customOptions: CustomOption[] = JSON.parse(
-      localStorage.getItem(key) || "[]",
-    );
-    customOptions.push(customOption);
-    localStorage.setItem(key, JSON.stringify(customOptions));
-  }
-
-  function loadCustomOptions() {
-    for (let i = 0; i < steps.length; i++) {
-      const key = "customOptionsStep" + i;
-      let customOptions: CustomOption[] = JSON.parse(
-        localStorage.getItem(key) || "[]",
-      );
-      for (const customOption of customOptions) {
-        steps[i].options.push(customOption.option);
-      }
-    }
-
-    const twinWorldData = getStepperData().stepperData!.steps.find(
-      (s) => s.title === "Twin World" && s.twinWorld?.households,
-    );
-    if (twinWorldData && twinWorldData.twinWorld?.households) {
-      households = twinWorldData.twinWorld.households;
+      saveHouseholds();
     }
   }
 
   function deleteCustomOption(option: Option) {
-    if (!confirm(`Are you sure you want to delete ${option.label}`)) return;
+    if (!confirm(`Are you sure you want to delete ${option.label}?`)) return;
     const stepIndex = currentStep;
-    const key = "customOptionsStep" + stepIndex;
-    let customOptions: CustomOption[] = JSON.parse(
-      localStorage.getItem(key) || "[]",
-    );
+    const customOptions = appData.customOptions[stepIndex] || [];
 
-    customOptions = customOptions.filter((co) => co.id !== option.id);
-    localStorage.setItem(key, JSON.stringify(customOptions));
+    const updatedCustomOptions = customOptions.filter(
+      (co) => co.id !== option.id,
+    );
+    appData.customOptions[stepIndex] = updatedCustomOptions;
+    saveAppData();
 
     steps[stepIndex].options = steps[stepIndex].options.filter(
       (opt) => opt.id !== option.id,
@@ -291,14 +343,13 @@
     if (selectedOption?.id === option.id) {
       selectedOption = null;
     }
+
+    saveHouseholds();
   }
 
   function editCustomOption(option: Option) {
     const stepIndex = currentStep;
-    const key = "customOptionsStep" + stepIndex;
-    let customOptions: CustomOption[] = JSON.parse(
-      localStorage.getItem(key) || "[]",
-    );
+    const customOptions = appData.customOptions[stepIndex] || [];
 
     const customOption = customOptions.find((co) => co.id === option.id);
     if (customOption) {
@@ -332,7 +383,8 @@
     };
     households.push(newHousehold);
     newHouseholdName = "";
-    saveHouseholds();
+    appData.households = households;
+    saveAppData();
   }
 
   function editHousehold(household: Household) {
@@ -349,63 +401,72 @@
     const household = households.find((h) => h.name === editHouseholdId);
     if (household) {
       household.name = newHouseholdName.trim();
-      saveHouseholds();
+      appData.households = households;
+      saveAppData();
       editHouseholdId = null;
       newHouseholdName = "";
-      households = [...households];
     }
   }
 
   function deleteHousehold(household: Household) {
     if (!confirm(`Delete household ${household.name}?`)) return;
     households = households.filter((h) => h.name !== household.name);
-    saveHouseholds();
+    appData.households = households;
+    saveAppData();
   }
 
   function saveHouseholds() {
-    const stepperData = getStepperData().stepperData!;
-    stepperData.steps = stepperData.steps.map((s) => {
-      if (s.title === "Twin World" && s.twinWorld) {
-        s.twinWorld.households = households;
-      }
-      return s;
-    });
-    getStepperData().setStepperData(stepperData);
+    // Update the Twin World step with the latest households
+    const twinWorldStep = appData.stepperData.steps.find(
+      (s) => s.title === "Twin World",
+    );
+    if (twinWorldStep && twinWorldStep.twinWorld) {
+      twinWorldStep.twinWorld.households = [...households];
+      appData.stepperData.steps = appData.stepperData.steps.map((s) =>
+        s.title === "Twin World" ? twinWorldStep : s,
+      );
+      saveAppData();
+    }
   }
 
   function addAppliance(household: Household) {
-    if (!newApplianceName.trim()) return;
-    if (household.appliances?.find((a) => a.name === newApplianceName.trim()))
-      return;
+    const name = newApplianceNames[household.name] || "";
+    if (!name.trim()) return;
+    if (household.appliances?.find((a) => a.name === name.trim())) return;
     const newAppliance: Appliance = {
-      name: newApplianceName.trim() as ApplianceTypes,
+      name: name.trim() as ApplianceTypes,
       power: 1000,
       duration: 1,
       dailyUsage: 1,
+      availability: Array(24).fill(false),
     };
     if (!household.appliances) {
       household.appliances = [];
     }
     household.appliances.push(newAppliance);
-    newApplianceName = "";
-    saveHouseholds();
+    newApplianceNames = { ...newApplianceNames, [household.name]: "" };
+    appData.households = households;
+    saveAppData();
   }
 
-  function updateAppliance() {
-    if (!newApplianceName.trim() || !editApplianceId) return;
+  function updateAppliance(household: Household) {
+    const name = newApplianceNames[household.name] || "";
+    const editId = editApplianceIds[household.name];
+    if (!name.trim() || !editId) return;
     for (const h of households) {
       const existing = h.appliances?.find(
-        (a) => a.name === newApplianceName.trim() && a.name !== editApplianceId,
+        (a) => a.name === name.trim() && a.name !== editId,
       );
       if (existing) return;
     }
     for (const h of households) {
-      const appliance = h.appliances?.find((a) => a.name === editApplianceId);
+      const appliance = h.appliances?.find((a) => a.name === editId);
       if (appliance) {
-        appliance.name = newApplianceName.trim() as ApplianceTypes;
-        saveHouseholds();
-        editApplianceId = null;
-        newApplianceName = "";
+        appliance.name = name.trim() as ApplianceTypes;
+        appData.households = households;
+        saveAppData();
+        editApplianceIds = { ...editApplianceIds, [household.name]: null };
+        newApplianceNames = { ...newApplianceNames, [household.name]: "" };
         households = [...households];
         break;
       }
@@ -417,7 +478,28 @@
     household.appliances = household.appliances?.filter(
       (a) => a.name !== appliance.name,
     );
-    saveHouseholds();
+    appData.households = households;
+    saveAppData();
+  }
+
+  function toggleAvailability(householdName: string, applianceName: string) {
+    if (!openAppliances[householdName]) {
+      openAppliances = { ...openAppliances, [householdName]: {} };
+    }
+    openAppliances[householdName][applianceName] =
+      !openAppliances[householdName][applianceName];
+    openAppliances = { ...openAppliances };
+  }
+
+  function handleAvailabilityChange(
+    appliance: Appliance,
+    hour: number,
+    event: Event,
+  ) {
+    const target = event.target as HTMLInputElement;
+    appliance.availability[hour] = target.checked;
+    appData.households = households;
+    saveAppData();
   }
 
   $effect(() => {
@@ -440,9 +522,7 @@
     }
   });
 
-  onMount(() => {
-    loadCustomOptions();
-  });
+  onMount(() => loadAppData());
 </script>
 
 {#snippet progressBar(
@@ -664,6 +744,14 @@
           {#if field.error}
             <span class="text-red-500 text-sm mt-1">{field.error}</span>
           {/if}
+
+          {#if field.type === "file"}
+            <input
+              type="file"
+              class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight focus:outline-none focus:ring-2 focus:ring-les-highlight"
+              bind:files={field.file}
+            />
+          {/if}
         </div>
       {/each}
       <div class="flex space-x-4">
@@ -733,12 +821,12 @@
           </div>
         {:else}
           <button
-            class={`bg-les-highlight text-white px-3 py-1 rounded transition w-full mt-2
+            class={`text-white px-3 py-1 rounded transition w-full mt-2
               ${
                 households.some((h) => h.name === newHouseholdName.trim()) ||
                 !newHouseholdName.trim()
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "cursor-pointer hover:bg-sidebar"
+                  : "bg-les-highlight cursor-pointer hover:bg-sidebar"
               }`}
             onclick={addHousehold}
             disabled={households.some(
@@ -777,12 +865,12 @@
               </h3>
               <select
                 class="border border-gray-300 rounded p-2 w-full text-les-highlight focus:outline-none focus:ring focus:ring-les-highlight text-sm"
-                bind:value={newApplianceName}
+                bind:value={newApplianceNames[household.name]}
                 onkeydown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    editApplianceId
-                      ? updateAppliance()
+                    editApplianceIds[household.name]
+                      ? updateAppliance(household)
                       : addAppliance(household);
                   }
                 }}
@@ -793,10 +881,10 @@
                 {/each}
               </select>
               <button
-                class={`bg-les-highlight text-white px-2 py-1 rounded transition w-full mt-1 text-sm
-                    ${!newApplianceName.trim() ? "bg-gray-400 cursor-not-allowed" : "cursor-pointer hover:bg-sidebar"}`}
+                class={`text-white px-2 py-1 rounded transition w-full mt-1 text-sm
+                    ${!newApplianceNames[household.name]?.trim() ? "bg-gray-400 cursor-not-allowed" : "bg-les-highlight cursor-pointer hover:bg-sidebar"}`}
                 onclick={() => addAppliance(household)}
-                disabled={!newApplianceName.trim()}
+                disabled={!newApplianceNames[household.name]?.trim()}
               >
                 Add
               </button>
@@ -804,7 +892,7 @@
                 {#each household.appliances! as appliance}
                   <li class="border border-gray-200 p-2 rounded">
                     <div class="flex justify-between items-center">
-                      <span class="text-les-highlight text-sm">
+                      <span class="text-les-highlight text-sm font-bold">
                         {appliance.name}
                       </span>
                       <button
@@ -814,6 +902,34 @@
                         Delete
                       </button>
                     </div>
+                    <button
+                      class="mt-2 text-les-highlight text-sm underline"
+                      onclick={() =>
+                        toggleAvailability(household.name, appliance.name)}
+                    >
+                      {openAppliances[household.name]?.[appliance.name]
+                        ? "Hide Availability"
+                        : "Show Availability"}
+                    </button>
+                    {#if openAppliances[household.name]?.[appliance.name]}
+                      <div class="mt-2">
+                        <div class="grid grid-cols-6 gap-1">
+                          {#each Array(24) as _, hour}
+                            <label
+                              class="flex items-center text-les-highlight text-xs gap-1"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={appliance.availability[hour]}
+                                onchange={(e) =>
+                                  handleAvailabilityChange(appliance, hour, e)}
+                              />
+                              <p>{hour}:00</p>
+                            </label>
+                          {/each}
+                        </div>
+                      </div>
+                    {/if}
                   </li>
                 {/each}
               </ul>
