@@ -57,7 +57,7 @@
     }
   }
 
-  async function loadAppData() {
+  function loadAppData() {
     const storedData = localStorage.getItem("appData");
     if (storedData) {
       try {
@@ -76,25 +76,19 @@
         initializeDefaultData();
       }
     } else {
-      await initializeDefaultData();
+      initializeDefaultData();
     }
   }
 
-  async function initializeDefaultData() {
-    const defaultEnergyflow = await loadDefaultEnergyflow();
-
-    if (!defaultEnergyflow) {
-      throw new Error("Failed to load default energy flow.");
-    }
-
+  function initializeDefaultData() {
     appData = {
       stepperData: {
-        steps: steps.map((step, index) => ({
+        steps: steps.map((step) => ({
           title: step.title,
           selectedOption: null,
           formData: null,
           twinWorld: step.title === "Twin World" ? { description: "", households: [] } : undefined,
-          energyflow: index === 3 ? defaultEnergyflow : undefined,
+          energyflow: undefined,
         })),
       },
       customOptions: {},
@@ -142,12 +136,14 @@
     }
   }
 
-  function finish() {
+  async function finish() {
     if (selectedOption) {
       selectedOptions[currentStep] = selectedOption;
     }
 
-    appData.stepperData.steps = steps.map((step, index) => {
+    const updatedSteps = [];
+
+    for (const [index, step] of steps.entries()) {
       const selected = selectedOptions[index];
       const stepData: {
         title: string;
@@ -161,22 +157,33 @@
         formData: selected ? getFormData(step.formFields) : null,
       };
 
-      if (step.title === "Twin World" && selected && !selected.isCustom) {
-        const twinWorldData = defaultTwinWorlds[selected.label as keyof typeof defaultTwinWorlds];
-        if (twinWorldData) {
-          stepData.twinWorld = twinWorldData;
+      if (step.title === "Twin World" && selected) {
+        if (!selected.isCustom) {
+          const twinWorldData =
+            defaultTwinWorlds[selected.label as keyof typeof defaultTwinWorlds];
+          if (twinWorldData) {
+            stepData.twinWorld = twinWorldData;
+          }
+        } else {
+          stepData.twinWorld = {
+            description: "Custom Twin World",
+            households: households,
+          };
         }
       }
 
-      if (step.title === "Twin World" && selected && selected.isCustom) {
-        stepData.twinWorld = {
-          description: "Custom Twin World",
-          households: households,
-        };
+      if (index === 3 && selected && selected.label === "Energyflow Zoetermeer") {
+        const energyflow = await loadDefaultEnergyflow();
+        if (!energyflow) {
+          throw new Error("Failed to load default energy flow.");
+        }
+        stepData.energyflow = energyflow;
       }
 
-      return stepData;
-    });
+      updatedSteps.push(stepData);
+    }
+
+    appData.stepperData.steps = updatedSteps;
 
     stepperData.setStepperData(appData.stepperData);
     appData.households = households;
@@ -552,7 +559,7 @@
     }
   });
 
-  onMount(async () => await loadAppData());
+  onMount(() => loadAppData());
 </script>
 
 {#snippet progressBar(steps: string[], selectedOptions: (Option | null)[], currentStep: number)}
@@ -683,7 +690,7 @@
         <button
           class="bg-les-highlight text-white px-4 py-2 rounded disabled:opacity-50 transition-colors duration-200
           {selectedOption ? 'hover:bg-sidebar cursor-pointer' : 'cursor-not-allowed'}"
-          onclick={finish}
+          onclick={async () => await finish()}
           disabled={!selectedOption}>
           Finish
         </button>

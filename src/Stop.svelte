@@ -96,23 +96,23 @@
       },
       {
         label: "Cost Model Price Network Buy Consumer",
-        value: stepper?.costmodel.price_network_buy_consumer,
+        value: stepper?.steps[1].formData?.price_network_buy_consumer,
       },
       {
         label: "Cost Model Price Network Sell Consumer",
-        value: stepper?.costmodel.price_network_sell_consumer,
+        value: stepper?.steps[1].formData?.price_network_sell_consumer,
       },
       {
         label: "Twin World Energy Usage Factor",
-        value: stepper?.steps[4].energyflow!.data,
+        value: stepper?.steps[3].formData?.energy_usage_factor,
       },
       {
         label: "Twin World Solar Panels Factor",
-        value: stepper?.energyflow.solar_panels_factor,
+        value: stepper?.steps[3].formData?.solar_panels_factor,
       },
       {
         label: "Algorithm Max Temperature",
-        value: stepper?.algorithm.max_temperature,
+        value: stepper?.steps[2].formData?.max_temperature,
       },
       {
         label: "Total Saved by Own Solar Panels",
@@ -136,15 +136,19 @@
       },
       {
         label: "Selected Twin World",
-        value: stepper?.twinworld.name ?? "N/A",
+        value: stepper?.steps[0]?.selectedOption!.label,
       },
       {
         label: "Selected Cost Model",
-        value: stepper?.costmodel.name ?? "N/A",
+        value: stepper?.steps[1]?.selectedOption!.label,
       },
       {
         label: "Selected Algorithm",
-        value: stepper?.algorithm.name ?? "N/A",
+        value: stepper?.steps[2]?.selectedOption!.label,
+      },
+      {
+        label: "Selected Energyflow",
+        value: stepper?.steps[3]?.selectedOption!.label,
       },
     ];
   }

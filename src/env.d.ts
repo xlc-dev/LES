@@ -3,6 +3,16 @@
 
 type ComponentList = "Dashboard" | "Schedulable Loads" | "Simulation" | "Stop";
 
+type ApplianceConfig = {
+  name: ApplianceTypes;
+  availabilityMapping: Record<string, number>;
+  frequencyMapping: Record<string, number>;
+  energyPattern: number;
+  usageRandom: number;
+  usageMulti: number;
+  usageAddition: number;
+};
+
 interface AppData {
   stepperData: StepperData;
   customOptions: Record<number, CustomOption[]>;
@@ -101,3 +111,9 @@ type ApplianceTimeDaily = {
   bitmap_plan_energy?: number;
   bitmap_plan_no_energy?: number;
 };
+
+interface ApplianceTimeWindow {
+  day: ApplianceDays;
+  bitmap_window: number;
+  appliance_name: ApplianceTypes;
+}
