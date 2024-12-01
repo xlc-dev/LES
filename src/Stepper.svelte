@@ -1,7 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { getDashboard, getStepperData } from "./state.svelte";
-  import { getSteps, defaultTwinWorlds } from "./twinworlds.svelte";
+  import { getSteps } from "./steps.svelte";
+  import { defaultTwinWorlds } from "./twinworld";
+  import { isAvailable, setAvailability } from "./timewindow";
   import { readCSV } from "./utils.ts";
 
   const steps: Step[] = getSteps().steps;
@@ -298,18 +300,18 @@
     const handleNewOrEditedOption = (energyflow?: Energyflow) => {
       if (editMode && editedOption) {
         const customOption = appData.customOptions[currentStep]?.find(
-          (co) => co.id === editedOption.id
+          (co) => co.id === editedOption?.id
         );
         if (customOption) {
-          customOption.option.label = nameField.value;
-          customOption.option.description = descriptionField.value;
+          customOption.option.label = nameField.value ?? "";
+          customOption.option.description = descriptionField.value ?? "";
           customOption.option.energyflow = energyflow || customOption.option.energyflow;
           customOption.formData = formData;
 
           saveAppData();
 
           const optionIndex = steps[currentStep].options.findIndex(
-            (opt) => opt.id === editedOption.id
+            (opt) => opt.id === editedOption?.id
           );
           if (optionIndex !== -1) {
             steps[currentStep].options[optionIndex] = customOption.option;
@@ -329,8 +331,8 @@
         const customOption: CustomOption = {
           id: customOptionId,
           option: {
-            label: nameField.value,
-            description: descriptionField.value,
+            label: nameField.value ?? "",
+            description: descriptionField.value ?? "",
             id: customOptionId,
             isCustom: true,
             energyflow,
@@ -486,7 +488,7 @@
       power: 1000,
       duration: 1,
       dailyUsage: 1,
-      availability: Array(24).fill(false),
+      availability: 0,
     };
     if (!household.appliances) {
       household.appliances = [];
@@ -536,7 +538,9 @@
 
   function handleAvailabilityChange(appliance: Appliance, hour: number, event: Event) {
     const target = event.target as HTMLInputElement;
-    appliance.availability[hour] = target.checked;
+
+    appliance.availability = setAvailability(appliance.availability, hour, target.checked);
+
     appData.households = households;
     saveAppData();
   }
@@ -898,7 +902,7 @@
                             <label class="flex items-center text-les-highlight text-xs gap-1">
                               <input
                                 type="checkbox"
-                                checked={appliance.availability[hour]}
+                                checked={isAvailable(appliance.availability, hour)}
                                 onchange={(e) => handleAvailabilityChange(appliance, hour, e)} />
                               <p>{hour}:00</p>
                             </label>
@@ -917,8 +921,7 @@
   </div>
 {/snippet}
 
-<div
-  class="flex flex-col items-center justify-center mx-auto xl:max-w-6xl max-w-2xl px-2 py-4 space-y-8">
+<div class="flex flex-col items-center justify-center mx-auto max-w-3xl px-2 py-4 space-y-8">
   <button onclick={wipestorage} class="bg-red-700 text-white px-4 py-2 rounded"
     >Clear Storage</button>
 

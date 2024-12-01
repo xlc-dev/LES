@@ -22,6 +22,60 @@ const runtimeState = createState<number | null>(null);
 const runtimeIntervalState = createState<number | null>(null);
 const runtimeStartTimeState = createState<number | null>(null);
 
+const householdState = createState<Household | null>(null);
+
+const startDateState = createState<number>(0);
+const endDateState = createState<number>(0);
+const daysInPlanningState = createState<number>(0);
+
+export function getStartDate() {
+  function setStartDate(date: number) {
+    startDateState.setState(date);
+  }
+  return {
+    get startDate() {
+      return startDateState.state;
+    },
+    setStartDate,
+  };
+}
+
+export function getEndDate() {
+  function setEndDate(date: number) {
+    endDateState.setState(date);
+  }
+  return {
+    get endDate() {
+      return endDateState.state;
+    },
+    setEndDate,
+  };
+}
+
+export function getDaysInPlanning() {
+  function setDaysInPlanning(days: number) {
+    daysInPlanningState.setState(days);
+  }
+  return {
+    get daysInPlanning() {
+      return daysInPlanningState.state;
+    },
+    setDaysInPlanning,
+  };
+}
+
+export function getHousehold() {
+  function setHousehold(household: Household) {
+    householdState.setState(household);
+  }
+  return {
+    get household() {
+      return householdState.state;
+    },
+    setHousehold,
+  };
+}
+
 export function getComponent() {
   function setComponent(component: ComponentList) {
     componentState.setState(component);
@@ -98,7 +152,7 @@ export function getRuntime() {
             const elapsed = Date.now() - runtimeStartTimeState.state; // Elapsed time in milliseconds
             runtimeState.setState(parseFloat((elapsed / 1000).toFixed(2))); // Convert to seconds with two decimals
           }
-        }, 100) // Update every 100ms for two decimal precision
+        }, 100), // Update every 100ms for two decimal precision
       );
     }
   }

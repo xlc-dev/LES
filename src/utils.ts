@@ -22,19 +22,17 @@ export enum ApplianceDays {
   SUNDAY,
 }
 
-export const getRandomInt = (min: number, max: number): number => {
-  return (
-    Math.floor(Math.random() * (Math.floor(max) - Math.ceil(min) + 1)) + min
-  );
-};
+export function getRandomInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-export function shuffleArray<T>(array: T[]): T[] {
-  const arr = array.slice();
-  for (let i = arr.length - 1; i > 0; i--) {
+export function shuffleArray<T>(arr: T[]): T[] {
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  return arr;
+  return shuffled;
 }
 
 export function s2ab(s: string): ArrayBuffer {
@@ -88,23 +86,18 @@ export async function readCSV(input: string | File): Promise<Energyflow> {
 }
 
 export function highestSetBit(n: number): number {
-  if (n === 0) return -1;
-  return Math.floor(Math.log2(n));
+  return 31 - Math.clz32(n);
 }
 
-export function roundTo(value: number, decimals: number): number {
-  const factor = Math.pow(10, decimals);
-  return Math.round(value * factor) / factor;
+export function roundTo(num: number, decimals: number): number {
+  return Number(num.toFixed(decimals));
 }
 
-export function randomNormal(mean = 1, stdDev = 0.1): number {
-  let u = 0,
-    v = 0;
-  while (u === 0) u = Math.random(); // Converting [0,1) to (0,1)
-  while (v === 0) v = Math.random();
-  return (
-    mean + stdDev * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v)
-  );
+export function randomNormal(mean: number, stddev: number): number {
+  const u1 = Math.random();
+  const u2 = Math.random();
+  const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+  return z0 * stddev + mean;
 }
 
 export function timestampToUnix(excelTimestamp: number): number {
@@ -120,4 +113,22 @@ export function unixToHour(unixTimestamp: number): number {
 export function unixToTimestamp(unixTimestamp: number): number {
   // Convert Unix timestamp to Excel timestamp
   return unixTimestamp / SECONDS_IN_DAY + 25569;
+}
+
+/**
+ * Converts a 24-bit bitmap to a boolean array.
+ * Each bit in the bitmap represents whether the appliance is available at a specific hour.
+ * @param bitmap The 24-bit number representing availability (1 = available, 0 = not available).
+ * @returns A boolean array where each element represents the availability of the appliance at each hour (0-23).
+ */
+export function bitmapToBoolArray(bitmap: number): boolean[] {
+  const boolArray: boolean[] = [];
+
+  // Iterate through each bit in the 24-bit number
+  for (let i = 0; i < 24; i++) {
+    // Check if the i-th bit is set (1) or not (0)
+    boolArray[i] = (bitmap & (1 << i)) !== 0;
+  }
+
+  return boolArray;
 }
