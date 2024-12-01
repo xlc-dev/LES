@@ -2,8 +2,6 @@
 
 <p style="text-align: center;">A simulation tool for comparing schedulable load algorithms and twinworlds in a local energy system environment.</p>
 
-![CI](https://github.com/xlc-dev/LES/actions/workflows/ci.yml/badge.svg)
-
 ## Requirements
 
 - [pnpm](https://pnpm.io/installation)

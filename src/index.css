@@ -19,3 +19,14 @@ body {
     accent-color: var(--tw-color-les-highlight);
   }
 }
+
+@layer components {
+  .calendar {
+    --date-picker-foreground: theme("colors.les-highlight");
+    --date-picker-background: theme("colors.white");
+    --date-picker-highlight-border: theme("colors.blue.500");
+    --date-picker-highlight-shadow: theme("colors.les-highlight");
+    --date-picker-selected-color: theme("colors.white");
+    --date-picker-selected-background: theme("colors.blue.500");
+  }
+}
