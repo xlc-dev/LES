@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "chart.js": "^4.4.6",
-    "chartjs-plugin-zoom": "^2.1.0",
+    "chartjs-plugin-zoom": "^2.2.0",
     "svelte": "^5.2.7",
     "xlsx": "^0.18.5"
   },

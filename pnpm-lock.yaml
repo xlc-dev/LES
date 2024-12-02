@@ -12,8 +12,8 @@ importers:
         specifier: ^4.4.6
         version: 4.4.6
       chartjs-plugin-zoom:
-        specifier: ^2.1.0
-        version: 2.1.0(chart.js@4.4.6)
+        specifier: ^2.2.0
+        version: 2.2.0(chart.js@4.4.6)
       svelte:
         specifier: ^5.2.7
         version: 5.2.7
@@ -316,8 +316,8 @@ packages:
     resolution: {integrity: sha512-8Y406zevUPbbIBA/HRk33khEmQPk5+cxeflWE/2rx1NJsjVWMPw/9mSP9rxHP5eqi6LNoPBVMfZHxbwLSgldYA==}
     engines: {pnpm: '>=8'}
 
-  chartjs-plugin-zoom@2.1.0:
-    resolution: {integrity: sha512-7lMimfQCUaIJLhPJaWSAA4gw+1m8lyR3Wn+M3MxjHbM/XxRUnOxN7cM5RR9jUmxmyW0h7L2hZ8KhvUsqrFxy/Q==}
+  chartjs-plugin-zoom@2.2.0:
+    resolution: {integrity: sha512-in6kcdiTlP6npIVLMd4zXZ08PDUXC52gZ4FAy5oyjk1zX3gKarXMAof7B9eFiisf9WOC3bh2saHg+J5WtLXZeA==}
     peerDependencies:
       chart.js: '>=3.2.0'
 
@@ -1062,7 +1062,7 @@ snapshots:
     dependencies:
       '@kurkle/color': 0.3.4
 
-  chartjs-plugin-zoom@2.1.0(chart.js@4.4.6):
+  chartjs-plugin-zoom@2.2.0(chart.js@4.4.6):
     dependencies:
       '@types/hammerjs': 2.0.46
       chart.js: 4.4.6
