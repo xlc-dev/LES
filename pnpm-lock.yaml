@@ -15,8 +15,8 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0(chart.js@4.4.6)
       svelte:
-        specifier: ^5.2.7
-        version: 5.2.7
+        specifier: ^5.4.0
+        version: 5.4.0
       xlsx:
         specifier: ^0.18.5
         version: 0.18.5
@@ -29,10 +29,10 @@ importers:
         version: 1.1.4
       '@rsbuild/plugin-svelte':
         specifier: ^1.0.3
-        version: 1.0.5(@rsbuild/core@1.1.4)(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.2.7)(typescript@5.6.3)
+        version: 1.0.5(@rsbuild/core@1.1.4)(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.4.0)(typescript@5.6.3)
       svelte-check:
         specifier: ^4.0.9
-        version: 4.0.9(svelte@5.2.7)(typescript@5.6.3)
+        version: 4.0.9(svelte@5.4.0)(typescript@5.6.3)
       tailwindcss:
         specifier: ^3.4.15
         version: 3.4.15
@@ -380,11 +380,11 @@ packages:
     resolution: {integrity: sha512-/kyM18EfinwXZbno9FyUGeFh87KC8HRQBQGildHZbEuRyWFOmv1U10o9BBp8XVZDVNNuQKyIGIu5ZYAAXJ0V2Q==}
     engines: {node: '>= 4'}
 
-  esm-env@1.1.4:
-    resolution: {integrity: sha512-oO82nKPHKkzIj/hbtuDYy/JHqBHFlMIW36SDiPCVsj87ntDLcWN+sJ1erdVryd4NxODacFTsdrIE3b7IamqbOg==}
+  esm-env@1.2.1:
+    resolution: {integrity: sha512-U9JedYYjCnadUlXk7e1Kr+aENQhtUaoaV9+gZm1T8LC/YBAPJx3NSPIAurFOC0U5vrdSevnUJS2/wUVxGwPhng==}
 
-  esrap@1.2.2:
-    resolution: {integrity: sha512-F2pSJklxx1BlQIQgooczXCPHmcWpn6EsP5oo73LQfonG9fIlIENQ8vMmfGXeojP9MrkzUNAfyU5vdFlR9shHAw==}
+  esrap@1.2.3:
+    resolution: {integrity: sha512-ZlQmCCK+n7SGoqo7DnfKaP1sJZa49P01/dXzmjCASSo04p72w8EksT2NMK8CEX8DhKsfJXANioIw8VyHNsBfvQ==}
 
   fast-glob@3.3.2:
     resolution: {integrity: sha512-oX2ruAFQwf/Orj8m737Y5adxDQO0LAB7/S5MnxCdTNDd4p6BsyIVsv9JQsATbTSq8KHRpLwIHbVlUNatxd+1Ow==}
@@ -750,8 +750,8 @@ packages:
       typescript:
         optional: true
 
-  svelte@5.2.7:
-    resolution: {integrity: sha512-cEhPGuLHiH2+Z8B1FwQgiZJgA39uUmJR4516TKrM5zrp0/cuwJkfhUfcTxhAkznanAF5fXUKzvYR4o+Ksx3ZCQ==}
+  svelte@5.4.0:
+    resolution: {integrity: sha512-2I/mjD8cXDpKfdfUK+T6yo/OzugMXIm8lhyJUFM5F/gICMYnkl3C/+4cOSpia8TqpDsi6Qfm5+fdmBNMNmaf2g==}
     engines: {node: '>=18'}
 
   tailwindcss@3.4.15:
@@ -928,11 +928,11 @@ snapshots:
       '@swc/helpers': 0.5.15
       core-js: 3.39.0
 
-  '@rsbuild/plugin-svelte@1.0.5(@rsbuild/core@1.1.4)(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.2.7)(typescript@5.6.3)':
+  '@rsbuild/plugin-svelte@1.0.5(@rsbuild/core@1.1.4)(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.4.0)(typescript@5.6.3)':
     dependencies:
       '@rsbuild/core': 1.1.4
-      svelte-loader: 3.2.4(svelte@5.2.7)
-      svelte-preprocess: 6.0.3(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.2.7)(typescript@5.6.3)
+      svelte-loader: 3.2.4(svelte@5.4.0)
+      svelte-preprocess: 6.0.3(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.4.0)(typescript@5.6.3)
     transitivePeerDependencies:
       - '@babel/core'
       - coffeescript
@@ -1118,9 +1118,9 @@ snapshots:
 
   emojis-list@3.0.0: {}
 
-  esm-env@1.1.4: {}
+  esm-env@1.2.1: {}
 
-  esrap@1.2.2:
+  esrap@1.2.3:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
       '@types/estree': 1.0.6
@@ -1391,40 +1391,40 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  svelte-check@4.0.9(svelte@5.2.7)(typescript@5.6.3):
+  svelte-check@4.0.9(svelte@5.4.0)(typescript@5.6.3):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
       chokidar: 4.0.1
       fdir: 6.4.2
       picocolors: 1.1.1
       sade: 1.8.1
-      svelte: 5.2.7
+      svelte: 5.4.0
       typescript: 5.6.3
     transitivePeerDependencies:
       - picomatch
 
   svelte-dev-helper@1.1.9: {}
 
-  svelte-hmr@0.14.12(svelte@5.2.7):
+  svelte-hmr@0.14.12(svelte@5.4.0):
     dependencies:
-      svelte: 5.2.7
+      svelte: 5.4.0
 
-  svelte-loader@3.2.4(svelte@5.2.7):
+  svelte-loader@3.2.4(svelte@5.4.0):
     dependencies:
       loader-utils: 2.0.4
-      svelte: 5.2.7
+      svelte: 5.4.0
       svelte-dev-helper: 1.1.9
-      svelte-hmr: 0.14.12(svelte@5.2.7)
+      svelte-hmr: 0.14.12(svelte@5.4.0)
 
-  svelte-preprocess@6.0.3(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.2.7)(typescript@5.6.3):
+  svelte-preprocess@6.0.3(postcss-load-config@4.0.2(postcss@8.4.49))(postcss@8.4.49)(svelte@5.4.0)(typescript@5.6.3):
     dependencies:
-      svelte: 5.2.7
+      svelte: 5.4.0
     optionalDependencies:
       postcss: 8.4.49
       postcss-load-config: 4.0.2(postcss@8.4.49)
       typescript: 5.6.3
 
-  svelte@5.2.7:
+  svelte@5.4.0:
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@jridgewell/sourcemap-codec': 1.5.0
@@ -1433,8 +1433,8 @@ snapshots:
       acorn-typescript: 1.4.13(acorn@8.14.0)
       aria-query: 5.3.2
       axobject-query: 4.1.0
-      esm-env: 1.1.4
-      esrap: 1.2.2
+      esm-env: 1.2.1
+      esrap: 1.2.3
       is-reference: 3.0.3
       locate-character: 3.0.0
       magic-string: 0.30.12
