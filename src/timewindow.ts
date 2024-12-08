@@ -1,5 +1,11 @@
 import { ApplianceTypes, ApplianceDays, highestSetBit } from "./utils";
 
+/**
+ * Generates a random time window within a 24-hour period, ensuring no overlap with existing availability.
+ *
+ * @param {number} bitmap - The current availability bitmap.
+ * @returns {[number, number]} A tuple containing the start and end hours of the generated time window.
+ */
 function generateRandomTimeWindow(bitmap: number): [number, number] {
   let startHour = Math.floor(Math.random() * 24);
   let endHour = Math.floor(Math.random() * (24 - startHour)) + startHour + 1;
@@ -12,27 +18,30 @@ function generateRandomTimeWindow(bitmap: number): [number, number] {
   return [startHour, endHour];
 }
 
+/**
+ * Creates a time window for a specific appliance on a given day.
+ *
+ * @param {ApplianceDays} day - The day of the week.
+ * @param {ApplianceTypes} applianceName - The type of appliance.
+ * @returns {number} bitmap - The bitmap for the time window.
+ */
 export function createTimeWindow(
   day: ApplianceDays,
-  appliance_name: ApplianceTypes
-): {
-  day: ApplianceDays;
-  bitmap_window: number;
-  appliance_name: ApplianceTypes;
-} {
+  applianceName: ApplianceTypes,
+): number {
   let bitmap = 0;
 
   // Stove has fixed time window from 5 PM to 8 PM
-  if (appliance_name === ApplianceTypes.STOVE) {
-    return { day, bitmap_window: 0b000000000000000011110000, appliance_name };
+  if (applianceName === ApplianceTypes.STOVE) {
+    return 0b000000000000000011110000;
   }
 
   // Electric vehicle is restricted to 8 AM to 5 PM on weekdays
   if (
-    appliance_name === ApplianceTypes.ELECTRIC_VEHICLE &&
+    applianceName === ApplianceTypes.ELECTRIC_VEHICLE &&
     ![ApplianceDays.SATURDAY, ApplianceDays.SUNDAY].includes(day)
   ) {
-    bitmap |= 0b111111111111111111111111 & ~(0b111111111111 << 8); // Restrict hours 8-5
+    bitmap |= 0b000000001111111100000000; // Restrict hours 8-19
   }
 
   // Random time window generation
@@ -45,14 +54,15 @@ export function createTimeWindow(
     bitmap |= windowMask;
   }
 
-  return { day, bitmap_window: bitmap, appliance_name };
+  return bitmap;
 }
 
 /**
  * Checks if a given hour is available in a 24-bit bitmap.
- * @param bitmap The 24-bit number representing availability (1 = available, 0 = not available).
- * @param hour The hour to check (0-23).
- * @returns True if the hour is available, false otherwise.
+ *
+ * @param {number} bitmap - The 24-bit number representing availability (1 = available, 0 = not available).
+ * @param {number} hour - The hour to check (0-23).
+ * @returns {boolean} True if the hour is available, false otherwise.
  */
 export function isAvailable(bitmap: number, hour: number): boolean {
   return (bitmap & (1 << hour)) !== 0;
@@ -60,12 +70,17 @@ export function isAvailable(bitmap: number, hour: number): boolean {
 
 /**
  * Sets the availability of a given hour in a 24-bit bitmap.
- * @param bitmap The 24-bit number representing availability (1 = available, 0 = not available).
- * @param hour The hour to set (0-23).
- * @param isAvailable True to set the hour as available, false to set it as not available.
- * @returns The updated 24-bit bitmap.
+ *
+ * @param {number} bitmap - The 24-bit number representing availability (1 = available, 0 = not available).
+ * @param {number} hour - The hour to set (0-23).
+ * @param {boolean} isAvailable - True to set the hour as available, false to set it as not available.
+ * @returns {number} The updated 24-bit bitmap.
  */
-export function setAvailability(bitmap: number, hour: number, isAvailable: boolean): number {
+export function setAvailability(
+  bitmap: number,
+  hour: number,
+  isAvailable: boolean,
+): number {
   if (isAvailable) {
     return bitmap | (1 << hour); // Set the bit to 1 (available)
   } else {
