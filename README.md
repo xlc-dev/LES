@@ -2,7 +2,7 @@
 
 <p style="text-align: center;">A simulation tool for comparing schedulable load algorithms and twinworlds in a local energy system environment.</p>
 
-![CI](https://github.com/xlc-dev/LES/actions/workflows/ci.yml/badge.svg)
+If you like this project, please consider supporting it by giving it a star ⭐!
 
 ## Requirements
 
@@ -25,7 +25,9 @@ To run the development server:
 pnpm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+This will automatically open the application in your default browser and it should be there ready to use.
+
+Alternatively you can open a new tab at [http://localhost:3000](http://localhost:3000) with your favorite browser.
 
 To format the code:
 
@@ -33,7 +35,7 @@ To format the code:
 pnpm run format
 ```
 
-To check the code:
+To check the code for warnings and errors:
 
 ```bash
 pnpm run svelte-check
