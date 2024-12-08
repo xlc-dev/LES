@@ -23,10 +23,23 @@ export enum ApplianceDays {
   SUNDAY,
 }
 
+/**
+ * Returns a random integer between min and max (inclusive).
+ *
+ * @param {number} min - The minimum value.
+ * @param {number} max - The maximum value.
+ * @returns {number} The random integer.
+ */
 export function getRandomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+/**
+ * Shuffles an array.
+ *
+ * @param {T[]} arr - The array to shuffle.
+ * @returns {T[]} The shuffled array.
+ */
 export function shuffleArray<T>(arr: T[]): T[] {
   const shuffled = [...arr];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -36,6 +49,12 @@ export function shuffleArray<T>(arr: T[]): T[] {
   return shuffled;
 }
 
+/**
+ * Converts a string to an ArrayBuffer.
+ *
+ * @param {string} s - The string to convert.
+ * @returns {ArrayBuffer} The ArrayBuffer representation of the string.
+ */
 export function s2ab(s: string): ArrayBuffer {
   const buffer = new ArrayBuffer(s.length);
   const view = new Uint8Array(buffer);
@@ -45,6 +64,12 @@ export function s2ab(s: string): ArrayBuffer {
   return buffer;
 }
 
+/**
+ * Reads a CSV file and returns the parsed data.
+ *
+ * @param {string | File} input - The input file or URL.
+ * @returns {Promise<Energyflow>} A promise that resolves to the parsed energyflow data.
+ */
 export async function readCSV(input: string | File): Promise<Energyflow> {
   try {
     let csvText: string;
@@ -79,21 +104,41 @@ export async function readCSV(input: string | File): Promise<Energyflow> {
       solar_produced: Number(row[2]),
     }));
 
-    return { headers, data };
+    return { solarPanelsFactor: 8500, energyUsageFactor: 7000, headers, data };
   } catch (error) {
     console.error("Error reading CSV file:", error);
     throw error;
   }
 }
 
+/**
+ * Returns the highest set bit in a number.
+ *
+ * @param {number} n - The number to find the highest set bit in.
+ * @returns {number} The highest set bit.
+ */
 export function highestSetBit(n: number): number {
   return 31 - Math.clz32(n);
 }
 
+/**
+ * Rounds a number to a specified number of decimals.
+ *
+ * @param {number} num - The number to round.
+ * @param {number} decimals - The number of decimals to round to.
+ * @returns {number} The rounded number.
+ */
 export function roundTo(num: number, decimals: number): number {
   return Number(num.toFixed(decimals));
 }
 
+/**
+ * Generates a random number with a normal distribution.
+ *
+ * @param {number} mean - The mean of the distribution.
+ * @param {number} stddev - The standard deviation of the distribution.
+ * @returns {number} The random number.
+ */
 export function randomNormal(mean: number, stddev: number): number {
   const u1 = Math.random();
   const u2 = Math.random();
@@ -101,18 +146,34 @@ export function randomNormal(mean: number, stddev: number): number {
   return z0 * stddev + mean;
 }
 
+/**
+ * Converts an Excel timestamp to a Unix timestamp.
+ *
+ * @param {number} excelTimestamp - The Excel timestamp.
+ * @returns {number} The Unix timestamp.
+ */
 export function timestampToUnix(excelTimestamp: number): number {
   // Excel's epoch is 25569 days before Unix epoch
   return Math.round((excelTimestamp - 25569) * SECONDS_IN_DAY);
 }
 
+/**
+ * Converts a Unix timestamp to an hour (range 0-23).
+ *
+ * @param {number} unixTimestamp - The Unix timestamp.
+ * @returns {number} The hour.
+ */
 export function unixToHour(unixTimestamp: number): number {
-  // Convert Unix timestamp to hour (range 0-23)
-  return Math.floor(unixTimestamp / 3600) % 24;
+  return Math.floor(unixTimestamp / SECONDS_IN_HOUR) % 24;
 }
 
+/**
+ * Converts a Unix timestamp to an Excel timestamp.
+ *
+ * @param {number} unixTimestamp - The Unix timestamp.
+ * @returns {number} The Excel timestamp.
+ */
 export function unixToTimestamp(unixTimestamp: number): number {
-  // Convert Unix timestamp to Excel timestamp
   return unixTimestamp / SECONDS_IN_DAY + 25569;
 }
 
