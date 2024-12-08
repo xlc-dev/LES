@@ -11,8 +11,16 @@ function createState<T>(initialValue: T) {
   };
 }
 
+type ComponentList =
+  | "Dashboard"
+  | "Schedulable Loads"
+  | "Simulation"
+  | "Household"
+  | "Stop";
+
 const componentState = createState<ComponentList>("Dashboard");
 const dashboardState = createState<boolean>(false);
+
 const stepperDataState = createState<StepperData | null>(null);
 
 const efficiencyResultsState = createState<EfficiencyResult[]>([]);
@@ -65,7 +73,7 @@ export function getDaysInPlanning() {
 }
 
 export function getHousehold() {
-  function setHousehold(household: Household) {
+  function setHousehold(household: Household | null) {
     householdState.setState(household);
   }
   return {
@@ -152,7 +160,7 @@ export function getRuntime() {
             const elapsed = Date.now() - runtimeStartTimeState.state; // Elapsed time in milliseconds
             runtimeState.setState(parseFloat((elapsed / 1000).toFixed(2))); // Convert to seconds with two decimals
           }
-        }, 100) // Update every 100ms for two decimal precision
+        }, 100), // Update every 100ms for two decimal precision
       );
     }
   }
