@@ -1,8 +1,6 @@
 /// <reference types="@rsbuild/core/types" />
 /// <reference types="svelte" />
 
-type ComponentList = "Dashboard" | "Schedulable Loads" | "Simulation" | "Stop";
-
 interface AppData {
   stepperData: StepperData;
   customOptions: Record<number, CustomOption[]>;
@@ -37,21 +35,6 @@ type Step = {
   formFields: FormField[];
 };
 
-type CustomOption = {
-  id: string;
-  option: Option & { energyflow?: Energyflow };
-  formData: Record<string, any>;
-};
-
-type Energyflow = {
-  headers: string[];
-  data: {
-    timestamp: string;
-    energy_used: number;
-    solar_produced: number;
-  }[];
-};
-
 type StepperData = {
   steps: {
     title: string;
@@ -62,19 +45,21 @@ type StepperData = {
   }[];
 };
 
-type ApplianceTypes =
-  | "Washing Machine"
-  | "Tumble Dryer"
-  | "Dishwasher"
-  | "Stove"
-  | "Electric Vehicle";
+type CustomOption = {
+  id: string;
+  option: Option & { energyflow?: Energyflow };
+  formData: Record<string, any>;
+};
 
-type Appliance = {
-  name: ApplianceTypes;
-  power: number;
-  duration: number;
-  dailyUsage: number;
-  availability: number;
+type Energyflow = {
+  solarPanelsFactor: number;
+  energyUsageFactor: number;
+  headers: string[];
+  data: {
+    timestamp: string;
+    energy_used: number;
+    solar_produced: number;
+  }[];
 };
 
 type Household = {
@@ -92,15 +77,32 @@ type TwinWorld = {
   households: Household[];
 };
 
+type ApplianceTypes =
+  | "Washing Machine"
+  | "Tumble Dryer"
+  | "Dishwasher"
+  | "Stove"
+  | "Electric Vehicle";
+
+type Appliance = {
+  id: number;
+  name: ApplianceTypes;
+  power: number;
+  duration: number;
+  dailyUsage: number;
+  timeDaily: ApplianceTimeDaily[];
+};
+
+type ApplianceTimeDaily = {
+  day: number;
+  bitmapWindow: number;
+  bitmapPlanEnergy: number;
+  bitmapPlanNoEnergy: number;
+};
+
 type EfficiencyResult = {
   solarEnergyIndividual: number;
   solarEnergyTotal: number;
   internalBoughtEnergyPrice: number;
   totalAmountSaved: number;
-};
-
-type ApplianceTimeDaily = {
-  day: number;
-  bitmap_plan_energy: number;
-  bitmap_plan_no_energy: number;
 };
