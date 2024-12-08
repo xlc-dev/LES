@@ -1,31 +1,31 @@
 {
-  "namae": "LES",
-  "private": true,
-  "version": "1.0.0",
-  "scripts": {
-    "build": "rsbuild build",
-    "check": "prettier --check .",
-    "dev": "rsbuild dev --open",
-    "format": "prettier --write .",
-    "preview": "rsbuild preview",
-    "svelte-check": "svelte-check --tsconfig ./tsconfig.json"
-  },
-  "dependencies": {
-    "chart.js": "^4.4.6",
-    "chartjs-plugin-zoom": "^2.1.0",
-    "date-picker-svelte": "^2.15.0",
-    "svelte": "^5.2.7",
-    "xlsx": "^0.18.5"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
-    "@rsbuild/core": "^1.1.4",
-    "@rsbuild/plugin-svelte": "^1.0.5",
-    "prettier": "^3.3.3",
-    "prettier-plugin-svelte": "^3.3.2",
-    "prettier-plugin-tailwindcss": "^0.6.9",
-    "svelte-check": "^4.1.0",
-    "tailwindcss": "^3.4.15",
-    "typescript": "^5.7.2"
-  }
+	"namae": "LES",
+	"private": true,
+	"version": "1.0.0",
+	"scripts": {
+		"build": "rsbuild build",
+		"check": "prettier --check .",
+		"dev": "rsbuild dev --open",
+		"format": "prettier --write .",
+		"preview": "rsbuild preview",
+		"svelte-check": "svelte-check --tsconfig ./tsconfig.json"
+	},
+	"dependencies": {
+		"chart.js": "^4.4.6",
+		"chartjs-plugin-zoom": "^2.1.0",
+		"date-picker-svelte": "^2.15.0",
+		"svelte": "^5.2.7",
+		"xlsx": "^0.18.5"
+	},
+	"devDependencies": {
+		"@rsbuild/core": "^1.1.4",
+		"@rsbuild/plugin-svelte": "^1.0.5",
+		"@tailwindcss/postcss": "4.0.0-beta.6",
+		"prettier": "^3.3.3",
+		"prettier-plugin-svelte": "^3.3.2",
+		"prettier-plugin-tailwindcss": "^0.6.9",
+		"svelte-check": "^4.1.0",
+		"tailwindcss": "4.0.0-beta.6",
+		"typescript": "^5.7.2"
+	}
 }
