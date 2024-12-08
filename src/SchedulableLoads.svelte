@@ -60,10 +60,6 @@
     showDatePicker = !showDatePicker;
   };
 
-  const toggleCard = () => {
-    showLegend = !showLegend;
-  };
-
   const handleClickOutsideFilter = (filterName: string) => {
     return (event: any) => {
       if (!event.target.closest(`#${filterName}-dropdown`)) {
@@ -75,10 +71,6 @@
   const handleClickOutsideDatePicker = (event: any) => {
     if (!event.target.closest(".date-picker-container")) {
       showDatePicker = false;
-    }
-
-    if (!event.target.closest(".legend")) {
-      showLegend = false;
     }
   };
 
@@ -177,16 +169,19 @@
           bind:value={searchQuery} />
 
         {#each Object.entries(filters) as [filterName, options]}
-          <button
+          <div
             class="relative"
+            role="button"
+            tabindex="0"
+            onkeydown={(e) => e.key === "Enter" && toggleDropdown(e, filterName)}
             id={`${filterName}-dropdown`}
             onclick={handleClickOutsideFilter(filterName)}>
-            <div
+            <button
               class="rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-les-highlight"
               onclick={(e) => toggleDropdown(e, filterName)}
               onkeydown={(e) => e.key === "Enter" && toggleDropdown(e, filterName)}>
               {toReadableName(filterName)}
-            </div>
+            </button>
 
             {#if showDropdown === filterName}
               <div
@@ -208,33 +203,44 @@
                 </div>
               </div>
             {/if}
-          </button>
+          </div>
         {/each}
         <button
           class="ml-2 rounded bg-les-gray-500 px-4 py-2 text-white hover:brightness-110"
-          onclick={toggleCard}>Legend</button>
-        <button class="date-picker-container relative">
-          <div
+          onclick={() => (showLegend = !showLegend)}>Legend</button>
+        <div class="date-picker-container relative">
+          <button
+            type="button"
             class="rounded bg-les-blue px-4 py-2 text-white transition-colors duration-200 hover:brightness-110"
-            onclick={toggleDatePicker}>
+            onclick={toggleDatePicker}
+            aria-haspopup="dialog"
+            aria-expanded={showDatePicker}
+            aria-controls="date-picker-dialog">
             Select Date
-          </div>
+          </button>
+
           {#if showDatePicker}
-            <div class="calendar absolute z-10 mt-2 rounded">
-              <DatePicker bind:value={selectedDate} min={setMinDate} max={setMaxDate} />
+            <div
+              id="date-picker-dialog"
+              class="calendar absolute z-10 mt-2 rounded shadow-lg"
+              role="dialog"
+              aria-modal="true">
+              <DatePicker
+                bind:value={selectedDate}
+                min={setMinDate}
+                max={setMaxDate}
+                on:close={toggleDatePicker} />
             </div>
           {/if}
-        </button>
+        </div>
       </div>
 
       {#if showLegend}
         <div class="fixed inset-0 flex items-center justify-center">
           <button
-            onclick={toggleCard}
+            onclick={() => (showLegend = !showLegend)}
             class="w-100 legend relative z-10 rounded border border-gray-300 bg-white p-4 shadow-lg">
-            <div
-              class="absolute right-2 top-2 p-2 text-xl text-gray-600 hover:text-gray-800"
-              onclick={toggleCard}>
+            <div class="absolute right-2 top-2 p-2 text-xl text-gray-600 hover:text-gray-800">
               <svg
                 class="h-4 w-4 fill-current text-black transition-colors duration-200 hover:text-les-highlight"
                 xmlns="http://www.w3.org/2000/svg"
@@ -366,7 +372,7 @@
             </td>
 
             <td class="px-5 py-5 text-gray-800">
-              {#each data.appliances as appliance}
+              {#each data.appliances! as appliance}
                 {appliance.name}
                 <br />
               {/each}
@@ -377,11 +383,11 @@
               <td colspan={7}>
                 <div transition:slide class="flex justify-center p-4">
                   {#key formattedDate}
-                    <SchedulableLoadGrid
-                      appliances={data.appliances}
-                      date={formattedDate}
-                      dateNoFormat={selectedDate}
-                      {hours} />
+                    <!-- <SchedulableLoadGrid -->
+                    <!--   appliances={data.appliances} -->
+                    <!--   date={formattedDate} -->
+                    <!--   dateNoFormat={selectedDate} -->
+                    <!--   {hours} /> -->
                   {/key}
                 </div>
               </td>

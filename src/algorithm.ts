@@ -1,4 +1,4 @@
-import { HOURS_IN_WEEK, SECONDS_IN_DAY } from "./utils";
+import { HOURS_IN_WEEK, MAX_DAYS_IN_YEAR, SECONDS_IN_DAY } from "./utils";
 
 function getStartEndDate(energyflow: Energyflow): {
   min: string | null;
@@ -104,10 +104,9 @@ function getBySolarProduced({
 }
 
 function generateEmptyTimePlan(): ApplianceTimeDaily[] {
-  const daysInYear = 365;
   const emptyPlan: ApplianceTimeDaily[] = [];
 
-  for (let day = 0; day < daysInYear; day++) {
+  for (let day = 0; day < MAX_DAYS_IN_YEAR; day++) {
     emptyPlan.push({
       day,
       bitmap_plan_energy: 0,
@@ -121,17 +120,18 @@ function generateEmptyTimePlan(): ApplianceTimeDaily[] {
 function setupPlanning(
   energyflowDataStepper: Energyflow,
   chunkOffset: number,
-): [
-    number,
-    number,
-    number,
-    number,
-    number,
-    Energyflow["data"],
-    Energyflow["data"],
-    ApplianceTimeDaily[],
-    number[][],
-  ] {
+): {
+  daysInChunk: number;
+  chunkOffset: number;
+  totalStartDate: number;
+  totalEndDate: number;
+  startDate: number;
+  endDate: number;
+  energyflowDataSim: Energyflow["data"];
+  energyflowDataSolar: Energyflow["data"];
+  applianceTime: ApplianceTimeDaily[];
+  results: number[][];
+} {
   const energyflowDataSolar = getBySolarProduced({
     data: energyflowDataStepper.data,
     offset: chunkOffset * 24,
@@ -154,39 +154,39 @@ function setupPlanning(
     Array(7).fill(0.0),
   );
 
-  return [
+  return {
     daysInChunk,
     chunkOffset,
     totalStartDate,
     totalEndDate,
     startDate,
+    endDate,
     energyflowDataSim,
     energyflowDataSolar,
     applianceTime,
     results,
-  ];
+  };
 }
 
 export function loop(
   energyflowData: Energyflow,
   householdPlanning: Household[],
-  chunkOffset: number,
+  chunkOffsetLoop: number,
 ) {
-  const [
+  const {
     daysInChunk,
-    chunkOffsetAdjusted,
+    chunkOffset,
     totalStartDate,
     totalEndDate,
     startDate,
+    endDate,
     energyflowDataSim,
     energyflowDataSolar,
     applianceTime,
     results,
-  ] = setupPlanning(energyflowData, chunkOffset);
+  } = setupPlanning(energyflowData, chunkOffsetLoop);
 
   const planningLength = householdPlanning.length;
 
-  for (let dayIterator = 1; dayIterator <= daysInChunk; dayIterator++) {
-    // Your loop logic here
-  }
+  for (let dayIterator = 1; dayIterator <= daysInChunk; dayIterator++) { }
 }
