@@ -1,32 +1,30 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 @font-face {
-  font-family: "roboto";
-  src: url("/public/roboto.ttf");
+	font-family: "roboto";
+	src: url("/public/roboto.ttf");
 }
 
 body {
-  font-family: "roboto", sans-serif;
+	font-family: "roboto", sans-serif;
 }
 
 @layer base {
-  input[type="checkbox"],
-  input[type="radio"] {
-    @apply h-4 w-4 cursor-pointer;
-    accent-color: theme("colors.les-highlight");
-    accent-color: var(--tw-color-les-highlight);
-  }
+	input[type="checkbox"],
+	input[type="radio"] {
+		@apply h-4 w-4 cursor-pointer;
+		accent-color: theme("colors.les-highlight");
+		accent-color: var(--tw-color-les-highlight);
+	}
 }
 
 @layer components {
-  .calendar {
-    --date-picker-foreground: theme("colors.les-highlight");
-    --date-picker-background: theme("colors.white");
-    --date-picker-highlight-border: theme("colors.blue.500");
-    --date-picker-highlight-shadow: theme("colors.les-highlight");
-    --date-picker-selected-color: theme("colors.white");
-    --date-picker-selected-background: theme("colors.blue.500");
-  }
+	.calendar {
+		--date-picker-foreground: theme("colors.les-highlight");
+		--date-picker-background: theme("colors.white");
+		--date-picker-highlight-border: theme("colors.blue.500");
+		--date-picker-highlight-shadow: theme("colors.les-highlight");
+		--date-picker-selected-color: theme("colors.white");
+		--date-picker-selected-background: theme("colors.blue.500");
+	}
 }
