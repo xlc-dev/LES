@@ -1,11 +1,13 @@
 <script lang="ts">
   import { DatePicker } from "date-picker-svelte";
-  import { getEndDate, getStartDate } from "./state.svelte";
 
   import SchedulableLoadGrid from "./SchedulableLoadGrid.svelte";
 
-  const { household } = $props();
+  import { getEndDate, getStartDate, getHousehold } from "./state.svelte";
+  import { onDestroy } from "svelte";
 
+  const household = getHousehold().household!;
+  const setHousehold = getHousehold();
   const endDate = getEndDate();
   const startDate = getStartDate();
 
@@ -41,41 +43,51 @@
       }
     }
   });
+
+  onDestroy(() => {
+    setHousehold.setHousehold(null);
+  });
 </script>
 
 <svelte:window onclick={handleClickOutsideDatePicker} />
 
 <div class="flex flex-col gap-12">
-  <div class="rounded-lg border-4 border-gray-400 bg-white p-4 shadow-sm w-full max-w-7xl mx-auto">
-    <h2 class="text-xl font-bold mb-4">Household Information</h2>
-    <div class="grid grid-cols-2 gap-4">
-      <div class="font-semibold">Name:</div>
-      <div>{household.name}</div>
-      <div class="font-semibold">Size:</div>
-      <div>{household.size}</div>
-      <div class="font-semibold">Energy Usage:</div>
-      <div>{household.energy_usage}</div>
-      <div class="font-semibold">Solar Panels:</div>
-      <div>{household.solar_panels}</div>
-      <div class="font-semibold">Solar Yield Yearly:</div>
-      <div>{household.solar_yield_yearly}</div>
+  <div
+    class="rounded-lg border-4 border-gray-400 bg-white p-6 shadow-sm w-full max-w-7xl mx-auto space-y-6">
+    <div>
+      <h2 class="text-xl font-bold mb-4">Household Information</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="font-semibold">Name:</div>
+        <div>{household.name}</div>
+        <div class="font-semibold">Size:</div>
+        <div>{household.size}</div>
+        <div class="font-semibold">Energy Usage:</div>
+        <div>{household.energyUsage}</div>
+        <div class="font-semibold">Solar Panels:</div>
+        <div>{household.solarPanels}</div>
+        <div class="font-semibold">Solar Yield Yearly:</div>
+        <div>{household.solarYieldYearly}</div>
+      </div>
     </div>
-  </div>
 
-  <div class="rounded-lg border-4 border-gray-400 bg-white p-4 shadow-sm w-full max-w-7xl mx-auto">
-    <h2 class="text-xl font-bold mb-4">Appliances</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {#each household.appliances as appliance}
-        <div class="border border-gray-300 rounded-sm p-4">
-          <div class="font-semibold">{appliance.name}</div>
-          <div class="mt-2">
-            <div><span class="font-semibold">Power:</span> {appliance.power}</div>
-            <div><span class="font-semibold">Duration:</span> {appliance.duration}</div>
-            <div><span class="font-semibold">Daily Usage:</span> {appliance.daily_usage}</div>
-          </div>
+    {#if household.appliances}
+      <div>
+        <h2 class="text-xl font-bold mb-4">Appliances</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {#each household.appliances as appliance}
+            <div
+              class="border border-gray-300 rounded-md p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div class="font-semibold text-lg">{appliance.name}</div>
+              <div class="mt-2 space-y-1">
+                <div><span class="font-semibold">Power:</span> {appliance.power}</div>
+                <div><span class="font-semibold">Duration:</span> {appliance.duration}</div>
+                <div><span class="font-semibold">Daily Usage:</span> {appliance.dailyUsage}</div>
+              </div>
+            </div>
+          {/each}
         </div>
-      {/each}
-    </div>
+      </div>
+    {/if}
   </div>
 
   <h2 class="text-3xl font-bold text-white">Schedulable Load</h2>
