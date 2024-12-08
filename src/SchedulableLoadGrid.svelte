@@ -27,8 +27,9 @@
     );
 
     // Find the corresponding day in timeDailies based on the calculated day number
+    // TODO: changed id to day, is this correct?
     const dayData = timeDailies.timeDailies.filter(
-      (entry) => entry.id === daysInPlanning.daysInPlanning * (appliance_id - 1) + dayNumber + 1
+      (entry) => entry.day === daysInPlanning.daysInPlanning * (appliance_id - 1) + dayNumber + 1
     );
 
     // Fallback if user hasn't selected a date that has no timeDailies
@@ -36,8 +37,8 @@
       return "bg-gray-700";
     }
 
-    const planEnergyBit = (dayData[0].bitmap_plan_energy >> (23 - hour)) & 1;
-    const planNoEnergyBit = (dayData[0].bitmap_plan_no_energy >> (23 - hour)) & 1;
+    const planEnergyBit = (dayData[0].bitmapPlanEnergy >> (23 - hour)) & 1;
+    const planNoEnergyBit = (dayData[0].bitmapPlanNoEnergy >> (23 - hour)) & 1;
 
     if (planEnergyBit === 1) {
       if (bitmapString[hour] !== "1") {
