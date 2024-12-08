@@ -2,25 +2,20 @@ name: CD
 
 on:
   push:
-    branches: ["main"]
-
-  workflow_dispatch:
+    branches:
+      - main
+  pull_request:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
 
     steps:
       - uses: actions/checkout@v4
@@ -32,11 +27,16 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build project
+      - name: Build
         run: npm run build
 
-      - name: Deploy to GitHub Pages
+      - name: Move files
+        run: |
+          mkdir ./public
+          mv ./dist/* ./public/
+
+      - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
+        if: github.ref == 'refs/heads/main'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist

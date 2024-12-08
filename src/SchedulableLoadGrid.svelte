@@ -86,3 +86,22 @@
     </div>
   {/each}
 </div>
+
+<!-- TODO: add Legend somewhere -->
+
+<!-- <div class="mb-2 flex items-center"> -->
+<!--   <div class="mr-2 h-4 w-4 bg-gray-700"></div> -->
+<!--   <p>contain the time slots that are unavailable to plan appliances in.</p> -->
+<!-- </div> -->
+<!-- <div class="mb-2 flex items-center"> -->
+<!--   <div class="mr-2 h-4 w-4 bg-les-blue"></div> -->
+<!--   <p>contain the time slots that are available to plan appliances in.</p> -->
+<!-- </div> -->
+<!-- <div class="mb-2 flex items-center"> -->
+<!--   <div class="mr-2 h-4 w-4 bg-green-700"></div> -->
+<!--   <p>indicate that the planned energy used is drawn from solar panels.</p> -->
+<!-- </div> -->
+<!-- <div class="flex items-center"> -->
+<!--   <div class="mr-2 h-4 w-4 bg-les-red"></div> -->
+<!--   <p>indicate that the planned energy used is drawn from the national grid.</p> -->
+<!-- </div> -->
