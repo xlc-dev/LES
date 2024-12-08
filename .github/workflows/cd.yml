@@ -31,9 +31,7 @@ jobs:
         run: npm run build
 
       - name: Move files
-        run: |
-          mkdir ./public
-          mv ./dist/* ./public/
+        run: mv ./dist/* ./public/
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
