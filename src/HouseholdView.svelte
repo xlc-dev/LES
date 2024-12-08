@@ -46,7 +46,7 @@
 <svelte:window onclick={handleClickOutsideDatePicker} />
 
 <div class="flex flex-col gap-12">
-  <div class="rounded-lg border-4 border-gray-400 bg-white p-4 shadow w-full max-w-7xl mx-auto">
+  <div class="rounded-lg border-4 border-gray-400 bg-white p-4 shadow-sm w-full max-w-7xl mx-auto">
     <h2 class="text-xl font-bold mb-4">Household Information</h2>
     <div class="grid grid-cols-2 gap-4">
       <div class="font-semibold">Name:</div>
@@ -62,11 +62,11 @@
     </div>
   </div>
 
-  <div class="rounded-lg border-4 border-gray-400 bg-white p-4 shadow w-full max-w-7xl mx-auto">
+  <div class="rounded-lg border-4 border-gray-400 bg-white p-4 shadow-sm w-full max-w-7xl mx-auto">
     <h2 class="text-xl font-bold mb-4">Appliances</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       {#each household.appliances as appliance}
-        <div class="border border-gray-300 rounded p-4">
+        <div class="border border-gray-300 rounded-sm p-4">
           <div class="font-semibold">{appliance.name}</div>
           <div class="mt-2">
             <div><span class="font-semibold">Power:</span> {appliance.power}</div>
@@ -83,12 +83,12 @@
   <div class="flex justify-center pt-4">
     <div class="date-picker-container relative">
       <button
-        class="rounded bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:brightness-110"
+        class="rounded-sm bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:brightness-110"
         onclick={(e) => (e.stopPropagation(), (showDatePicker = !showDatePicker))}>
         Select Date
       </button>
       {#if showDatePicker}
-        <div class="calendar absolute z-10 mt-2 rounded shadow-lg">
+        <div class="calendar absolute z-10 mt-2 rounded-sm shadow-lg">
           <DatePicker bind:value={selectedDate} min={setMinDate} max={setMaxDate} />
         </div>
       {/if}
@@ -97,7 +97,7 @@
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     {#each weekDates as date}
-      <div class="rounded-lg border-4 border-gray-400 bg-white p-4 shadow w-full">
+      <div class="rounded-lg border-4 border-gray-400 bg-white p-4 shadow-sm w-full">
         <div class="mt-2 text-center text-gray-500">
           {date.toLocaleDateString("en-US", { weekday: "long" })}
         </div>

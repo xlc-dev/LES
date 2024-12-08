@@ -590,7 +590,7 @@
           {/if}
 
           <button
-            class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center focus:outline-none z-10
+            class="w-8 h-8 rounded-full shrink-0 flex items-center justify-center focus:outline-hidden z-10
             {selectedOptions[index] ? 'bg-les-highlight text-white' : 'bg-gray-300 text-gray-600'}
             {selectedOptions[index] && index !== currentStep ? 'hover:bg-sidebar' : ''}
             disabled:opacity-50"
@@ -721,7 +721,7 @@
           {#if field.type === "input"}
             <input
               type="text"
-              class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight focus:outline-none focus:ring-2 focus:ring-les-highlight"
+              class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight focus:outline-hidden focus:ring-2 focus:ring-les-highlight"
               placeholder={field.placeholder}
               bind:value={field.value}
               required={field.required}
@@ -730,7 +730,7 @@
 
           {#if field.type === "textarea"}
             <textarea
-              class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight focus:outline-none focus:ring-2 focus:ring-les-highlight"
+              class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight focus:outline-hidden focus:ring-2 focus:ring-les-highlight"
               placeholder={field.placeholder}
               bind:value={field.value}
               required={field.required}
@@ -752,7 +752,7 @@
           {#if field.type === "file"}
             <input
               type="file"
-              class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight focus:outline-none focus:ring-2 focus:ring-les-highlight"
+              class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight focus:outline-hidden focus:ring-2 focus:ring-les-highlight"
               onchange={(event) => handleFileChange(field, event)} />
             {#if field.file}
               <span class="text-green-500 text-sm mt-1">Selected File: {field.file.name}</span>
@@ -763,13 +763,13 @@
       <div class="flex space-x-4">
         <button
           type="submit"
-          class="bg-les-highlight text-white px-4 py-2 rounded transition-colors duration-200 hover:bg-sidebar">
+          class="bg-les-highlight text-white px-4 py-2 rounded-sm transition-colors duration-200 hover:bg-sidebar">
           {editMode ? "Update" : "Create"}
         </button>
         {#if editMode}
           <button
             type="button"
-            class="bg-gray-300 text-gray-700 px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-400"
+            class="bg-gray-300 text-gray-700 px-4 py-2 rounded-sm transition-colors duration-200 hover:bg-gray-400"
             onclick={cancelEdit}>
             Cancel
           </button>
@@ -786,7 +786,7 @@
       <div>
         <input
           type="text"
-          class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight focus:outline-none focus:ring-2 focus:ring-les-highlight"
+          class="border-2 border-gray-300 rounded-lg p-2 w-full text-les-highlight focus:outline-hidden focus:ring-2 focus:ring-les-highlight"
           placeholder="Household Name"
           bind:value={newHouseholdName}
           onkeydown={(e) => {
@@ -801,12 +801,12 @@
         {#if editHouseholdId}
           <div class="flex space-x-2 mt-2">
             <button
-              class="bg-les-highlight text-white px-3 py-1 rounded hover:bg-sidebar transition"
+              class="bg-les-highlight text-white px-3 py-1 rounded-sm hover:bg-sidebar transition"
               onclick={updateHousehold}>
               Update
             </button>
             <button
-              class="bg-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-400 transition"
+              class="bg-gray-300 text-gray-700 px-3 py-1 rounded-sm hover:bg-gray-400 transition"
               onclick={() => {
                 editHouseholdId = null;
                 newHouseholdName = "";
@@ -832,7 +832,7 @@
       </div>
       <ul class="space-y-3">
         {#each households as household}
-          <li class="border border-gray-300 p-3 rounded">
+          <li class="border border-gray-300 p-3 rounded-sm">
             <div class="flex justify-between items-center">
               <span class="font-semibold text-les-highlight">
                 {household.name}
@@ -853,7 +853,7 @@
             <div class="mt-2 ml-2">
               <h3 class="font-semibold text-les-highlight text-sm mb-1">Appliances</h3>
               <select
-                class="border border-gray-300 rounded p-2 w-full text-les-highlight focus:outline-none focus:ring focus:ring-les-highlight text-sm"
+                class="border border-gray-300 rounded-sm p-2 w-full text-les-highlight focus:outline-hidden focus:ring-3 focus:ring-les-highlight text-sm"
                 bind:value={newApplianceNames[household.name]}
                 onkeydown={(e) => {
                   if (e.key === "Enter") {
@@ -877,7 +877,7 @@
               </button>
               <ul class="space-y-1 mt-2">
                 {#each household.appliances! as appliance}
-                  <li class="border border-gray-200 p-2 rounded">
+                  <li class="border border-gray-200 p-2 rounded-sm">
                     <div class="flex justify-between items-center">
                       <span class="text-les-highlight text-sm font-bold">
                         {appliance.name}
@@ -922,7 +922,7 @@
 {/snippet}
 
 <div class="flex flex-col items-center justify-center mx-auto max-w-3xl px-2 py-4 space-y-8">
-  <button onclick={wipestorage} class="bg-red-700 text-white px-4 py-2 rounded"
+  <button onclick={wipestorage} class="bg-red-700 text-white px-4 py-2 rounded-sm"
     >Clear Storage</button>
 
   {@render progressBar(

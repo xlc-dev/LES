@@ -27,7 +27,7 @@
           transition-transform duration-300 ease-in-out
           md:translate-x-0 sidebar-container
           {isMenuOpen ? 'translate-x-0' : '-translate-x-full'} flex flex-col">
-  <div class="flex-grow overflow-auto">
+  <div class="grow overflow-auto">
     <div class="flex w-full items-center gap-3 bg-les-gray-700 p-4">
       <img src="/arrows.png" alt="" class="rotate-180 transform" />
       <p class="font-bold">LES</p>
@@ -93,7 +93,7 @@
 {/if}
 
 <button
-  class="fixed top-4 left-4 z-50 md:hidden bg-les-highlight p-2 rounded hamburger-button"
+  class="fixed top-4 left-4 z-50 md:hidden bg-les-highlight p-2 rounded-sm hamburger-button"
   class:hidden={isMenuOpen}
   aria-label="Close menu"
   onclick={toggleMenu}>

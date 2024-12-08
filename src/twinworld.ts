@@ -18,13 +18,10 @@ function generateHouseholdSize(): number {
   return 5;
 }
 
-const createTwinWorld = (
-  baseHouseholdCount: number,
-  variation: number,
-): TwinWorld => {
+const createTwinWorld = (baseHouseholdCount: number, variation: number): TwinWorld => {
   const householdCount = getRandomInt(
     Math.max(1, baseHouseholdCount - variation),
-    baseHouseholdCount + variation,
+    baseHouseholdCount + variation
   );
 
   return {
@@ -33,7 +30,7 @@ const createTwinWorld = (
       const householdSize = generateHouseholdSize();
       const invNorm = randomNormal(1, 0.1);
       const totalEnergyUsage = Math.round(
-        invNorm * (defaultEnergyUsage[String(householdSize)] || 0),
+        invNorm * (defaultEnergyUsage[String(householdSize)] || 0)
       );
 
       let solarPanels = 0;

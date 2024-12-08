@@ -1,32 +1,64 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@font-face {
-	font-family: "roboto";
-	src: url("/public/roboto.ttf");
+@theme {
+  --color-les-gray-50: #f4f9fb;
+  --color-les-gray-100: #edf5f8;
+  --color-les-gray-200: #dadada;
+  --color-les-gray-300: #838383;
+  --color-les-gray-400: #313131;
+  --color-les-gray-500: #22222c;
+  --color-les-gray-600: #1a1a26;
+  --color-les-gray-700: #12121b;
+
+  --color-les-highlight: #2a2a3d;
+  --color-sidebar: #111827;
+
+  --transition-property-width: width;
 }
 
-body {
-	font-family: "roboto", sans-serif;
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+@utility calendar {
+  --date-picker-foreground: var(--color-les-highlight);
+  --date-picker-background: var(--color-white);
+  --date-picker-highlight-border: var(--color-blue-500);
+  --date-picker-highlight-shadow: var(--color-les-highlight);
+  --date-picker-selected-color: var(--color-white);
+  --date-picker-selected-background: var(--color-blue-500);
+}
+
+@layer utilities {
+  @font-face {
+    font-family: "roboto";
+    src: url("/public/roboto.ttf");
+  }
+
+  body {
+    font-family: "roboto", sans-serif;
+  }
 }
 
 @layer base {
-	input[type="checkbox"],
-	input[type="radio"] {
-		@apply h-4 w-4 cursor-pointer;
-		accent-color: theme("colors.les-highlight");
-		accent-color: var(--tw-color-les-highlight);
-	}
-}
-
-@layer components {
-	.calendar {
-		--date-picker-foreground: theme("colors.les-highlight");
-		--date-picker-background: theme("colors.white");
-		--date-picker-highlight-border: theme("colors.blue.500");
-		--date-picker-highlight-shadow: theme("colors.les-highlight");
-		--date-picker-selected-color: theme("colors.white");
-		--date-picker-selected-background: theme("colors.blue.500");
-	}
+  input[type="checkbox"],
+  input[type="radio"] {
+    @apply h-4 w-4 cursor-pointer;
+    accent-color: var(--color-les-highlight);
+    accent-color: var(--tw-color-les-highlight);
+  }
 }

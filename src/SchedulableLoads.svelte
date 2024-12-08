@@ -177,7 +177,7 @@
             id={`${filterName}-dropdown`}
             onclick={handleClickOutsideFilter(filterName)}>
             <button
-              class="rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-les-highlight"
+              class="rounded-md border border-gray-300 bg-white px-3 py-2 shadow-xs focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-les-highlight"
               onclick={(e) => toggleDropdown(e, filterName)}
               onkeydown={(e) => e.key === "Enter" && toggleDropdown(e, filterName)}>
               {toReadableName(filterName)}
@@ -206,12 +206,12 @@
           </div>
         {/each}
         <button
-          class="ml-2 rounded bg-les-gray-500 px-4 py-2 text-white hover:brightness-110"
+          class="ml-2 rounded-sm bg-les-gray-500 px-4 py-2 text-white hover:brightness-110"
           onclick={() => (showLegend = !showLegend)}>Legend</button>
         <div class="date-picker-container relative">
           <button
             type="button"
-            class="rounded bg-les-blue px-4 py-2 text-white transition-colors duration-200 hover:brightness-110"
+            class="rounded-sm bg-les-blue px-4 py-2 text-white transition-colors duration-200 hover:brightness-110"
             onclick={toggleDatePicker}
             aria-haspopup="dialog"
             aria-expanded={showDatePicker}
@@ -222,7 +222,7 @@
           {#if showDatePicker}
             <div
               id="date-picker-dialog"
-              class="calendar absolute z-10 mt-2 rounded shadow-lg"
+              class="calendar absolute z-10 mt-2 rounded-sm shadow-lg"
               role="dialog"
               aria-modal="true">
               <DatePicker
@@ -239,7 +239,7 @@
         <div class="fixed inset-0 flex items-center justify-center">
           <button
             onclick={() => (showLegend = !showLegend)}
-            class="w-100 legend relative z-10 rounded border border-gray-300 bg-white p-4 shadow-lg">
+            class="w-100 legend relative z-10 rounded-sm border border-gray-300 bg-white p-4 shadow-lg">
             <div class="absolute right-2 top-2 p-2 text-xl text-gray-600 hover:text-gray-800">
               <svg
                 class="h-4 w-4 fill-current text-black transition-colors duration-200 hover:text-les-highlight"
@@ -337,11 +337,11 @@
       <tbody>
         {#each filteredData as data}
           <tr
-            class="cursor-pointer bg-white text-sm hover:!bg-gray-100"
+            class="cursor-pointer bg-white text-sm hover:bg-gray-100!"
             onclick={() => toggleRow(data.id)}>
             <td class="px-5 py-5">
               <button
-                class="flex cursor-pointer items-center gap-4 text-gray-800 transition-colors duration-200 hover:!text-les-blue"
+                class="flex cursor-pointer items-center gap-4 text-gray-800 transition-colors duration-200 hover:text-les-blue!"
                 onclick={() => household.setHousehold(data)}>
                 {data.id}
               </button>
@@ -349,7 +349,7 @@
 
             <td class="px-5 py-5">
               <button
-                class="flex cursor-pointer items-center gap-4 text-gray-800 transition-colors duration-200 hover:!text-les-blue"
+                class="flex cursor-pointer items-center gap-4 text-gray-800 transition-colors duration-200 hover:text-les-blue!"
                 onclick={() => household.setHousehold(data)}>
                 {data.name}
               </button>

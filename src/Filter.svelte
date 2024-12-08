@@ -34,7 +34,7 @@
     {#each Object.entries(filters) as [filterName, options]}
       <div class="relative dropdown-container">
         <button
-          class="rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          class="rounded-md border border-gray-300 bg-white px-3 py-2 shadow-xs focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
           aria-haspopup="true"
           aria-expanded={showDropdown === filterName ? "true" : "false"}
           aria-controls={`${filterName}-dropdown-list`}

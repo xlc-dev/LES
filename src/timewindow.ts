@@ -14,7 +14,7 @@ function generateRandomTimeWindow(bitmap: number): [number, number] {
 
 export function createTimeWindow(
   day: ApplianceDays,
-  appliance_name: ApplianceTypes,
+  appliance_name: ApplianceTypes
 ): {
   day: ApplianceDays;
   bitmap_window: number;
@@ -65,11 +65,7 @@ export function isAvailable(bitmap: number, hour: number): boolean {
  * @param isAvailable True to set the hour as available, false to set it as not available.
  * @returns The updated 24-bit bitmap.
  */
-export function setAvailability(
-  bitmap: number,
-  hour: number,
-  isAvailable: boolean,
-): number {
+export function setAvailability(bitmap: number, hour: number, isAvailable: boolean): number {
   if (isAvailable) {
     return bitmap | (1 << hour); // Set the bit to 1 (available)
   } else {

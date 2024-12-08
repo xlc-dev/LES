@@ -182,7 +182,7 @@
   <h1 class="pb-4 text-center text-4xl font-bold">Statistics for your session</h1>
   <Chart />
   <div
-    class="relative mb-8 mt-8 grid grid-cols-2 gap-4 rounded-lg border-4 border-gray-400 bg-white p-4 text-les-highlight shadow">
+    class="relative mb-8 mt-8 grid grid-cols-2 gap-4 rounded-lg border-4 border-gray-400 bg-white p-4 text-les-highlight shadow-sm">
     <p class="absolute left-1/2 mt-4 -translate-x-1/2 transform">
       Runtime: {runtime.runtime} seconds
     </p>
