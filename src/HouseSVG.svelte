@@ -1,14 +1,26 @@
 <script lang="ts">
-  const { household, data } = $props();
+  import { getHousehold, getComponent } from "./state.svelte";
+
+  interface Props {
+    data: Household;
+  }
+
+  const { data }: Props = $props();
+
+  const household = getHousehold();
+  const currentComponent = getComponent();
 
   const hasSolarPanels = (household: Household) => household.solarPanels > 0;
 </script>
 
 <button
-  class="flex cursor-pointer items-center gap-4 text-gray-800 hover:text-blue-500"
-  onclick={() => household.setHousehold(data)}>
+  class="p-0 border-0 bg-transparent cursor-pointer inline-block"
+  onclick={() => {
+    household.setHousehold(data);
+    currentComponent.setComponent("Household");
+  }}>
   <svg
-    class="fill-black transition-all duration-300 hover:scale-110"
+    class="block fill-black transition-transform duration-300 hover:scale-110"
     version="1.1"
     xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink"
