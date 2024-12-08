@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import Chart from "./Chart.svelte";
-  import Sidebar from "./Sidebar.svelte";
+
+  import { onMount } from "svelte";
   import { getEfficiencyResults, getRuntime, getStepperData } from "./state.svelte";
   import { loop } from "./algorithm";
 
@@ -31,60 +31,55 @@
     loop(
       stepperData.stepperData!.steps[3].energyflow!,
       stepperData.stepperData!.steps[0].twinWorld!.households,
-      0,
-      7
+      stepperData.stepperData!.steps[2].selectedOption!.label,
+      0
     );
   });
 </script>
 
-<div class="flex flex-col md:flex-row h-screen">
-  <Sidebar />
-  <div class="flex-1 overflow-auto p-4 text-les-highlight md:ml-64">
-    <div class="flex flex-col gap-8">
-      <Chart />
-      <div
-        class="rounded-lg border-4 border-gray-400 bg-white p-4 md:px-20 shadow-sm w-full max-w-7xl mx-auto">
-        <table class="w-full text-sm md:text-base">
-          <tbody>
-            <tr class="border-b border-gray-400">
-              <td class="p-2 font-semibold">Number of Households:</td>
-              <td class="min-w-40 p-2">
-                {stepperData.stepperData?.steps[0].twinWorld?.households.length}
-              </td>
-            </tr>
-            {#if sumEfficiencyIndividual !== null}
-              <tr class="border-b border-gray-400">
-                <td class="p-2 font-semibold">Total saved by own solar panels:</td>
-                <td class="min-w-40 p-2">{sumEfficiencyIndividual.toFixed(2)} kWh</td>
-              </tr>
-            {/if}
-            {#if sumEfficiencyNoSolar !== null}
-              <tr class="border-b border-gray-400">
-                <td class="p-2 font-semibold">Total saved by other households' solar panels:</td>
-                <td class="min-w-40 p-2">{sumEfficiencyNoSolar.toFixed(2)} kWh</td>
-              </tr>
-            {/if}
-            {#if sumEfficiencyTotal !== null}
-              <tr class="border-b border-gray-400">
-                <td class="p-2 font-semibold">Total saved by the community:</td>
-                <td class="min-w-40 p-2">{sumEfficiencyTotal.toFixed(2)} kWh</td>
-              </tr>
-            {/if}
-            {#if sumTotalMoneySaved !== null}
-              <tr class="border-b border-gray-400">
-                <td class="p-2 font-semibold">Total money saved:</td>
-                <td class="min-w-40 p-2">€{sumTotalMoneySaved.toFixed(2)}</td>
-              </tr>
-            {/if}
-            {#if runtime.runtime !== null}
-              <tr>
-                <td class="p-2 font-semibold">Runtime:</td>
-                <td class="min-w-40 p-2">{runtime.runtime} seconds</td>
-              </tr>
-            {/if}
-          </tbody>
-        </table>
-      </div>
-    </div>
+<div class="flex flex-col gap-8">
+  <Chart />
+  <div
+    class="rounded-lg border-4 border-gray-400 bg-white p-4 md:px-20 shadow-sm w-full max-w-7xl mx-auto">
+    <table class="w-full text-sm md:text-base">
+      <tbody>
+        <tr class="border-b border-gray-400">
+          <td class="p-2 font-semibold">Number of Households:</td>
+          <td class="min-w-40 p-2">
+            {stepperData.stepperData?.steps[0].twinWorld?.households.length}
+          </td>
+        </tr>
+        {#if sumEfficiencyIndividual !== null}
+          <tr class="border-b border-gray-400">
+            <td class="p-2 font-semibold">Total saved by own solar panels:</td>
+            <td class="min-w-40 p-2">{sumEfficiencyIndividual.toFixed(2)} kWh</td>
+          </tr>
+        {/if}
+        {#if sumEfficiencyNoSolar !== null}
+          <tr class="border-b border-gray-400">
+            <td class="p-2 font-semibold">Total saved by other households' solar panels:</td>
+            <td class="min-w-40 p-2">{sumEfficiencyNoSolar.toFixed(2)} kWh</td>
+          </tr>
+        {/if}
+        {#if sumEfficiencyTotal !== null}
+          <tr class="border-b border-gray-400">
+            <td class="p-2 font-semibold">Total saved by the community:</td>
+            <td class="min-w-40 p-2">{sumEfficiencyTotal.toFixed(2)} kWh</td>
+          </tr>
+        {/if}
+        {#if sumTotalMoneySaved !== null}
+          <tr class="border-b border-gray-400">
+            <td class="p-2 font-semibold">Total money saved:</td>
+            <td class="min-w-40 p-2">€{sumTotalMoneySaved.toFixed(2)}</td>
+          </tr>
+        {/if}
+        {#if runtime.runtime !== null}
+          <tr>
+            <td class="p-2 font-semibold">Runtime:</td>
+            <td class="min-w-40 p-2">{runtime.runtime} seconds</td>
+          </tr>
+        {/if}
+      </tbody>
+    </table>
   </div>
 </div>
