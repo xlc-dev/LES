@@ -5,7 +5,10 @@
   import Dashboard from "./Dashboard.svelte";
   import Simulation from "./Simulation.svelte";
   import SchedulableLoads from "./SchedulableLoads.svelte";
+  import Sidebar from "./Sidebar.svelte";
   import Stop from "./Stop.svelte";
+  import HouseholdView from "./HouseholdView.svelte";
+
   import { getDashboard, getComponent } from "./state.svelte";
 
   const dashboard = getDashboard();
@@ -84,15 +87,25 @@
     <Stepper />
   {:else if simulationType === "chain" && !dashboard.startDashboard}
     <!-- <Chain /> -->
-  {:else if dashboard.startDashboard}
-    {#if currentComponent.currentComponent === "Dashboard"}
-      <Dashboard />
-    {:else if currentComponent.currentComponent === "Simulation"}
-      <Simulation />
-    {:else if currentComponent.currentComponent === "Schedulable Loads"}
-      <SchedulableLoads />
-    {:else if currentComponent.currentComponent === "Stop"}
-      <Stop />
-    {/if}
+  {:else}
+    <div class="flex md:flex-col h-screen">
+      {#if currentComponent.currentComponent !== "Stop"}
+        <Sidebar />
+        <div class="flex-1 overflow-auto p-4 text-les-highlight">
+          {#if currentComponent.currentComponent === "Dashboard"}
+            <Dashboard />
+          {:else if currentComponent.currentComponent === "Simulation"}
+            <Simulation />
+          {:else if currentComponent.currentComponent === "Schedulable Loads"}
+            <SchedulableLoads />
+          {:else if currentComponent.currentComponent === "Household"}
+            <HouseholdView />
+          {/if}
+        </div>
+      {/if}
+      {#if currentComponent.currentComponent === "Stop"}
+        <Stop />
+      {/if}
+    </div>
   {/if}
 </main>
