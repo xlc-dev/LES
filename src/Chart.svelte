@@ -15,8 +15,7 @@
     chartContainers.forEach((container, index) => {
       const ctx = container.getContext("2d");
       if (!ctx) {
-        console.error(`Failed to get 2D context for chart at index ${index}`);
-        return;
+        throw new Error("Failed to get canvas context.");
       }
       charts[index] = new Chart(ctx, {
         type: "line",
