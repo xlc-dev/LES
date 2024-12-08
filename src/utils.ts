@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 export const SECONDS_IN_DAY = 86400;
 export const HOURS_IN_WEEK = 168;
 export const MAX_DAYS_IN_YEAR = 366;
+export const SECONDS_IN_HOUR = 3600;
 
 export enum ApplianceTypes {
   WASHING_MACHINE = "Washing Machine",
