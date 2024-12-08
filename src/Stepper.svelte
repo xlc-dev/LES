@@ -427,10 +427,12 @@
     if (!newHouseholdName.trim()) return;
     if (households.find((h) => h.name === newHouseholdName.trim())) return;
     const newHousehold: Household = {
+      id: households.length + 1,
       name: newHouseholdName.trim(),
       size: 1,
       energyUsage: 0,
       solarPanels: 0,
+      solarYieldYearly: 0,
       appliances: [],
     };
     households.push(newHousehold);
@@ -483,12 +485,14 @@
     const name = newApplianceNames[household.name] || "";
     if (!name.trim()) return;
     if (household.appliances?.find((a) => a.name === name.trim())) return;
+    // TODO: is id here ok?
     const newAppliance: Appliance = {
+      id: household.appliances!.length + 1,
       name: name.trim() as ApplianceTypes,
-      power: 1000,
-      duration: 1,
-      dailyUsage: 1,
-      availability: 0,
+      power: 0,
+      duration: 0,
+      dailyUsage: 0,
+      timeDaily: [],
     };
     if (!household.appliances) {
       household.appliances = [];
@@ -539,6 +543,7 @@
   function handleAvailabilityChange(appliance: Appliance, hour: number, event: Event) {
     const target = event.target as HTMLInputElement;
 
+    // TODO: this shit doesnt work. it is not specific to a day
     appliance.availability = setAvailability(appliance.availability, hour, target.checked);
 
     appData.households = households;
@@ -634,7 +639,8 @@
           {#each options as option}
             <li class="flex items-center">
               <button
-                class="hover:underline {selectedOption && selectedOption.label === option.label
+                class="cursor-pointer hover:underline {selectedOption &&
+                selectedOption.label === option.label
                   ? 'text-sidebar font-bold'
                   : 'text-les-highlight'} flex-1 text-left"
                 onmouseenter={() => (hoveredOption = option)}
@@ -763,13 +769,13 @@
       <div class="flex space-x-4">
         <button
           type="submit"
-          class="bg-les-highlight text-white px-4 py-2 rounded-sm transition-colors duration-200 hover:bg-sidebar">
+          class="bg-les-highlight text-white px-4 py-2 rounded-sm transition-colors duration-200 hover:bg-sidebar cursor-pointer">
           {editMode ? "Update" : "Create"}
         </button>
         {#if editMode}
           <button
             type="button"
-            class="bg-gray-300 text-gray-700 px-4 py-2 rounded-sm transition-colors duration-200 hover:bg-gray-400"
+            class="bg-gray-300 text-gray-700 px-4 py-2 rounded-sm transition-colors duration-200 hover:bg-gray-400 cursor-pointer"
             onclick={cancelEdit}>
             Cancel
           </button>
@@ -801,12 +807,12 @@
         {#if editHouseholdId}
           <div class="flex space-x-2 mt-2">
             <button
-              class="bg-les-highlight text-white px-3 py-1 rounded-sm hover:bg-sidebar transition"
+              class="bg-les-highlight text-white px-3 py-1 rounded-sm hover:bg-sidebar transition cursor-pointer"
               onclick={updateHousehold}>
               Update
             </button>
             <button
-              class="bg-gray-300 text-gray-700 px-3 py-1 rounded-sm hover:bg-gray-400 transition"
+              class="bg-gray-300 text-gray-700 px-3 py-1 rounded-sm hover:bg-gray-400 transition cursor-pointer"
               onclick={() => {
                 editHouseholdId = null;
                 newHouseholdName = "";
@@ -816,7 +822,7 @@
           </div>
         {:else}
           <button
-            class={`text-white px-3 py-1 rounded transition w-full mt-2
+            class={`text-white px-3 py-1 rounded transition w-full mt-2 cursor-pointer
               ${
                 households.some((h) => h.name === newHouseholdName.trim()) ||
                 !newHouseholdName.trim()
@@ -839,12 +845,12 @@
               </span>
               <div class="space-x-1">
                 <button
-                  class="text-les-highlight text-sm hover:underline"
+                  class="text-les-highlight text-sm hover:underline cursor-pointer"
                   onclick={() => editHousehold(household)}>
                   Edit
                 </button>
                 <button
-                  class="text-red-500 text-sm hover:underline"
+                  class="text-red-500 text-sm hover:underline cursor-pointer"
                   onclick={() => deleteHousehold(household)}>
                   Delete
                 </button>
@@ -883,13 +889,13 @@
                         {appliance.name}
                       </span>
                       <button
-                        class="text-red-500 text-xs hover:underline"
+                        class="text-red-500 text-xs hover:underline cursor-pointer"
                         onclick={() => deleteAppliance(appliance, household)}>
                         Delete
                       </button>
                     </div>
                     <button
-                      class="mt-2 text-les-highlight text-sm underline"
+                      class="mt-2 text-les-highlight text-sm underline cursor-pointer"
                       onclick={() => toggleAvailability(household.name, appliance.name)}>
                       {openAppliances[household.name]?.[appliance.name]
                         ? "Hide Availability"
@@ -922,7 +928,7 @@
 {/snippet}
 
 <div class="flex flex-col items-center justify-center mx-auto max-w-3xl px-2 py-4 space-y-8">
-  <button onclick={wipestorage} class="bg-red-700 text-white px-4 py-2 rounded-sm"
+  <button onclick={wipestorage} class="bg-red-700 text-white px-4 py-2 rounded-sm cursor-pointer"
     >Clear Storage</button>
 
   {@render progressBar(
