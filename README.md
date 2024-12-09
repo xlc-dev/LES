@@ -1,5 +1,7 @@
 # Local Energy System
 
+<img src="/public/homepagelogo.png" alt="Logo">
+
 <p style="text-align: center;">A simulation tool for comparing schedulable load algorithms and twinworlds in a local energy system environment.</p>
 
 If you like this project, please consider supporting it by giving it a star ⭐!
