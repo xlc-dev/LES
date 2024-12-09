@@ -12,8 +12,6 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-22.04
-    permissions:
-      contents: write
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
 
@@ -22,19 +20,16 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "latest"
+          node-version: "23.3"
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install
+        run: npm ci
 
       - name: Build
         run: npm run build
 
-      - name: Move files
-        run: mv ./dist/* ./public/
-
       - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4
-        if: github.ref == 'refs/heads/main'
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          folder: dist
+          branch: gh-pages
