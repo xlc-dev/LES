@@ -1,8 +1,0 @@
-/dist
-/out
-*.min.js
-*.min.css
-.DS_Store
-.env
-node_modules
-pnpm-lock.yaml
