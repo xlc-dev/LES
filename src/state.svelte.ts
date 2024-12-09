@@ -11,12 +11,7 @@ function createState<T>(initialValue: T) {
   };
 }
 
-type ComponentList =
-  | "Dashboard"
-  | "Schedulable Loads"
-  | "Simulation"
-  | "Household"
-  | "Stop";
+type ComponentList = "Dashboard" | "Schedulable Loads" | "Simulation" | "Household" | "Stop";
 
 const componentState = createState<ComponentList>("Dashboard");
 const dashboardState = createState<boolean>(false);
@@ -160,7 +155,7 @@ export function getRuntime() {
             const elapsed = Date.now() - runtimeStartTimeState.state; // Elapsed time in milliseconds
             runtimeState.setState(parseFloat((elapsed / 1000).toFixed(2))); // Convert to seconds with two decimals
           }
-        }, 100), // Update every 100ms for two decimal precision
+        }, 100) // Update every 100ms for two decimal precision
       );
     }
   }

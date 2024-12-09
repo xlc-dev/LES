@@ -91,13 +91,13 @@ export function planGreedy({
         appliance.timeDaily[dayNumber].bitmapPlanEnergy = planEnergy(
           hour,
           appliance.duration,
-          bitmapEnergy,
+          bitmapEnergy
         );
 
         for (let i = 0; i < appliance.duration; i++) {
           const energyUsed = Math.min(
             householdEnergy[hour][householdIdx],
-            appliance.power / appliance.duration,
+            appliance.power / appliance.duration
           );
 
           totalAvailableEnergy -= energyUsed;
@@ -113,8 +113,7 @@ export function planGreedy({
     // If unable to plan using solar energy, attempt to plan using the national grid
     if (!plannedIn) {
       for (let i = 0; i < 24; i++) {
-        const currentTime =
-          totalStartDate + dayNumber * SECONDS_IN_DAY + i * SECONDS_IN_HOUR;
+        const currentTime = totalStartDate + dayNumber * SECONDS_IN_DAY + i * SECONDS_IN_HOUR;
 
         if (!checkApplianceTime(appliance, currentTime, bitmapNoEnergy)) {
           continue;
@@ -123,7 +122,7 @@ export function planGreedy({
         appliance.timeDaily[dayNumber].bitmapPlanNoEnergy = planEnergy(
           unixToHour(currentTime),
           appliance.duration,
-          bitmapNoEnergy,
+          bitmapNoEnergy
         );
 
         plannedIn = true;

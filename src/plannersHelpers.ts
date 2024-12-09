@@ -42,14 +42,12 @@ function calculateApplianceDurationBit(duration: number, hour: number): number {
 export function checkApplianceTime(
   appliance: Appliance,
   unix: number,
-  applianceBitmapPlan: number,
+  applianceBitmapPlan: number
 ): boolean {
   const date = new Date(unix * 1000);
   const dayNumber = (date.getUTCDay() + 6) % 7; // Adjust Sunday (0) to match ApplianceDays.SUNDAY (6)
 
-  const bitmapWindow = appliance.timeDaily.find(
-    (w) => w.day === dayNumber,
-  )?.bitmapWindow;
+  const bitmapWindow = appliance.timeDaily.find((w) => w.day === dayNumber)?.bitmapWindow;
 
   if (bitmapWindow === undefined) {
     return false;
@@ -81,11 +79,7 @@ export function checkApplianceTime(
  *
  * @returns {number} The updated bitmap window.
  */
-export function planEnergy(
-  hour: number,
-  duration: number,
-  bitmap: number,
-): number {
+export function planEnergy(hour: number, duration: number, bitmap: number): number {
   const applianceDurationBit = calculateApplianceDurationBit(duration, hour);
   return applianceDurationBit | bitmap;
 }

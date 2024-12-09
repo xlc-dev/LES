@@ -1,9 +1,4 @@
-import {
-  HOURS_IN_WEEK,
-  SECONDS_IN_DAY,
-  SECONDS_IN_HOUR,
-  unixToHour,
-} from "./utils";
+import { HOURS_IN_WEEK, SECONDS_IN_DAY, SECONDS_IN_HOUR, unixToHour } from "./utils";
 
 import { planGreedy } from "./planners";
 
@@ -67,8 +62,7 @@ function getEnergyflowChunkStartEndDates({
   daysInChunk: number;
   daysInPlanning: number;
 } {
-  const { totalStartDate, totalEndDate } =
-    getEnergyflowStartEndDate(energyflow);
+  const { totalStartDate, totalEndDate } = getEnergyflowStartEndDate(energyflow);
   if (!totalStartDate || !totalEndDate) {
     throw new Error("No data available to calculate dates.");
   }
@@ -84,8 +78,7 @@ function getEnergyflowChunkStartEndDates({
     SECONDS_IN_HOUR;
 
   const daysInChunk = Math.floor((endDate - startDate) / SECONDS_IN_DAY) + 1;
-  const daysInPlanning =
-    Math.floor((totalEndDate - totalStartDate) / SECONDS_IN_DAY) + 1;
+  const daysInPlanning = Math.floor((totalEndDate - totalStartDate) / SECONDS_IN_DAY) + 1;
 
   return {
     totalStartDate,
@@ -196,7 +189,7 @@ function getEnergyflowBySolarProduced({
  */
 function setupPlanning(
   energyflowDataStepper: Energyflow,
-  chunkOffset: number,
+  chunkOffset: number
 ): {
   daysInChunk: number;
   daysInPlanning: number;
@@ -218,21 +211,13 @@ function setupPlanning(
     offset: chunkOffset * 24,
   });
 
-  const {
-    totalStartDate,
-    totalEndDate,
-    startDate,
-    endDate,
-    daysInChunk,
-    daysInPlanning,
-  } = getEnergyflowChunkStartEndDates({
-    energyflow: energyflowDataStepper,
-    energyflowDataSim,
-  });
+  const { totalStartDate, totalEndDate, startDate, endDate, daysInChunk, daysInPlanning } =
+    getEnergyflowChunkStartEndDates({
+      energyflow: energyflowDataStepper,
+      energyflowDataSim,
+    });
 
-  const results: number[][] = Array.from({ length: daysInChunk }, () =>
-    Array(7).fill(0.0),
-  );
+  const results: number[][] = Array.from({ length: daysInChunk }, () => Array(7).fill(0.0));
 
   return {
     daysInChunk,
@@ -260,7 +245,7 @@ export function loop(
   energyflowData: Energyflow,
   householdPlanning: Household[],
   algoChoice: string,
-  chunkOffsetLoop: number,
+  chunkOffsetLoop: number
 ): void {
   const {
     daysInChunk,
@@ -281,12 +266,10 @@ export function loop(
       Math.floor((startDate - totalStartDate) / SECONDS_IN_DAY) + dayIterator;
     const date = startDate + dayNumberInPlanning * SECONDS_IN_DAY;
     const energyflowDay = energyflowDataSolar.filter(
-      (el) =>
-        Math.floor((Number(el.timestamp) - startDate) / SECONDS_IN_DAY) ===
-        dayIterator,
+      (el) => Math.floor((Number(el.timestamp) - startDate) / SECONDS_IN_DAY) === dayIterator
     );
     const householdEnergy = Array.from({ length: 24 }, () =>
-      Array.from({ length: planningLength }, () => 0.0),
+      Array.from({ length: planningLength }, () => 0.0)
     );
 
     let totalAvailableEnergy = 0.0;
@@ -298,32 +281,26 @@ export function loop(
       energyflowDay.forEach((flow) => {
         const hour = unixToHour(Number(flow.timestamp));
         const potentialEnergy =
-          (flow.solar_produced * household.solarYieldYearly) /
-          energyflowData.solarPanelsFactor -
-          (flow.energy_used * 0.8 * household.energyUsage) /
-          energyflowData.energyUsageFactor;
+          (flow.solar_produced * household.solarYieldYearly) / energyflowData.solarPanelsFactor -
+          (flow.energy_used * 0.8 * household.energyUsage) / energyflowData.energyUsageFactor;
 
         householdEnergy[hour][householdIdx] += potentialEnergy;
         totalAvailableEnergy += potentialEnergy;
       });
     });
 
-    if (
-      algoChoice === "Greedy Planning" ||
-      algoChoice === "Simulated Annealing"
-    ) {
+    if (algoChoice === "Greedy Planning" || algoChoice === "Simulated Annealing") {
       householdPlanning.forEach((household, householdIdx) => {
         household.appliances?.forEach((appliance) => {
-          const { applianceTime, newTotalAvailableEnergy, newHouseholdEnergy } =
-            planGreedy({
-              householdIdx: householdIdx,
-              dayNumber: dayNumberInPlanning,
-              totalAvailableEnergy: totalAvailableEnergy,
-              householdEnergy: householdEnergy,
-              appliance: appliance,
-              energyflowDay: energyflowDay,
-              totalStartDate: totalStartDate,
-            });
+          const { applianceTime, newTotalAvailableEnergy, newHouseholdEnergy } = planGreedy({
+            householdIdx: householdIdx,
+            dayNumber: dayNumberInPlanning,
+            totalAvailableEnergy: totalAvailableEnergy,
+            householdEnergy: householdEnergy,
+            appliance: appliance,
+            energyflowDay: energyflowDay,
+            totalStartDate: totalStartDate,
+          });
         });
       });
     }
