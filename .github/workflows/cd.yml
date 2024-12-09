@@ -2,27 +2,32 @@ name: CD
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  deploy:
-    runs-on: ubuntu-22.04
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+  build:
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v3
         with:
-          node-version: "23.3"
-
-      - name: Install
+          node-version: 20
+          
+      - name: Install dependencies
         run: npm i
 
       - name: Build
