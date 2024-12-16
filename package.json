@@ -18,7 +18,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@rsbuild/core": "^1.1.9",
+    "@rsbuild/core": "^1.1.10",
     "@rsbuild/plugin-svelte": "^1.0.5",
     "@tailwindcss/postcss": "4.0.0-beta.6",
     "prettier": "^3.4.2",
