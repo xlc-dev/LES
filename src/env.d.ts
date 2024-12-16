@@ -1,58 +1,33 @@
 /// <reference types="@rsbuild/core/types" />
 /// <reference types="svelte" />
 
-interface AppData {
-  stepperData: StepperData;
-  customOptions: Record<number, CustomOption[]>;
-  households: Household[];
-}
+interface AppData { }
 
 type Option = {
   id: string;
-  description: string;
+  name: string;
   label: string;
-  isCustom?: boolean;
+  description: string;
 };
 
-type FormField = {
+type FormDataStruct = {
+  title: string;
+  formFields: FormField[];
+  options: Option[];
+};
+
+interface FormField {
   label: string;
   name: string;
-  description?: string;
+  description: string;
   type: "input" | "textarea" | "editor" | "file";
   dataType?: "string" | "int" | "float";
-  file?: File;
   placeholder?: string;
-  value?: string;
-  required?: boolean;
-  error?: string;
+  required: boolean;
   min?: number;
-  max?: number;
   step?: number;
-};
-
-type Step = {
-  title: string;
-  options: Option[];
-  formFields: FormField[];
-};
-
-type StepperData = {
-  steps: {
-    title: string;
-    selectedOption: Option | null;
-    formData: Record<string, any> | null;
-    twinWorld?: TwinWorld;
-    costModel?: CostModel;
-    algorithm?: Algo;
-    energyflow?: Energyflow;
-  }[];
-};
-
-type CustomOption = {
-  id: string;
-  option: Option & { energyflow?: Energyflow };
-  formData: Record<string, any>;
-};
+  value?: any;
+}
 
 type Energyflow = {
   solarPanelsFactor: number;

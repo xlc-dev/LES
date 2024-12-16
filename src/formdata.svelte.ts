@@ -4,7 +4,7 @@ Washing machine, tumble dryer, dishwasher, kitchen appliances, and Electrical Ve
 The frequency of use and power usage are randomized for each appliance.
 `;
 
-const steps: Step[] = $state([
+const formData: FormDataStruct[] = $state([
   {
     title: "Twin World",
     options: [
@@ -248,14 +248,14 @@ const steps: Step[] = $state([
   },
 ]);
 
-export function getSteps() {
-  function setSteps(steps: Step[]) {
-    steps = steps;
+export function getFormData() {
+  function setFormData(formData: FormData[]) {
+    formData = formData;
   }
   return {
-    get steps() {
-      return steps;
+    get formData() {
+      return formData;
     },
-    setSteps,
+    setFormData,
   };
 }
