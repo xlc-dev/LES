@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { getDashboard, getStepperData } from "./state.svelte";
   import { getSteps } from "./steps.svelte";
-  import { defaultTwinWorlds } from "./twinworld";
+  import { defaultTwinWorlds, defaultCostModels, defaultAlgorithms } from "./twinworld";
   import { isAvailable, setAvailability } from "./timewindow";
   import { readCSV } from "./utils.ts";
 
@@ -31,7 +31,9 @@
         title: step.title,
         selectedOption: null,
         formData: null,
-        twinWorld: step.title === "Twin World" ? { description: "", households: [] } : undefined,
+        twinWorld: step.title === "Twin World" ? ({} as TwinWorld) : undefined,
+        costModel: undefined,
+        algorithm: undefined,
         energyflow: undefined,
       })),
     },
@@ -89,7 +91,9 @@
           title: step.title,
           selectedOption: null,
           formData: null,
-          twinWorld: step.title === "Twin World" ? { description: "", households: [] } : undefined,
+          twinWorld: step.title === "Twin World" ? ({} as TwinWorld) : undefined,
+          costModel: undefined,
+          algorithm: undefined,
           energyflow: undefined,
         })),
       },
@@ -143,50 +147,105 @@
       selectedOptions[currentStep] = selectedOption;
     }
 
-    const updatedSteps = [];
+    const updatedSteps: StepperData["steps"] = [];
 
     for (const [index, step] of steps.entries()) {
       const selected = selectedOptions[index];
-      const stepData: {
-        title: string;
-        selectedOption: Option | null;
-        formData: { [key: string]: any } | null;
-        twinWorld?: TwinWorld;
-        energyflow?: Energyflow;
-      } = {
-        title: step.title,
-        selectedOption: selected,
-        formData: selected ? getFormData(step.formFields) : null,
-      };
+      let formData: Record<string, any> | null = null;
 
-      if (step.title === "Twin World" && selected) {
-        if (!selected.isCustom) {
-          const twinWorldData =
-            defaultTwinWorlds[selected.label as keyof typeof defaultTwinWorlds];
-          if (twinWorldData) {
-            stepData.twinWorld = twinWorldData;
+      if (selected) {
+        formData = getFormData(step.formFields);
+
+        if (selected.isCustom) {
+          if (!appData.customOptions[index]) {
+            appData.customOptions[index] = [];
           }
-        } else {
-          stepData.twinWorld = {
-            description: "Custom Twin World",
-            households: households,
-          };
+
+          let customOption = appData.customOptions[index].find((co) => co.id === selected.id);
+
+          if (customOption) {
+            customOption.formData = formData;
+          } else {
+            customOption = {
+              id: selected.id,
+              option: selected,
+              formData: formData,
+            };
+            appData.customOptions[index].push(customOption);
+          }
         }
       }
 
-      if (index === 3 && selected && selected.label === "Energyflow Zoetermeer") {
-        const energyflow = await loadDefaultEnergyflow();
-        if (!energyflow) {
-          throw new Error("Failed to load default energy flow.");
-        }
-        stepData.energyflow = energyflow;
+      const stepData: StepperData["steps"][number] = {
+        title: step.title,
+        selectedOption: selected || null,
+        formData: formData || null,
+      };
+
+      switch (step.title) {
+        case "Twin World":
+          if (selected) {
+            if (!selected.isCustom) {
+              const twinWorldData =
+                defaultTwinWorlds[selected.label as keyof typeof defaultTwinWorlds];
+              if (twinWorldData) {
+                stepData.twinWorld = twinWorldData;
+              }
+            } else {
+              stepData.twinWorld = appData.stepperData.steps[0].twinWorld;
+              stepData.twinWorld!.households = households;
+            }
+          }
+          break;
+
+        case "Cost Model":
+          if (selected) {
+            if (!selected.isCustom) {
+              const costModelData =
+                defaultCostModels[selected.label as keyof typeof defaultCostModels];
+              if (costModelData) {
+                stepData.costModel = costModelData;
+              }
+            } else {
+              stepData.costModel = appData.stepperData.steps[1].costModel;
+            }
+            break;
+          }
+
+        case "Algorithm":
+          if (selected) {
+            if (!selected.isCustom) {
+              const algorithmData =
+                defaultAlgorithms[selected.label as keyof typeof defaultAlgorithms];
+              if (algorithmData) {
+                stepData.algorithm = algorithmData;
+              }
+            } else {
+              stepData.algorithm = appData.stepperData.steps[2].algorithm;
+            }
+          }
+          break;
+
+        case "Energyflow":
+          if (selected && selected.label === "Energyflow Zoetermeer") {
+            try {
+              const energyflow = await loadDefaultEnergyflow();
+              if (!energyflow) {
+                throw new Error("Failed to load default energy flow.");
+              }
+              stepData.energyflow = energyflow;
+            } catch (error) {
+              console.error("Error loading energy flow:", error);
+              return;
+            }
+          }
+          break;
       }
 
       updatedSteps.push(stepData);
     }
 
     appData.stepperData.steps = updatedSteps;
-
     stepperData.setStepperData(appData.stepperData);
     appData.households = households;
     saveAppData();
@@ -257,11 +316,13 @@
     return isValid;
   }
 
-  function getFormData(fields: FormField[]): { [key: string]: any } {
-    const data: any = {};
-    for (const field of fields) {
-      data[field.label] = field.value;
+  function getFormData(formFields: FormField[]): Record<string, any> {
+    const data: Record<string, any> = {};
+
+    for (const field of formFields) {
+      data[field.name] = field.value;
     }
+
     return data;
   }
 
@@ -650,12 +711,12 @@
               </button>
               {#if option.isCustom}
                 <button
-                  class="text-les-highlight hover:underline ml-2"
+                  class="text-les-highlight hover:underline ml-2 cursor-pointer"
                   onclick={() => editCustomOption(option)}>
                   Edit
                 </button>
                 <button
-                  class="text-red-500 hover:underline ml-2"
+                  class="text-red-500 hover:underline ml-2 cursor-pointer"
                   onclick={() => deleteCustomOption(option)}>
                   Delete
                 </button>

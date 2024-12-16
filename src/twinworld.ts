@@ -29,18 +29,25 @@ function generateHouseholdSize(): number {
 /**
  * Creates a twin world with a specified number of households and variation.
  *
+ * @param {string} name - The name of the twin world.
  * @param {number} baseHouseholdCount - The base number of households in the twin world.
  * @param {number} variation - The variation in the number of households.
  * @returns {TwinWorld} The generated twin world.
  */
-const createTwinWorld = (baseHouseholdCount: number, variation: number): TwinWorld => {
+const createTwinWorld = (
+  name: string,
+  baseHouseholdCount: number,
+  variation: number
+): TwinWorld => {
   const householdCount = getRandomInt(
     Math.max(1, baseHouseholdCount - variation),
     baseHouseholdCount + variation
   );
 
   return {
+    name,
     description: `A twin world consisting of roughly ${householdCount} households.`,
+    solarPanelCapacity: 340,
     households: Array.from({ length: householdCount }, (_, i) => {
       const householdSize = generateHouseholdSize();
       const invNorm = randomNormal(1, 0.1);
@@ -71,6 +78,56 @@ const createTwinWorld = (baseHouseholdCount: number, variation: number): TwinWor
  * Default twin worlds configuration.
  */
 export const defaultTwinWorlds: { [key: string]: TwinWorld } = {
-  "Twin World small": createTwinWorld(25, 5),
-  "Twin World large": createTwinWorld(75, 5),
+  "Twin World small": createTwinWorld("Twin World small", 25, 5),
+  "Twin World large": createTwinWorld("Twin World large", 75, 5),
+};
+
+/**
+ * Default cost model configurations.
+ */
+export const defaultCostModels: { [key: string]: CostModel } = {
+  "Fixed Price": {
+    name: "Fixed Price",
+    description:
+      "A fixed price for buying and selling energy. The price for buying from the utility is 0.4 and the price for selling is 0.1. The price is determined by 0.25. A higher fixed devisision means a higher trading price.",
+    priceNetworkBuyConsumer: 0.4,
+    priceNetworkSellConsumer: 0.1,
+    fixedPriceRatio: 0.5,
+    algorithm: `function costModel() {
+  return buyCustomer * ratio + sellCustomer * (1 - ratio);
+}
+`,
+  },
+  TEMO: {
+    name: "TEMO",
+    description:
+      "A price model based on the TEMO model. The price is determined by a formula that compares the energy needed to the various prices available, and returns an internal buying and selling prices",
+    priceNetworkBuyConsumer: 0.4,
+    priceNetworkSellConsumer: 0.1,
+    fixedPriceRatio: 0.5,
+    algorithm: `function costModel() {
+  return buyCustomer * ratio + sellCustomer * (1 - ratio);
+}
+`,
+  },
+};
+
+/**
+ * Default algorithm configurations.
+ */
+export const defaultAlgorithms: { [key: string]: Algo } = {
+  "Greedy Planning": {
+    name: "Greedy Planning",
+    description:
+      "An initial planning that puts appliances in their local optimum through a greedy algorithm. Will not optimize further than one pass through all appliances.",
+    maxTemperature: 10000,
+    algorithm: ``,
+  },
+  "Simulated Annealing": {
+    name: "Simulated Annealing",
+    description:
+      "An algorithm that improves on a given algorithm by randomly changing the time of planned in appliances. The conditions for what changes becomes stricter over time, resulting in a further optimized solution.",
+    maxTemperature: 10000,
+    algorithm: ``,
+  },
 };

@@ -28,12 +28,14 @@
 
   onMount(() => {
     runtime.startRuntime();
-    loop(
+    const results = loop(
       stepperData.stepperData!.steps[3].energyflow!,
       stepperData.stepperData!.steps[0].twinWorld!.households,
-      stepperData.stepperData!.steps[2].selectedOption!.label,
+      stepperData.stepperData!.steps[1].costModel!,
+      stepperData.stepperData!.steps[2].algorithm!,
       0
     );
+    console.log(results);
   });
 </script>
 

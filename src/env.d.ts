@@ -16,6 +16,7 @@ type Option = {
 
 type FormField = {
   label: string;
+  name: string;
   description?: string;
   type: "input" | "textarea" | "editor" | "file";
   dataType?: "string" | "int" | "float";
@@ -41,6 +42,8 @@ type StepperData = {
     selectedOption: Option | null;
     formData: Record<string, any> | null;
     twinWorld?: TwinWorld;
+    costModel?: CostModel;
+    algorithm?: Algo;
     energyflow?: Energyflow;
   }[];
 };
@@ -62,6 +65,22 @@ type Energyflow = {
   }[];
 };
 
+type CostModel = {
+  name: string;
+  description: string;
+  priceNetworkBuyConsumer: number;
+  priceNetworkSellConsumer: number;
+  fixedPriceRatio: number;
+  algorithm: string;
+};
+
+type Algo = {
+  name: string;
+  description: string;
+  maxTemperature: number;
+  algorithm: string;
+};
+
 type Household = {
   id: number;
   name: string;
@@ -73,7 +92,9 @@ type Household = {
 };
 
 type TwinWorld = {
+  name: string;
   description: string;
+  solarPanelCapacity: number;
   households: Household[];
 };
 

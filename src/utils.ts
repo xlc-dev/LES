@@ -97,9 +97,14 @@ export async function readCSV(input: string | File): Promise<Energyflow> {
       throw new Error("The CSV file is empty.");
     }
 
-    const headers = jsonData[0] as string[];
+    const headers = jsonData[0];
+    const firstDataRow = jsonData[1];
+    const firstTime = unixToTimestamp(Number(firstDataRow[0]));
+
+    const offset = Math.round((Math.round(firstTime) - firstTime) * 86400);
+
     const data = jsonData.slice(1).map((row) => ({
-      timestamp: row[0],
+      timestamp: (Number(row[0]) + offset).toString(),
       energy_used: Number(row[1]),
       solar_produced: Number(row[2]),
     }));
