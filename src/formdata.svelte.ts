@@ -45,7 +45,7 @@ const defaultCostModels: { [key: string]: CostModel } = {
   },
 };
 
-const defaultEnergyflow = await readCSV("/energyflowZoetermeer.csv");
+const defaultEnergyflow = await readCSV("/LES/energyflowZoetermeer.csv");
 
 /**
  * Default algorithm configurations.
