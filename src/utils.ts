@@ -138,17 +138,17 @@ export function roundTo(num: number, decimals: number): number {
 }
 
 /**
- * Generates a random number with a normal distribution.
+ * Box-Muller transform to generate a random number with a normal distribution.
  *
  * @param {number} mean - The mean of the distribution.
  * @param {number} stddev - The standard deviation of the distribution.
  * @returns {number} The random number.
  */
-export function randomNormal(mean: number, stddev: number): number {
-  const u1 = Math.random();
-  const u2 = Math.random();
-  const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-  return z0 * stddev + mean;
+export function randomNormal(mean: number = 0, stddev: number = 1): number {
+  let u1 = Math.random();
+  let u2 = Math.random();
+  const z = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+  return z * stddev + mean;
 }
 
 /**
