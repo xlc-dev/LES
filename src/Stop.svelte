@@ -11,6 +11,12 @@
     getTimeDailies,
   } from "./state.svelte";
 
+  interface Props {
+    newSession: () => void;
+  }
+
+  const { newSession }: Props = $props();
+
   const runtime = getRuntime();
   runtime.stopRuntime();
   const efficiencyResults = getEfficiencyResults();
@@ -172,11 +178,9 @@
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }
-
-  function newSessionButton(): void {}
 </script>
 
-<div class="mx-auto max-w-3xl pt-8">
+<div class="mx-auto w-full max-w-4xl px-3 pt-8">
   <h1 class="pb-4 text-center text-4xl font-bold">Statistics for your session</h1>
   <Chart />
   <div
@@ -186,10 +190,10 @@
     </p>
     <div class="col-span-2 mt-8 flex justify-between">
       <button
-        class="rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600"
-        onclick={newSessionButton}>New session</button>
+        class="rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600 cursor-pointer"
+        onclick={newSession}>New session</button>
       <button
-        class="rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600"
+        class="rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600 cursor-pointer"
         onclick={downloadExcel}>Download</button>
     </div>
   </div>

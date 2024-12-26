@@ -418,10 +418,11 @@ export function loop(
       const applianceTime = appliance.timeDaily.filter(
         (el) => el.day >= startDay && el.day < startDay + daysInChunk
       );
-      timeDaily.push(applianceTime);
+      timeDaily.push(...applianceTime);
     });
   });
 
+  // console.log(timeDaily);
   return {
     results: lastResults,
     timeDaily,

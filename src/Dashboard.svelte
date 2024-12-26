@@ -1,26 +1,11 @@
 <script lang="ts">
   import Chart from "./Chart.svelte";
 
-  import { onMount } from "svelte";
-  import {
-    getEfficiencyResults,
-    getRuntime,
-    getStartDate,
-    getEndDate,
-    getStepperData,
-    getDaysInPlanning,
-    getTimeDailies,
-  } from "./state.svelte";
-  import { loop } from "./algorithm";
+  import { getEfficiencyResults, getRuntime, getStepperData } from "./state.svelte";
 
   const stepperData = getStepperData();
   const efficiencyResults = getEfficiencyResults();
   const runtime = getRuntime();
-  const startDate = getStartDate();
-  const endDate = getEndDate();
-  const daysInPlanning = getDaysInPlanning();
-  const timedailies = getTimeDailies();
-  const efficiencyResult = getEfficiencyResults();
 
   let sumEfficiencyIndividual: number = $derived.by(() => {
     const results = efficiencyResults.efficiencyResults;
@@ -38,43 +23,6 @@
   });
 
   let sumEfficiencyNoSolar: number = $derived(sumEfficiencyTotal - sumEfficiencyIndividual);
-
-  onMount(() => {
-    runtime.startRuntime();
-
-    const executeLoop = (offset: number) => {
-      const results = loop(
-        stepperData.stepperData.energyflow,
-        stepperData.stepperData.twinworld.households,
-        stepperData.stepperData.costmodel,
-        stepperData.stepperData.algo,
-        offset
-      );
-
-      startDate.setStartDate(results.totalStartDate);
-      endDate.setEndDate(results.endDate);
-      daysInPlanning.setDaysInPlanning(results.daysInPlanning);
-      timedailies.setTimeDailies(results.timeDaily);
-
-      const transformedResults = results.results.map((resultArray) => ({
-        solarEnergyIndividual: resultArray[0],
-        solarEnergyTotal: resultArray[1],
-        internalBoughtEnergyPrice: resultArray[2],
-        totalAmountSaved: resultArray[3],
-      }));
-
-      efficiencyResult.setEfficiencyResults([
-        ...efficiencyResults.efficiencyResults,
-        ...transformedResults,
-      ]);
-
-      if (offset < 250) {
-        executeLoop(offset + 7);
-      }
-    };
-
-    executeLoop(0);
-  });
 </script>
 
 <div class="flex flex-col gap-8">

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { openDB } from "idb";
+
   import { onMount } from "svelte";
   import { getDashboard, getStepperData } from "./state.svelte";
   import {
@@ -9,28 +11,54 @@
     isTwinworldStep,
   } from "./formdata.svelte";
 
+  interface Props {
+    onComplete: () => void;
+  }
+
+  const { onComplete }: Props = $props();
+
   const formData = getFormData();
   const dashboard = getDashboard();
   const stepperData = getStepperData();
 
-  let editor = $state(false);
   let currentStep = $state(0);
 
   let selectedOptions = $state(Array(formData.formData.length).fill(null));
   let hoveredOption: Option | null = $state(null);
 
-  function loadStorage() {
-    const storage = localStorage.getItem("formData");
-    if (storage) {
-      formData.setFormData(JSON.parse(storage));
+  async function initDB() {
+    return openDB("LargeDataStore", 1, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains("formData")) {
+          db.createObjectStore("formData", { keyPath: "id" });
+        }
+      },
+    });
+  }
+
+  async function saveStorage() {
+    const db = await initDB();
+
+    const plainData = JSON.parse(JSON.stringify(formData.formData));
+    await db.put("formData", { id: "mainData", data: plainData });
+
+    console.log("Data saved to IndexedDB", plainData);
+  }
+
+  async function loadStorage() {
+    const db = await initDB();
+    const storedData = await db.get("formData", "mainData");
+    if (storedData) {
+      formData.setFormData(storedData.data);
+    } else {
+      await saveStorage();
     }
   }
 
-  function wipeStorage() {
-    if (localStorage.getItem("formData") !== null) {
-      localStorage.clear();
-      location.reload();
-    }
+  async function wipeStorage() {
+    const db = await initDB();
+    await db.delete("formData", "mainData");
+    location.reload();
   }
 
   function goToStep(index: number) {
@@ -55,6 +83,115 @@
     }
   }
 
+  function validateFormFields(fields: FormField[]): boolean {
+    let isValid = true;
+
+    fields.forEach((field) => {
+      const value = field.value;
+
+      field.error = "";
+
+      if (field.required && (value === null || value === undefined || value === "")) {
+        field.error = `${field.label} is required.`;
+        isValid = false;
+      }
+
+      if (field.dataType === "int" && !Number.isInteger(Number(value))) {
+        field.error = `${field.label} must be an integer.`;
+        isValid = false;
+      } else if (field.dataType === "float" && isNaN(parseFloat(value))) {
+        field.error = `${field.label} must be a number.`;
+        isValid = false;
+      }
+
+      if (field.min !== undefined && Number(value) < field.min) {
+        field.error = `${field.label} must be at least ${field.min}.`;
+        isValid = false;
+      }
+    });
+
+    return isValid;
+  }
+
+  async function createCustomItem(e: Event) {
+    e.preventDefault();
+    const currentFormFields = formData.formData[currentStep].formFields;
+
+    const isValid = validateFormFields(currentFormFields);
+    if (!isValid) return;
+
+    const nameField = currentFormFields.find((field) => field.name === "name");
+    const descriptionField = currentFormFields.find((field) => field.name === "description");
+
+    if (!nameField || !descriptionField) return;
+
+    const nameValue = nameField.value.trim();
+    console.log(nameValue);
+
+    const existingItem = formData.formData[currentStep].options.find(
+      (option) => option.name.toLowerCase() === nameValue.toLowerCase()
+    );
+
+    if (existingItem) {
+      nameField.error = "An item with this name already exists.";
+      return;
+    }
+
+    const newItem: Option = {
+      id: Date.now().toString(),
+      name: nameValue,
+      description: descriptionField.value.trim(),
+      label: `${formData.formData[currentStep].title}`,
+    };
+
+    formData.formData[currentStep].options = [...formData.formData[currentStep].options, newItem];
+
+    const currentStepData = formData.formData[currentStep];
+
+    if (isTwinworldStep(currentStepData)) {
+      currentStepData.twinWorlds[newItem.id] = {
+        name: newItem.name,
+        description: newItem.description,
+        solarPanelCapacity:
+          currentFormFields.find((field) => field.name === "solarPanelCapacity")?.value || 0,
+        households: [],
+      };
+    } else if (isCostmodelStep(currentStepData)) {
+      currentStepData.costModels[newItem.id] = {
+        name: newItem.name,
+        description: newItem.description,
+        priceNetworkBuyConsumer:
+          currentFormFields.find((field) => field.name === "priceNetworkBuyConsumer")?.value || 0,
+        priceNetworkSellConsumer:
+          currentFormFields.find((field) => field.name === "priceNetworkSellConsumer")?.value || 0,
+        fixedPriceRatio:
+          currentFormFields.find((field) => field.name === "fixedPriceRatio")?.value || 0,
+        algorithm: currentFormFields.find((field) => field.name === "algorithm")?.value || "",
+      };
+    } else if (isAlgoStep(currentStepData)) {
+      currentStepData.algos[newItem.id] = {
+        name: newItem.name,
+        description: newItem.description,
+        maxTemperature:
+          currentFormFields.find((field) => field.name === "maxTemperature")?.value || 0,
+        algorithm: currentFormFields.find((field) => field.name === "algorithm")?.value || "",
+      };
+    } else if (isEnergyflowStep(currentStepData)) {
+      currentStepData.energyflows[newItem.id] = {
+        solarPanelsFactor:
+          currentFormFields.find((field) => field.name === "solarPanelsFactor")?.value || 0,
+        energyUsageFactor:
+          currentFormFields.find((field) => field.name === "energyUsageFactor")?.value || 0,
+        headers: [],
+        data: [],
+      };
+    }
+
+    await saveStorage();
+    selectOption(currentStep, newItem);
+    currentFormFields.forEach((field) => (field.value = ""));
+  }
+
   function finish() {
     const twinworldItem = formData.formData.find(isTwinworldStep);
     const costModelItem = formData.formData.find(isCostmodelStep);
@@ -76,10 +213,11 @@
 
     stepperData.setStepperData(mappedOptions);
     dashboard.setDashboard(true);
+    onComplete();
   }
 
   $effect(() => {
-    if (editor && document.getElementById("editor")) {
+    if (currentStep && document.getElementById("editor")) {
       // @ts-ignore
       const aceEditor = ace.edit("editor", {
         mode: "ace/mode/javascript",
@@ -97,8 +235,8 @@
     }
   });
 
-  onMount(() => {
-    loadStorage();
+  onMount(async () => {
+    await loadStorage();
   });
 </script>
 
@@ -225,11 +363,83 @@
   </div>
 {/snippet}
 
-{#snippet cardform()}{/snippet}
+{#snippet cardform()}
+  <div class="flex flex-col space-y-4 bg-white border-4 border-gray-400 rounded-lg p-4 w-full">
+    <h2 class="text-3xl font-bold mb-4 text-les-highlight text-center">
+      Custom {formData.formData[currentStep].title}
+    </h2>
+
+    <form class="flex flex-wrap gap-4" onsubmit={createCustomItem}>
+      {#each formData.formData[currentStep].formFields as field (field.name)}
+        <div class="w-full">
+          <label class="block mb-1 text-les-highlight font-medium" for={field.name}>
+            {field.label}
+            {field.required ? "*" : ""}
+          </label>
+          {#if field.description}
+            <p class="text-sm text-gray-500 mb-2">{field.description}</p>
+          {/if}
+
+          {#if field.type === "input"}
+            <input
+              type={field.dataType === "int" || field.dataType === "float" ? "number" : "text"}
+              id={field.name}
+              bind:value={field.value}
+              placeholder={field.placeholder}
+              min={field.min}
+              step={field.step}
+              class="border-2 rounded-lg p-2 w-full text-les-highlight {field.error
+                ? 'border-red-500'
+                : 'border-gray-300'}" />
+          {/if}
+
+          {#if field.type === "textarea"}
+            <textarea
+              id={field.name}
+              bind:value={field.value}
+              placeholder={field.placeholder}
+              rows="4"
+              class="border-2 rounded-lg p-2 w-full text-les-highlight {field.error
+                ? 'border-red-500'
+                : 'border-gray-300'}"></textarea>
+          {/if}
+
+          {#if field.type === "editor"}
+            <div
+              id="editor"
+              class="border-2 rounded-lg w-full h-40 {field.error
+                ? 'border-red-500'
+                : 'border-gray-300'}">
+            </div>
+          {/if}
+
+          {#if field.type === "file"}
+            <input
+              type="file"
+              id={field.name}
+              class="border-2 rounded-lg p-2 w-full text-les-highlight {field.error
+                ? 'border-red-500'
+                : 'border-gray-300'}" />
+          {/if}
+
+          {#if field.error}
+            <p class="text-red-500 text-sm mt-1">{field.error}</p>
+          {/if}
+        </div>
+      {/each}
+
+      <button
+        type="submit"
+        class="bg-blue-500 text-white px-4 py-2 w-full rounded-md cursor-pointer transition-colors duration-200 hover:bg-blue-600">
+        Create
+      </button>
+    </form>
+  </div>
+{/snippet}
 
 <div class="flex flex-col items-center justify-center mx-auto max-w-3xl px-2 py-8 space-y-8">
   <button
-    onclick={wipeStorage}
+    onclick={async () => await wipeStorage()}
     class="bg-red-700 text-white px-4 py-2 rounded-md cursor-pointer transition-colors duration-200 hover:bg-red-800">
     Clear Storage
   </button>

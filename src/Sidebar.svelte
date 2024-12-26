@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { getComponent, getStepperData } from "./state.svelte";
+  import { getComponent, getStepperData, getRuntime, getLoopManager } from "./state.svelte";
 
   const component = getComponent();
   const stepperData = getStepperData();
+  const runtime = getRuntime();
+  const loopManager = getLoopManager();
 
   let isMenuOpen = $state(false);
   let showLegend = $state(false);
@@ -14,6 +16,12 @@
     ) {
       isMenuOpen = false;
     }
+  }
+
+  function stop() {
+    loopManager.stopLoop();
+    runtime.stopRuntime();
+    component.setComponent("Stop");
   }
 </script>
 
@@ -88,7 +96,7 @@
     <button
       id="stop-button"
       class="flex w-full items-center gap-3 bg-red-950 p-4 py-6 transition-colors duration-200 hover:bg-red-800 hover:brightness-110"
-      onclick={() => component.setComponent("Stop")}>
+      onclick={stop}>
       <img src="/stop.png" alt="" />
       <p>Stop Simulation</p>
     </button>
@@ -159,7 +167,7 @@
       id="stop-button"
       class="flex items-center gap-1.5 bg-red-950 text-white px-3 py-1.5 rounded-md text-sm
              hover:bg-red-900 transition-colors duration-200 cursor-pointer"
-      onclick={() => component.setComponent("Stop")}>
+      onclick={stop}>
       <img src="/stop.png" alt="" class="h-4 w-4" />
       <span>Stop</span>
     </button>

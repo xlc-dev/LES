@@ -14,12 +14,13 @@
     "chart.js": "^4.4.7",
     "chartjs-plugin-zoom": "^2.2.0",
     "date-picker-svelte": "^2.15.1",
-    "svelte": "^5.9.0",
+    "idb": "^8.0.1",
+    "svelte": "^5.16.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@rsbuild/core": "^1.1.9",
-    "@rsbuild/plugin-svelte": "^1.0.5",
+    "@rsbuild/core": "^1.1.13",
+    "@rsbuild/plugin-svelte": "^1.0.7",
     "@tailwindcss/postcss": "4.0.0-beta.6",
     "prettier": "^3.4.2",
     "prettier-plugin-svelte": "^3.3.2",

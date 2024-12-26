@@ -15,9 +15,24 @@
   const setMaxDate: Date = new Date(endDate.endDate * 1000);
 
   let showDatePicker: boolean = $state(false);
-  let selectedDate: Date = $state(new Date(startDate.startDate * 1000));
+  let selectedDate: Date = $state(new Date());
 
-  let weekDates: Date[] = $state([]);
+  let weekDates: Date[] = $derived.by(() => {
+    let curweekDates = [selectedDate];
+
+    let daysLeft = Math.min(
+      6,
+      Math.round((setMaxDate.getTime() - selectedDate.getTime()) / (24 * 60 * 60 * 1000))
+    );
+
+    for (let i = 1; i <= daysLeft; i++) {
+      let nextDay = new Date(selectedDate);
+      nextDay.setDate(nextDay.getDate() + i);
+      curweekDates.push(nextDay);
+    }
+
+    return curweekDates;
+  });
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
@@ -26,23 +41,6 @@
       showDatePicker = false;
     }
   }
-
-  $effect(() => {
-    if (selectedDate) {
-      weekDates = [selectedDate];
-
-      let daysLeft = Math.min(
-        6,
-        Math.round((setMaxDate.getTime() - selectedDate.getTime()) / (24 * 60 * 60 * 1000))
-      );
-
-      for (let i = 1; i <= daysLeft; i++) {
-        let nextDay = new Date(selectedDate);
-        nextDay.setDate(nextDay.getDate() + i);
-        weekDates.push(nextDay);
-      }
-    }
-  });
 
   onDestroy(() => {
     setHousehold.setHousehold(null);

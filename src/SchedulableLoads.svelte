@@ -260,7 +260,6 @@
             <tr class="border-b border-gray-200 bg-white text-sm hover:bg-white">
               <td colspan={7}>
                 <div transition:slide class="flex justify-center p-4">
-                  <!-- TODO: remove key -->
                   {#key formattedDate}
                     <SchedulableLoadGrid
                       appliances={data.appliances}
