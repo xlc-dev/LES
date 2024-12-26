@@ -43,7 +43,7 @@
 <div class="flex flex-col gap-8">
   <Filter {filters} bind:selectedFilters bind:searchQuery />
   <div
-    class="grid grid-cols-8 items-center justify-start gap-4 rounded-lg border-4 border-gray-400 p-2 bg-white">
+    class="grid grid-cols-8 items-center justify-start gap-4 rounded-lg border-4 border-gray-400 bg-white p-2">
     {#each filteredHouseholds as data}
       <HouseSVG {data} />
     {/each}

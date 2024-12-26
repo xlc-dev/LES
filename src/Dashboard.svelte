@@ -28,7 +28,7 @@
 <div class="flex flex-col gap-8">
   <Chart />
   <div
-    class="rounded-lg border-4 border-gray-400 bg-white p-4 md:px-20 shadow-sm w-full max-w-7xl mx-auto">
+    class="mx-auto w-full max-w-7xl rounded-lg border-4 border-gray-400 bg-white p-4 shadow-sm md:px-20">
     <table class="w-full text-sm md:text-base">
       <tbody>
         <tr class="border-b border-gray-400">

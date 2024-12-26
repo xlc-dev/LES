@@ -14,7 +14,7 @@
 </script>
 
 <button
-  class="p-0 border-0 bg-transparent cursor-pointer inline-block"
+  class="inline-block cursor-pointer border-0 bg-transparent p-0"
   onclick={() => {
     household.setHousehold(data);
     currentComponent.setComponent("Household");

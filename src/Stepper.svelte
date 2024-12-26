@@ -241,7 +241,7 @@
 </script>
 
 {#snippet progressbar()}
-  <div class="flex flex-col items-center w-full">
+  <div class="flex w-full flex-col items-center">
     <div class="flex w-full">
       {#each formData.formData as step}
         <div class="flex-1 text-center">
@@ -250,22 +250,22 @@
       {/each}
     </div>
 
-    <div class="flex items-center w-full">
+    <div class="flex w-full items-center">
       {#each formData.formData as _, index}
-        <div class="flex items-center flex-1">
+        <div class="flex flex-1 items-center">
           {#if index !== 0}
-            <div class="flex-1 h-0.5 {selectedOptions[index - 1] ? 'bg-blue-500' : 'bg-gray-300'}">
+            <div class="h-0.5 flex-1 {selectedOptions[index - 1] ? 'bg-blue-500' : 'bg-gray-300'}">
             </div>
           {:else}
             <div class="flex-1"></div>
           {/if}
 
           <button
-            class="w-8 h-8 rounded-full shrink-0 flex items-center justify-center focus:outline-hidden z-10 transition duration-200
+            class="z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition duration-200 focus:outline-hidden
               {selectedOptions[index] ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-600'}
               {selectedOptions[index] && index !== currentStep ? 'hover:bg-sidebar' : ''}
               {index !== currentStep && !selectedOptions[index]
-              ? 'opacity-50 cursor-not-allowed'
+              ? 'cursor-not-allowed opacity-50'
               : 'cursor-pointer'}"
             onclick={() => goToStep(index)}
             disabled={!selectedOptions[index] && index !== currentStep}>
@@ -273,7 +273,7 @@
           </button>
 
           {#if index !== formData.formData.length - 1}
-            <div class="flex-1 h-0.5 {selectedOptions[index] ? 'bg-blue-500' : 'bg-gray-300'}">
+            <div class="h-0.5 flex-1 {selectedOptions[index] ? 'bg-blue-500' : 'bg-gray-300'}">
             </div>
           {:else}
             <div class="flex-1"></div>
@@ -282,7 +282,7 @@
       {/each}
     </div>
 
-    <div class="flex w-full mt-2">
+    <div class="mt-2 flex w-full">
       {#each formData.formData as _, index}
         <div class="flex-1 text-center">
           {#if selectedOptions[index]}
@@ -297,14 +297,14 @@
 {/snippet}
 
 {#snippet optionsCard()}
-  <div class="flex flex-col space-y-4 bg-white border-4 border-gray-400 rounded-lg p-4 w-full">
-    <div class="flex flex-col md:flex-row w-full gap-8">
-      <div class="flex flex-col w-full md:w-1/2 md:pr-2">
-        <h2 class="font-bold mb-2 text-les-highlight text-3xl text-center">Options</h2>
+  <div class="flex w-full flex-col space-y-4 rounded-lg border-4 border-gray-400 bg-white p-4">
+    <div class="flex w-full flex-col gap-8 md:flex-row">
+      <div class="flex w-full flex-col md:w-1/2 md:pr-2">
+        <h2 class="text-les-highlight mb-2 text-center text-3xl font-bold">Options</h2>
         <div class="flex flex-col flex-wrap gap-4">
           {#each formData.formData[currentStep].options as option}
             <button
-              class="font-semibold text-les-highlight transition duration-200 ease-in-out transform hover:scale-105 cursor-pointer"
+              class="text-les-highlight transform cursor-pointer font-semibold transition duration-200 ease-in-out hover:scale-105"
               class:text-blue-500!={selectedOptions[currentStep] === option}
               onmouseover={() => (hoveredOption = option)}
               onmouseout={() => (hoveredOption = null)}
@@ -322,8 +322,8 @@
         </div>
       </div>
 
-      <div class="flex flex-col w-full md:w-1/2 md:pl-2">
-        <h2 class="font-bold mb-2 text-les-highlight text-3xl text-center">Description</h2>
+      <div class="flex w-full flex-col md:w-1/2 md:pl-2">
+        <h2 class="text-les-highlight mb-2 text-center text-3xl font-bold">Description</h2>
         {#if hoveredOption}
           <p class="text-les-highlight">{hoveredOption.description}</p>
         {:else if formData.formData[currentStep].options.length > 0}
@@ -332,21 +332,21 @@
       </div>
     </div>
 
-    <div class="pt-4 flex flex-col md:flex-row justify-between w-full space-y-4 md:space-y-0">
+    <div class="flex w-full flex-col justify-between space-y-4 pt-4 md:flex-row md:space-y-0">
       <button
         onclick={previousStep}
-        class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md disabled:opacity-50 transition-colors duration-200
-        {currentStep !== 0 ? 'hover:bg-gray-400 cursor-pointer' : 'cursor-not-allowed'}"
+        class="rounded-md bg-gray-300 px-4 py-2 text-gray-700 transition-colors duration-200 disabled:opacity-50
+        {currentStep !== 0 ? 'cursor-pointer hover:bg-gray-400' : 'cursor-not-allowed'}"
         disabled={currentStep === 0}>
         Previous
       </button>
       {#if currentStep < formData.formData.length - 1}
         <button
           onclick={nextStep}
-          class="bg-blue-500 text-white px-4 py-2 rounded-md disabled:opacity-50 transition-colors duration-200
+          class="rounded-md bg-blue-500 px-4 py-2 text-white transition-colors duration-200 disabled:opacity-50
           {selectedOptions[currentStep] === null
             ? 'cursor-not-allowed'
-            : 'hover:bg-blue-600 cursor-pointer'}"
+            : 'cursor-pointer hover:bg-blue-600'}"
           disabled={selectedOptions[currentStep] === null ||
             currentStep === formData.formData.length - 1}>
           Next
@@ -354,7 +354,7 @@
       {:else}
         <button
           onclick={finish}
-          class="bg-les-highlight text-white px-4 py-2 rounded-md cursor-pointer transition-colors duration-200 hover:bg-sidebar"
+          class="bg-les-highlight hover:bg-sidebar cursor-pointer rounded-md px-4 py-2 text-white transition-colors duration-200"
           disabled={selectedOptions[currentStep] === null}>
           Finish
         </button>
@@ -364,20 +364,20 @@
 {/snippet}
 
 {#snippet cardform()}
-  <div class="flex flex-col space-y-4 bg-white border-4 border-gray-400 rounded-lg p-4 w-full">
-    <h2 class="text-3xl font-bold mb-4 text-les-highlight text-center">
+  <div class="flex w-full flex-col space-y-4 rounded-lg border-4 border-gray-400 bg-white p-4">
+    <h2 class="text-les-highlight mb-4 text-center text-3xl font-bold">
       Custom {formData.formData[currentStep].title}
     </h2>
 
     <form class="flex flex-wrap gap-4" onsubmit={createCustomItem}>
       {#each formData.formData[currentStep].formFields as field (field.name)}
         <div class="w-full">
-          <label class="block mb-1 text-les-highlight font-medium" for={field.name}>
+          <label class="text-les-highlight mb-1 block font-medium" for={field.name}>
             {field.label}
             {field.required ? "*" : ""}
           </label>
           {#if field.description}
-            <p class="text-sm text-gray-500 mb-2">{field.description}</p>
+            <p class="mb-2 text-sm text-gray-500">{field.description}</p>
           {/if}
 
           {#if field.type === "input"}
@@ -388,7 +388,7 @@
               placeholder={field.placeholder}
               min={field.min}
               step={field.step}
-              class="border-2 rounded-lg p-2 w-full text-les-highlight {field.error
+              class="text-les-highlight w-full rounded-lg border-2 p-2 {field.error
                 ? 'border-red-500'
                 : 'border-gray-300'}" />
           {/if}
@@ -399,7 +399,7 @@
               bind:value={field.value}
               placeholder={field.placeholder}
               rows="4"
-              class="border-2 rounded-lg p-2 w-full text-les-highlight {field.error
+              class="text-les-highlight w-full rounded-lg border-2 p-2 {field.error
                 ? 'border-red-500'
                 : 'border-gray-300'}"></textarea>
           {/if}
@@ -407,7 +407,7 @@
           {#if field.type === "editor"}
             <div
               id="editor"
-              class="border-2 rounded-lg w-full h-40 {field.error
+              class="h-40 w-full rounded-lg border-2 {field.error
                 ? 'border-red-500'
                 : 'border-gray-300'}">
             </div>
@@ -417,30 +417,30 @@
             <input
               type="file"
               id={field.name}
-              class="border-2 rounded-lg p-2 w-full text-les-highlight {field.error
+              class="text-les-highlight w-full rounded-lg border-2 p-2 {field.error
                 ? 'border-red-500'
                 : 'border-gray-300'}" />
           {/if}
 
           {#if field.error}
-            <p class="text-red-500 text-sm mt-1">{field.error}</p>
+            <p class="mt-1 text-sm text-red-500">{field.error}</p>
           {/if}
         </div>
       {/each}
 
       <button
         type="submit"
-        class="bg-blue-500 text-white px-4 py-2 w-full rounded-md cursor-pointer transition-colors duration-200 hover:bg-blue-600">
+        class="w-full cursor-pointer rounded-md bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:bg-blue-600">
         Create
       </button>
     </form>
   </div>
 {/snippet}
 
-<div class="flex flex-col items-center justify-center mx-auto max-w-3xl px-2 py-8 space-y-8">
+<div class="mx-auto flex max-w-3xl flex-col items-center justify-center space-y-8 px-2 py-8">
   <button
     onclick={async () => await wipeStorage()}
-    class="bg-red-700 text-white px-4 py-2 rounded-md cursor-pointer transition-colors duration-200 hover:bg-red-800">
+    class="cursor-pointer rounded-md bg-red-700 px-4 py-2 text-white transition-colors duration-200 hover:bg-red-800">
     Clear Storage
   </button>
 

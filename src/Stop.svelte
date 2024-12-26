@@ -184,16 +184,16 @@
   <h1 class="pb-4 text-center text-4xl font-bold">Statistics for your session</h1>
   <Chart />
   <div
-    class="relative mb-8 mt-8 grid grid-cols-2 gap-4 rounded-lg border-4 border-gray-400 bg-white p-4 text-les-highlight shadow-sm">
+    class="text-les-highlight relative mt-8 mb-8 grid grid-cols-2 gap-4 rounded-lg border-4 border-gray-400 bg-white p-4 shadow-sm">
     <p class="absolute left-1/2 mt-4 -translate-x-1/2 transform">
       Runtime: {runtime.runtime} seconds
     </p>
     <div class="col-span-2 mt-8 flex justify-between">
       <button
-        class="rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600 cursor-pointer"
+        class="cursor-pointer rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600"
         onclick={newSession}>New session</button>
       <button
-        class="rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600 cursor-pointer"
+        class="cursor-pointer rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600"
         onclick={downloadExcel}>Download</button>
     </div>
   </div>
