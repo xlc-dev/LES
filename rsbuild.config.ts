@@ -3,6 +3,9 @@ import { pluginSvelte } from "@rsbuild/plugin-svelte";
 
 export default defineConfig({
   plugins: [pluginSvelte()],
+  dev: {
+    assetPrefix: "/LES/",
+  },
   output: {
     assetPrefix: "/LES/",
   },
