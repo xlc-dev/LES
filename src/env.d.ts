@@ -1,19 +1,22 @@
 /// <reference types="@rsbuild/core/types" />
 /// <reference types="svelte" />
 
-interface AppData { }
+type FormDataStruct = {
+  title: string;
+  formFields: FormField[];
+  options: Option[];
+} & (
+  | { stepType: "twinworld"; twinWorlds: Record<string, TwinWorld> }
+  | { stepType: "costmodel"; costModels: Record<string, CostModel> }
+  | { stepType: "algo"; algos: Record<string, Algo> }
+  | { stepType: "energyflow"; energyflows: Record<string, Energyflow> }
+);
 
 type Option = {
   id: string;
   name: string;
   label: string;
   description: string;
-};
-
-type FormDataStruct = {
-  title: string;
-  formFields: FormField[];
-  options: Option[];
 };
 
 interface FormField {
@@ -28,6 +31,14 @@ interface FormField {
   step?: number;
   value?: any;
 }
+
+type StepperData = {
+  twinworld: TwinWorld;
+  costmodel: CostModel;
+  algo: Algo;
+  energyflow: Energyflow;
+  energyflowlabel: string;
+};
 
 type Energyflow = {
   solarPanelsFactor: number;
@@ -90,6 +101,7 @@ type Appliance = {
 };
 
 type ApplianceTimeDaily = {
+  id: number;
   day: number;
   bitmapWindow: number;
   bitmapPlanEnergy: number;

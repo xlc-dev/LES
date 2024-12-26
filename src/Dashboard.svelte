@@ -2,12 +2,25 @@
   import Chart from "./Chart.svelte";
 
   import { onMount } from "svelte";
-  import { getEfficiencyResults, getRuntime, getStepperData } from "./state.svelte";
+  import {
+    getEfficiencyResults,
+    getRuntime,
+    getStartDate,
+    getEndDate,
+    getStepperData,
+    getDaysInPlanning,
+    getTimeDailies,
+  } from "./state.svelte";
   import { loop } from "./algorithm";
 
+  const stepperData = getStepperData();
   const efficiencyResults = getEfficiencyResults();
   const runtime = getRuntime();
-  const stepperData = getStepperData();
+  const startDate = getStartDate();
+  const endDate = getEndDate();
+  const daysInPlanning = getDaysInPlanning();
+  const timedailies = getTimeDailies();
+  const efficiencyResult = getEfficiencyResults();
 
   let sumEfficiencyIndividual: number = $derived.by(() => {
     const results = efficiencyResults.efficiencyResults;
@@ -28,14 +41,39 @@
 
   onMount(() => {
     runtime.startRuntime();
-    const results = loop(
-      stepperData.stepperData!.steps[3].energyflow!,
-      stepperData.stepperData!.steps[0].twinWorld!.households,
-      stepperData.stepperData!.steps[1].costModel!,
-      stepperData.stepperData!.steps[2].algorithm!,
-      0
-    );
-    console.log(results);
+
+    const executeLoop = (offset: number) => {
+      const results = loop(
+        stepperData.stepperData.energyflow,
+        stepperData.stepperData.twinworld.households,
+        stepperData.stepperData.costmodel,
+        stepperData.stepperData.algo,
+        offset
+      );
+
+      startDate.setStartDate(results.totalStartDate);
+      endDate.setEndDate(results.endDate);
+      daysInPlanning.setDaysInPlanning(results.daysInPlanning);
+      timedailies.setTimeDailies(results.timeDaily);
+
+      const transformedResults = results.results.map((resultArray) => ({
+        solarEnergyIndividual: resultArray[0],
+        solarEnergyTotal: resultArray[1],
+        internalBoughtEnergyPrice: resultArray[2],
+        totalAmountSaved: resultArray[3],
+      }));
+
+      efficiencyResult.setEfficiencyResults([
+        ...efficiencyResults.efficiencyResults,
+        ...transformedResults,
+      ]);
+
+      if (offset < 250) {
+        executeLoop(offset + 7);
+      }
+    };
+
+    executeLoop(0);
   });
 </script>
 
@@ -48,7 +86,7 @@
         <tr class="border-b border-gray-400">
           <td class="p-2 font-semibold">Number of Households:</td>
           <td class="min-w-40 p-2">
-            {stepperData.stepperData?.steps[0].twinWorld?.households.length}
+            {stepperData.stepperData.twinworld.households.length}
           </td>
         </tr>
         {#if sumEfficiencyIndividual !== null}

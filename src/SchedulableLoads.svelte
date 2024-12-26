@@ -88,51 +88,47 @@
       ])
     );
 
-    filteredData = stepperData.stepperData!.steps[0].twinWorld!.households.filter(
-      (item: Household) => {
-        const matchesSearch =
-          !searchQuery ||
-          item.id.toString().includes(searchQuery) ||
-          item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    filteredData = stepperData.stepperData.twinworld.households.filter((item: Household) => {
+      const matchesSearch =
+        !searchQuery ||
+        item.id.toString().includes(searchQuery) ||
+        item.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-        const matchesSize =
-          parsedSelectedFilters.size.length === 0 ||
-          parsedSelectedFilters.size.includes(item.size);
+      const matchesSize =
+        parsedSelectedFilters.size.length === 0 || parsedSelectedFilters.size.includes(item.size);
 
-        const matchesEnergyUsage =
-          parsedSelectedFilters.energyUsage.length === 0 ||
-          parsedSelectedFilters.energyUsage.some(
-            (range: Range) => item.energyUsage >= range.min && item.energyUsage < range.max
-          );
-
-        const matchesSolarPanels =
-          parsedSelectedFilters.solarPanels.length === 0 ||
-          parsedSelectedFilters.solarPanels.includes(item.solarPanels);
-
-        const matchesSolarYieldYearly =
-          parsedSelectedFilters.solarYieldYearly.length === 0 ||
-          parsedSelectedFilters.solarYieldYearly.some(
-            (range: Range) =>
-              item.solarYieldYearly >= range.min && item.solarYieldYearly < range.max
-          );
-
-        const matchesAppliances =
-          parsedSelectedFilters.appliances.length === 0 ||
-          (item.appliances &&
-            item.appliances.some((appliance) =>
-              parsedSelectedFilters.appliances.includes(appliance.name)
-            ));
-
-        return (
-          matchesSearch &&
-          matchesSize &&
-          matchesEnergyUsage &&
-          matchesSolarPanels &&
-          matchesSolarYieldYearly &&
-          matchesAppliances
+      const matchesEnergyUsage =
+        parsedSelectedFilters.energyUsage.length === 0 ||
+        parsedSelectedFilters.energyUsage.some(
+          (range: Range) => item.energyUsage >= range.min && item.energyUsage < range.max
         );
-      }
-    );
+
+      const matchesSolarPanels =
+        parsedSelectedFilters.solarPanels.length === 0 ||
+        parsedSelectedFilters.solarPanels.includes(item.solarPanels);
+
+      const matchesSolarYieldYearly =
+        parsedSelectedFilters.solarYieldYearly.length === 0 ||
+        parsedSelectedFilters.solarYieldYearly.some(
+          (range: Range) => item.solarYieldYearly >= range.min && item.solarYieldYearly < range.max
+        );
+
+      const matchesAppliances =
+        parsedSelectedFilters.appliances.length === 0 ||
+        (item.appliances &&
+          item.appliances.some((appliance) =>
+            parsedSelectedFilters.appliances.includes(appliance.name)
+          ));
+
+      return (
+        matchesSearch &&
+        matchesSize &&
+        matchesEnergyUsage &&
+        matchesSolarPanels &&
+        matchesSolarYieldYearly &&
+        matchesAppliances
+      );
+    });
   });
 </script>
 

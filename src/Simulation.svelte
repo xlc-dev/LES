@@ -23,22 +23,20 @@
   const hasSolarPanels = (household: Household) => household.solarPanels > 0;
 
   $effect(() => {
-    filteredHouseholds = stepperData.stepperData!.steps[0].twinWorld!.households.filter(
-      (h: Household) => {
-        const matchesSearch =
-          !searchQuery || h.name.toLowerCase().includes(searchQuery.toLowerCase());
+    filteredHouseholds = stepperData.stepperData.twinworld.households.filter((h: Household) => {
+      const matchesSearch =
+        !searchQuery || h.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-        const matchesSize =
-          selectedFilters.size.length === 0 || selectedFilters.size.includes(h.size);
+      const matchesSize =
+        selectedFilters.size.length === 0 || selectedFilters.size.includes(h.size);
 
-        const matchesSolarPanels =
-          selectedFilters.solarPanels.length === 0 ||
-          (selectedFilters.solarPanels.includes("Yes") && hasSolarPanels(h)) ||
-          (selectedFilters.solarPanels.includes("No") && !hasSolarPanels(h));
+      const matchesSolarPanels =
+        selectedFilters.solarPanels.length === 0 ||
+        (selectedFilters.solarPanels.includes("Yes") && hasSolarPanels(h)) ||
+        (selectedFilters.solarPanels.includes("No") && !hasSolarPanels(h));
 
-        return matchesSearch && matchesSize && matchesSolarPanels;
-      }
-    );
+      return matchesSearch && matchesSize && matchesSolarPanels;
+    });
   });
 </script>
 

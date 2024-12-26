@@ -16,7 +16,8 @@ type ComponentList = "Dashboard" | "Schedulable Loads" | "Simulation" | "Househo
 const componentState = createState<ComponentList>("Dashboard");
 const dashboardState = createState<boolean>(false);
 
-const stepperDataState = createState<StepperData | null>(null);
+// @ts-ignore
+const stepperDataState = createState<StepperData>({});
 
 const efficiencyResultsState = createState<EfficiencyResult[]>([]);
 const timeDailiesState = createState<ApplianceTimeDaily[]>([]);

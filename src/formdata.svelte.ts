@@ -1,12 +1,76 @@
+import { createTwinWorld } from "./twinworld";
+import { readCSV } from "./utils";
+
 const TWIN_WORLD_DESCRIPTION = `
 Each house consists of 1 to 5 inhabitants. The schedulable appliances are:
 Washing machine, tumble dryer, dishwasher, kitchen appliances, and Electrical Vehicle.
 The frequency of use and power usage are randomized for each appliance.
 `;
 
+/**
+ * Default twin worlds configuration.
+ */
+const defaultTwinWorlds: { [key: string]: TwinWorld } = {
+  "Twin World small": createTwinWorld("Twin World small", 25, 5),
+  "Twin World large": createTwinWorld("Twin World large", 75, 5),
+};
+
+/**
+ * Default cost model configurations.
+ */
+const defaultCostModels: { [key: string]: CostModel } = {
+  "Fixed Price": {
+    name: "Fixed Price",
+    description:
+      "A fixed price for buying and selling energy. The price for buying from the utility is 0.4 and the price for selling is 0.1. The price is determined by 0.25. A higher fixed devisision means a higher trading price.",
+    priceNetworkBuyConsumer: 0.4,
+    priceNetworkSellConsumer: 0.1,
+    fixedPriceRatio: 0.5,
+    algorithm: `function costModel() {
+  return buyCustomer * ratio + sellCustomer * (1 - ratio);
+}
+`,
+  },
+  TEMO: {
+    name: "TEMO",
+    description:
+      "A price model based on the TEMO model. The price is determined by a formula that compares the energy needed to the various prices available, and returns an internal buying and selling prices",
+    priceNetworkBuyConsumer: 0.4,
+    priceNetworkSellConsumer: 0.1,
+    fixedPriceRatio: 0.5,
+    algorithm: `function costModel() {
+  return buyCustomer * ratio + sellCustomer * (1 - ratio);
+}
+`,
+  },
+};
+
+const defaultEnergyflow = await readCSV("/energyflowZoetermeer.csv");
+
+/**
+ * Default algorithm configurations.
+ */
+const defaultAlgorithms: { [key: string]: Algo } = {
+  "Greedy Planning": {
+    name: "Greedy Planning",
+    description:
+      "An initial planning that puts appliances in their local optimum through a greedy algorithm. Will not optimize further than one pass through all appliances.",
+    maxTemperature: 10000,
+    algorithm: ``,
+  },
+  "Simulated Annealing": {
+    name: "Simulated Annealing",
+    description:
+      "An algorithm that improves on a given algorithm by randomly changing the time of planned in appliances. The conditions for what changes becomes stricter over time, resulting in a further optimized solution.",
+    maxTemperature: 10000,
+    algorithm: ``,
+  },
+};
+
 const formData: FormDataStruct[] = $state([
   {
     title: "Twin World",
+    stepType: "twinworld",
     options: [
       {
         id: "1",
@@ -51,9 +115,14 @@ const formData: FormDataStruct[] = $state([
         min: 1,
       },
     ],
+    twinWorlds: {
+      "1": defaultTwinWorlds["Twin World small"],
+      "2": defaultTwinWorlds["Twin World large"],
+    },
   },
   {
     title: "Cost Model",
+    stepType: "costmodel",
     options: [
       {
         id: "1",
@@ -64,7 +133,7 @@ const formData: FormDataStruct[] = $state([
       },
       {
         id: "2",
-        name: "temo",
+        name: "TEMO",
         label: "TEMO",
         description:
           "A price model based on the TEMO model. The price is determined by a formula that compares the energy needed to the various prices available, and returns an internal buying and selling prices",
@@ -131,9 +200,14 @@ const formData: FormDataStruct[] = $state([
         value: `function costModel() {\n\treturn buyCustomer * ratio + sellCustomer * (1 - ratio);\n}\n`,
       },
     ],
+    costModels: {
+      "1": defaultCostModels["Fixed Price"],
+      "2": defaultCostModels["TEMO"],
+    },
   },
   {
     title: "Algorithm",
+    stepType: "algo",
     options: [
       {
         id: "1",
@@ -186,9 +260,14 @@ const formData: FormDataStruct[] = $state([
         value: `function run(context) {\n}\n`,
       },
     ],
+    algos: {
+      "1": defaultAlgorithms["Greedy Planning"],
+      "2": defaultAlgorithms["Simulated Annealing"],
+    },
   },
   {
     title: "Energyflow",
+    stepType: "energyflow",
     options: [
       {
         id: "1",
@@ -245,6 +324,9 @@ const formData: FormDataStruct[] = $state([
         required: true,
       },
     ],
+    energyflows: {
+      "1": defaultEnergyflow,
+    },
   },
 ]);
 
@@ -258,4 +340,28 @@ export function getFormData() {
     },
     setFormData,
   };
+}
+
+export function isEnergyflowStep(
+  item: FormDataStruct
+): item is FormDataStruct & { stepType: "energyflow"; energyflows: Record<string, Energyflow> } {
+  return item.stepType === "energyflow";
+}
+
+export function isTwinworldStep(
+  item: FormDataStruct
+): item is FormDataStruct & { stepType: "twinworld"; twinWorlds: Record<string, TwinWorld> } {
+  return item.stepType === "twinworld";
+}
+
+export function isCostmodelStep(
+  item: FormDataStruct
+): item is FormDataStruct & { stepType: "costmodel"; costModels: Record<string, CostModel> } {
+  return item.stepType === "costmodel";
+}
+
+export function isAlgoStep(
+  item: FormDataStruct
+): item is FormDataStruct & { stepType: "algo"; algos: Record<string, Algo> } {
+  return item.stepType === "algo";
 }

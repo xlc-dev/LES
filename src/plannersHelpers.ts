@@ -1,4 +1,4 @@
-import { SECONDS_IN_DAY, unixToHour } from "./utils";
+import { unixToHour } from "./utils";
 
 /**
  * Calculates the appliance duration bitmask based on duration and hour.
@@ -43,7 +43,6 @@ function calculateApplianceDurationBit(duration: number, hour: number): number {
  * @param {number} solarPanelsFactor - The solar panels factor.
  * @param {Energyflow[]} energyFlow - The list of energy flow data.
  * @param {Household[]} planning - The list of household planning data.
- * @param {ApplianceTimeDaily[]} applianceBitmapPlan - The appliance bitmap plan for the day.
  * @param {CostModel} costmodel - The cost model object.
  *
  * @returns {[number, number, number, number, number]} A tuple containing:
@@ -57,7 +56,6 @@ function energyEfficiencyDay(
   solarPanelsFactor: number,
   energyFlow: Energyflow["data"],
   planning: Household[],
-  applianceBitmapPlan: ApplianceTimeDaily[],
   costmodel: CostModel
 ): [number, number, number, number, number] {
   const totalYield = planning.reduce((sum, household) => sum + household.solarYieldYearly, 0);
@@ -76,7 +74,9 @@ function energyEfficiencyDay(
 
     if (household.appliances) {
       for (const appliance of household.appliances) {
-        const bitmap = applianceBitmapPlan[appliance.id - 1].bitmapPlanEnergy.padStart(24, "0");
+        const bitmap = appliance.timeDaily[appliance.id - 1].bitmapPlanEnergy
+          .toString()
+          .padStart(24, "0");
 
         for (let hour = 0; hour < 24; hour++) {
           if (bitmap[hour] === "1") {
@@ -116,7 +116,8 @@ function energyEfficiencyDay(
   let energyPrice: number;
 
   if (costmodel.name === "Fixed Price" || costmodel.name === "TEMO") {
-    energyPrice = costmodel.priceNetworkBuyConsumer;
+    energyPrice =
+      costmodel.priceNetworkBuyConsumer * ratio + costmodel.priceNetworkSellConsumer * (1 - ratio);
   } else {
     try {
       const localVars: any = {};
@@ -207,50 +208,31 @@ export function planEnergy(hour: number, duration: number, bitmap: number): numb
  * This function uses the helper function energyEfficiencyDay to determine
  * the energy efficiency for a given day and updates the results array accordingly.
  *
- * @param {Object} params - The parameters for the function.
- * @param {number} params.dayIterator - The current iteration of the day.
- * @param {number} params.dayNumberInPlanning - The day number in the planning.
- * @param {Array<Array<number>>} params.results - A 2D array of results to be updated.
- * @param {Energyflow} params.energyflow - The energy flow object containing solar panel factor and energy flow data.
- * @param {CostModel} params.costmodel - The cost model object to calculate costs.
- * @param {Array<ApplianceTimeDaily>} params.applianceTime - An array of appliance time data for each day.
- * @param {Array<Energyflow>} params.energyflowDaySim - An array representing the energy flow simulation data for each day.
- * @param {Array<Household>} params.householdPlanning - An array representing the household planning for each day.
+ * @param {number} dayIterator The day iterator.
+ * @param {Array<Array<number>>} results The results array.
+ * @param {Energyflow} energyflowData The energyflow data.
+ * @param {CostModel} costModel The cost model.
+ * @param {Energyflow["data"]} energyflowDaySim The simulated energyflow data for the day.
+ * @param {Household[]} householdPlanning The household planning data.
  *
  * @returns {Array<Array<number>>} The updated results array.
  */
-export function writeResults({
-  dayIterator,
-  dayNumberInPlanning,
-  results,
-  energyflow,
-  costmodel,
-  applianceTime,
-  energyflowDaySim,
-  householdPlanning,
-}: {
-  date: number;
-  dayIterator: number;
-  dayNumberInPlanning: number;
-  results: number[][];
-  energyflow: Energyflow;
-  twinworld: TwinWorld;
-  costmodel: CostModel;
-  applianceTime: ApplianceTimeDaily[];
-  energyflowDaySim: Energyflow["data"];
-  householdPlanning: Household[];
-}): number[][] {
+export function writeResults(
+  dayIterator: number,
+  results: number[][],
+  energyflowData: Energyflow,
+  costModel: CostModel,
+  energyflowDaySim: Energyflow["data"],
+  householdPlanning: Household[]
+): number[][] {
   const tempResult = energyEfficiencyDay(
-    energyflow.solarPanelsFactor,
+    energyflowData.solarPanelsFactor,
     energyflowDaySim,
     householdPlanning,
-    applianceTime.filter((el) => el.day === dayNumberInPlanning),
-    costmodel
+    costModel
   );
 
-  // console.log(tempResult);
-
-  if (dayIterator === 0) {
+  if (dayIterator === 1) {
     results[dayIterator - 1][5] = (tempResult[0] - results[dayIterator - 1][0]) * tempResult[4];
     results[dayIterator - 1][6] = (tempResult[1] - results[dayIterator - 1][1]) * tempResult[4];
   } else {

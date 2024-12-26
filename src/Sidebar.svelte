@@ -5,6 +5,7 @@
   const stepperData = getStepperData();
 
   let isMenuOpen = $state(false);
+  let showLegend = $state(false);
 
   function handleClickOutside(event: any) {
     if (
@@ -60,19 +61,28 @@
     </div>
   </div>
   <div class="shrink-0">
+    <button
+      class="flex w-full items-center gap-3 p-4 transition-colors duration-200 bg-les-highlight hover:bg-les-gray-700 text-white"
+      aria-label="Show Legend"
+      onclick={() => {
+        showLegend = !showLegend;
+        isMenuOpen = false;
+      }}>
+      <span>Show Legend</span>
+    </button>
     <div class="px-4 py-4">
       <h3 class="pb-4 text-lg font-semibold">Selected Options:</h3>
       <p class="text-gray-400">
-        Twin World: {stepperData.stepperData!.steps[0].selectedOption!.label}
+        Twin World: {stepperData.stepperData.twinworld.name}
       </p>
       <p class="text-gray-400">
-        Cost Model: {stepperData.stepperData!.steps[1].selectedOption!.label}
+        Cost Model: {stepperData.stepperData.costmodel.name}
       </p>
       <p class="text-gray-400">
-        Algorithm: {stepperData.stepperData!.steps[2].selectedOption!.label}
+        Algorithm: {stepperData.stepperData.algo.name}
       </p>
       <p class="text-gray-400">
-        Energyflow: {stepperData.stepperData!.steps[3].selectedOption!.label}
+        Energyflow: {stepperData.stepperData.energyflowlabel}
       </p>
     </div>
     <button
@@ -132,13 +142,19 @@
       <div class="flex flex-col space-y-0.5">
         <div class="text-2xs text-gray-400 uppercase tracking-wider">Selected Configuration</div>
         <div class="text-xs text-gray-200 leading-tight">
-          {stepperData.stepperData!.steps[0].selectedOption!.label} ·
-          {stepperData.stepperData!.steps[1].selectedOption!.label} ·
-          {stepperData.stepperData!.steps[2].selectedOption!.label} ·
-          {stepperData.stepperData!.steps[3].selectedOption!.label}
+          {stepperData.stepperData.twinworld.name} ·
+          {stepperData.stepperData.costmodel.name} ·
+          {stepperData.stepperData.algo.name} ·
+          {stepperData.stepperData.energyflowlabel}
         </div>
       </div>
     </div>
+    <button
+      class="flex items-center gap-1.5 text-white px-3 py-1.5 rounded-md text-sm
+             transition-colors duration-200 cursor-pointer bg-les-highlight hover:bg-les-gray-700"
+      onclick={() => (showLegend = !showLegend)}>
+      <span>Show Legend</span>
+    </button>
     <button
       id="stop-button"
       class="flex items-center gap-1.5 bg-red-950 text-white px-3 py-1.5 rounded-md text-sm
@@ -172,4 +188,45 @@
 
 {#if isMenuOpen}
   <div class="fixed inset-0 bg-black/90 bg-opacity-50 z-40 lg:hidden"></div>
+{/if}
+
+{#if showLegend}
+  <div
+    class="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-white p-4 rounded-lg shadow-lg border-4 border-gray-400 text-les-highlight legend-container w-3/4 lg:w-full max-w-2xl mx-auto">
+    <button
+      class="cursor-pointer absolute top-0 right-0 p-2 text-xs text-les-highlight hover:text-blue-500 transition-colors duration-200"
+      aria-label="Close legend"
+      onclick={() => (showLegend = !showLegend)}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div class="flex flex-col gap-2 p-4">
+      <div class="mb-2 flex items-center">
+        <div class="mr-2 h-4 w-4 bg-gray-700"></div>
+        <p>contain the time slots that are unavailable to plan appliances in.</p>
+      </div>
+      <div class="mb-2 flex items-center">
+        <div class="mr-2 h-4 w-4 bg-blue-700"></div>
+        <p>contain the time slots that are available to plan appliances in.</p>
+      </div>
+      <div class="mb-2 flex items-center">
+        <div class="mr-2 h-4 w-4 bg-green-700"></div>
+        <p>indicate that the planned energy used is drawn from solar panels.</p>
+      </div>
+      <div class="flex items-center">
+        <div class="mr-2 h-4 w-4 bg-red-700"></div>
+        <p>indicate that the planned energy used is drawn from the national grid.</p>
+      </div>
+    </div>
+  </div>
 {/if}

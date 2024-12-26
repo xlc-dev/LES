@@ -87,32 +87,30 @@
     const sumTotalMoneySaved = results.reduce((acc, result) => acc + result.totalAmountSaved, 0);
     const sumEfficiencyNoSolar = sumEfficiencyTotal - sumEfficiencyIndividual;
 
-    const stepper = stepperData.stepperData;
-
     return [
       {
         label: "Number of Households",
-        value: stepper?.steps[0].twinWorld!.households.length,
+        value: stepperData.stepperData.twinworld.households.length,
       },
       {
         label: "Cost Model Price Network Buy Consumer",
-        value: stepper?.steps[1].formData?.price_network_buy_consumer,
+        value: stepperData.stepperData.costmodel.priceNetworkBuyConsumer,
       },
       {
         label: "Cost Model Price Network Sell Consumer",
-        value: stepper?.steps[1].formData?.price_network_sell_consumer,
+        value: stepperData.stepperData.costmodel.priceNetworkSellConsumer,
       },
       {
         label: "Twin World Energy Usage Factor",
-        value: stepper?.steps[3].formData?.energy_usage_factor,
+        value: stepperData.stepperData.energyflow.energyUsageFactor,
       },
       {
         label: "Twin World Solar Panels Factor",
-        value: stepper?.steps[3].formData?.solar_panels_factor,
+        value: stepperData.stepperData.energyflow.solarPanelsFactor,
       },
       {
         label: "Algorithm Max Temperature",
-        value: stepper?.steps[2].formData?.max_temperature,
+        value: stepperData.stepperData.algo.maxTemperature,
       },
       {
         label: "Total Saved by Own Solar Panels",
@@ -136,19 +134,19 @@
       },
       {
         label: "Selected Twin World",
-        value: stepper?.steps[0]?.selectedOption!.label,
+        value: stepperData.stepperData.twinworld.name,
       },
       {
         label: "Selected Cost Model",
-        value: stepper?.steps[1]?.selectedOption!.label,
+        value: stepperData.stepperData.costmodel.name,
       },
       {
         label: "Selected Algorithm",
-        value: stepper?.steps[2]?.selectedOption!.label,
+        value: stepperData.stepperData.algo.name,
       },
       {
         label: "Selected Energyflow",
-        value: stepper?.steps[3]?.selectedOption!.label,
+        value: stepperData.stepperData.energyflowlabel,
       },
     ];
   }

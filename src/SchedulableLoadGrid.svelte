@@ -27,9 +27,8 @@
     );
 
     // Find the corresponding day in timeDailies based on the calculated day number
-    // TODO: changed id to day, is this correct?
     const dayData = timeDailies.timeDailies.filter(
-      (entry) => entry.day === daysInPlanning.daysInPlanning * (appliance_id - 1) + dayNumber + 1
+      (entry) => entry.id === daysInPlanning.daysInPlanning * (appliance_id - 1) + dayNumber + 1
     );
 
     // Fallback if user hasn't selected a date that has no timeDailies
@@ -76,7 +75,7 @@
       {#each hours as hour}
         <div
           class={`border border-white ${getCellColor(
-            appliance.appliance_windows[(Math.round(unixTimestamp / 86400) + 3) % 7].bitmap_window,
+            appliance.timeDaily[(Math.round(unixTimestamp / 86400) + 3) % 7].bitmapWindow,
             hour,
             date,
             appliance.id
@@ -86,22 +85,3 @@
     </div>
   {/each}
 </div>
-
-<!-- TODO: add Legend somewhere -->
-
-<!-- <div class="mb-2 flex items-center"> -->
-<!--   <div class="mr-2 h-4 w-4 bg-gray-700"></div> -->
-<!--   <p>contain the time slots that are unavailable to plan appliances in.</p> -->
-<!-- </div> -->
-<!-- <div class="mb-2 flex items-center"> -->
-<!--   <div class="mr-2 h-4 w-4 bg-les-blue"></div> -->
-<!--   <p>contain the time slots that are available to plan appliances in.</p> -->
-<!-- </div> -->
-<!-- <div class="mb-2 flex items-center"> -->
-<!--   <div class="mr-2 h-4 w-4 bg-green-700"></div> -->
-<!--   <p>indicate that the planned energy used is drawn from solar panels.</p> -->
-<!-- </div> -->
-<!-- <div class="flex items-center"> -->
-<!--   <div class="mr-2 h-4 w-4 bg-les-red"></div> -->
-<!--   <p>indicate that the planned energy used is drawn from the national grid.</p> -->
-<!-- </div> -->

@@ -276,13 +276,13 @@ export function loop(
     results,
   } = setupPlanning(energyflowData, chunkOffsetLoop);
 
+  let lastResults = results;
   const planningLength = householdPlanning.length;
-  let applianceTime: ApplianceTimeDaily[] = [];
 
   for (let dayIterator = 1; dayIterator <= daysInChunk; dayIterator++) {
     const dayNumberInPlanning =
       Math.floor((startDate - totalStartDate) / SECONDS_IN_DAY) + dayIterator;
-    const date = startDate + dayNumberInPlanning * SECONDS_IN_DAY;
+    // const date = startDate + dayNumberInPlanning * SECONDS_IN_DAY;
     const energyflowDay = energyflowDataSolar.filter(
       (el) => Math.floor((Number(el.timestamp) - startDate) / SECONDS_IN_DAY) === dayIterator - 1
     );
@@ -322,7 +322,7 @@ export function loop(
           });
 
           totalAvailableEnergy = newTotalAvailableEnergy;
-          applianceTime = newApplianceTime;
+          appliance.timeDaily = newApplianceTime;
           householdEnergy = newHouseholdEnergy;
         });
       });
@@ -352,36 +352,32 @@ export function loop(
       currentAvailable[hour] = solarProduced[hour] - currentUsed[hour];
     }
 
-    const newResults = writeResults({
-      date,
+    const newResults = writeResults(
       dayIterator,
-      dayNumberInPlanning,
       results,
-      energyflowDataSolar,
+      energyflowData,
       costModel,
-      applianceTime,
       energyflowDaySim,
-      householdPlanning,
-    });
+      householdPlanning
+    );
+    lastResults = newResults;
 
     if (totalAvailableEnergy <= 0) {
       continue;
     }
 
     if (algo.name === "Simulated Annealing") {
-      planSimulatedAnnealing();
+      // planSimulatedAnnealing();
 
-      const newResults = writeResults({
-        date,
+      const newResults = writeResults(
         dayIterator,
-        dayNumberInPlanning,
         results,
-        energyflowDataSolar,
+        energyflowData,
         costModel,
-        applianceTime,
         energyflowDaySim,
-        householdPlanning,
-      });
+        householdPlanning
+      );
+      lastResults = newResults;
     }
 
     if (algo.name !== "Simulated Annealing" && algo.name !== "Greedy Planning") {
@@ -389,7 +385,7 @@ export function loop(
 
       try {
         // Create a new function with 'context' as a parameter.
-        // Yes, this is not secure, but since this is only a client side application,
+        // NOTE: Yes, this is not secure, but since this is only a client side application,
         // I don't think it matters. Now you are able to execute whatever JS code you want,
         // making it very powerful for the user.
         const executeAlgorithm = new Function(
@@ -412,16 +408,22 @@ export function loop(
         console.error(`Error executing algorithm: ${error}`);
       }
     }
-    console.log(totalAvailableEnergy);
   }
 
   const startDay = Math.floor((startDate - totalStartDate) / SECONDS_IN_DAY) + 1;
-  const timeDaily = applianceTime.filter(
-    (el) => el.day >= startDay && el.day < startDay + daysInChunk
-  );
+
+  let timeDaily: ApplianceTimeDaily[] = [];
+  householdPlanning.forEach((household) => {
+    household.appliances?.forEach((appliance) => {
+      const applianceTime = appliance.timeDaily.filter(
+        (el) => el.day >= startDay && el.day < startDay + daysInChunk
+      );
+      timeDaily.push(applianceTime);
+    });
+  });
 
   return {
-    results,
+    results: lastResults,
     timeDaily,
     daysInPlanning,
     totalStartDate,
