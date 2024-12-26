@@ -2,7 +2,7 @@ import { SECONDS_IN_DAY, SECONDS_IN_HOUR, unixToHour } from "./utils";
 import { checkApplianceTime, planEnergy } from "./plannersHelpers";
 
 interface PlanGreedyResult {
-  applianceTime: ApplianceTimeDaily[];
+  newApplianceTime: ApplianceTimeDaily[];
   newTotalAvailableEnergy: number;
   newHouseholdEnergy: number[][];
 }
@@ -38,7 +38,6 @@ interface PlanGreedyResult {
  *
  * @param {Object} params - The parameters for the greedy planning.
  * @param {number} params.householdIdx - The index of the household.
- * @param {number} params.daysInPlanning - The total number of days in planning.
  * @param {number} params.dayNumberInPlanning - The current day number in planning.
  * @param {number} params.totalAvailableEnergy - The total available energy.
  * @param {number[][]} params.householdEnergy - A 2D array representing household energy usage.
@@ -91,13 +90,13 @@ export function planGreedy({
         appliance.timeDaily[dayNumber].bitmapPlanEnergy = planEnergy(
           hour,
           appliance.duration,
-          bitmapEnergy,
+          bitmapEnergy
         );
 
         for (let i = 0; i < appliance.duration; i++) {
           const energyUsed = Math.min(
             householdEnergy[hour][householdIdx],
-            appliance.power / appliance.duration,
+            appliance.power / appliance.duration
           );
 
           totalAvailableEnergy -= energyUsed;
@@ -113,8 +112,7 @@ export function planGreedy({
     // If unable to plan using solar energy, attempt to plan using the national grid
     if (!plannedIn) {
       for (let i = 0; i < 24; i++) {
-        const currentTime =
-          totalStartDate + dayNumber * SECONDS_IN_DAY + i * SECONDS_IN_HOUR;
+        const currentTime = totalStartDate + dayNumber * SECONDS_IN_DAY + i * SECONDS_IN_HOUR;
 
         if (!checkApplianceTime(appliance, currentTime, bitmapNoEnergy)) {
           continue;
@@ -123,7 +121,7 @@ export function planGreedy({
         appliance.timeDaily[dayNumber].bitmapPlanNoEnergy = planEnergy(
           unixToHour(currentTime),
           appliance.duration,
-          bitmapNoEnergy,
+          bitmapNoEnergy
         );
 
         plannedIn = true;
@@ -139,7 +137,7 @@ export function planGreedy({
   }
 
   return {
-    applianceTime: appliance.timeDaily,
+    newApplianceTime: appliance.timeDaily,
     newTotalAvailableEnergy: totalAvailableEnergy,
     newHouseholdEnergy: householdEnergy,
   };

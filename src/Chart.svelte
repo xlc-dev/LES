@@ -179,7 +179,7 @@
 </script>
 
 <div
-  class="grid grid-cols-2 gap-4 rounded-lg border-4 border-gray-400 bg-white p-4 w-full max-w-7xl mx-auto">
+  class="mx-auto grid w-full max-w-7xl grid-cols-2 gap-4 rounded-lg border-4 border-gray-400 bg-white p-4">
   {#each Array(4) as _, index (index)}
     <div>
       <canvas class="max-h-64" bind:this={chartContainers[index]}></canvas>

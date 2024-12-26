@@ -25,10 +25,7 @@ function generateRandomTimeWindow(bitmap: number): [number, number] {
  * @param {ApplianceTypes} applianceName - The type of appliance.
  * @returns {number} bitmap - The bitmap for the time window.
  */
-export function createTimeWindow(
-  day: ApplianceDays,
-  applianceName: ApplianceTypes,
-): number {
+export function createTimeWindow(day: ApplianceDays, applianceName: ApplianceTypes): number {
   let bitmap = 0;
 
   // Stove has fixed time window from 5 PM to 8 PM
@@ -76,11 +73,7 @@ export function isAvailable(bitmap: number, hour: number): boolean {
  * @param {boolean} isAvailable - True to set the hour as available, false to set it as not available.
  * @returns {number} The updated 24-bit bitmap.
  */
-export function setAvailability(
-  bitmap: number,
-  hour: number,
-  isAvailable: boolean,
-): number {
+export function setAvailability(bitmap: number, hour: number, isAvailable: boolean): number {
   if (isAvailable) {
     return bitmap | (1 << hour); // Set the bit to 1 (available)
   } else {

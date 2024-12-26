@@ -88,51 +88,47 @@
       ])
     );
 
-    filteredData = stepperData.stepperData!.steps[0].twinWorld!.households.filter(
-      (item: Household) => {
-        const matchesSearch =
-          !searchQuery ||
-          item.id.toString().includes(searchQuery) ||
-          item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    filteredData = stepperData.stepperData.twinworld.households.filter((item: Household) => {
+      const matchesSearch =
+        !searchQuery ||
+        item.id.toString().includes(searchQuery) ||
+        item.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-        const matchesSize =
-          parsedSelectedFilters.size.length === 0 ||
-          parsedSelectedFilters.size.includes(item.size);
+      const matchesSize =
+        parsedSelectedFilters.size.length === 0 || parsedSelectedFilters.size.includes(item.size);
 
-        const matchesEnergyUsage =
-          parsedSelectedFilters.energyUsage.length === 0 ||
-          parsedSelectedFilters.energyUsage.some(
-            (range: Range) => item.energyUsage >= range.min && item.energyUsage < range.max
-          );
-
-        const matchesSolarPanels =
-          parsedSelectedFilters.solarPanels.length === 0 ||
-          parsedSelectedFilters.solarPanels.includes(item.solarPanels);
-
-        const matchesSolarYieldYearly =
-          parsedSelectedFilters.solarYieldYearly.length === 0 ||
-          parsedSelectedFilters.solarYieldYearly.some(
-            (range: Range) =>
-              item.solarYieldYearly >= range.min && item.solarYieldYearly < range.max
-          );
-
-        const matchesAppliances =
-          parsedSelectedFilters.appliances.length === 0 ||
-          (item.appliances &&
-            item.appliances.some((appliance) =>
-              parsedSelectedFilters.appliances.includes(appliance.name)
-            ));
-
-        return (
-          matchesSearch &&
-          matchesSize &&
-          matchesEnergyUsage &&
-          matchesSolarPanels &&
-          matchesSolarYieldYearly &&
-          matchesAppliances
+      const matchesEnergyUsage =
+        parsedSelectedFilters.energyUsage.length === 0 ||
+        parsedSelectedFilters.energyUsage.some(
+          (range: Range) => item.energyUsage >= range.min && item.energyUsage < range.max
         );
-      }
-    );
+
+      const matchesSolarPanels =
+        parsedSelectedFilters.solarPanels.length === 0 ||
+        parsedSelectedFilters.solarPanels.includes(item.solarPanels);
+
+      const matchesSolarYieldYearly =
+        parsedSelectedFilters.solarYieldYearly.length === 0 ||
+        parsedSelectedFilters.solarYieldYearly.some(
+          (range: Range) => item.solarYieldYearly >= range.min && item.solarYieldYearly < range.max
+        );
+
+      const matchesAppliances =
+        parsedSelectedFilters.appliances.length === 0 ||
+        (item.appliances &&
+          item.appliances.some((appliance) =>
+            parsedSelectedFilters.appliances.includes(appliance.name)
+          ));
+
+      return (
+        matchesSearch &&
+        matchesSize &&
+        matchesEnergyUsage &&
+        matchesSolarPanels &&
+        matchesSolarYieldYearly &&
+        matchesAppliances
+      );
+    });
   });
 </script>
 
@@ -145,12 +141,12 @@
     {setMinDate}
     {setMaxDate} />
 
-  <div class="border-4 border-gray-400 rounded-lg overflow-hidden">
+  <div class="overflow-hidden rounded-lg border-4 border-gray-400">
     <table class="min-w-full leading-normal">
       <thead>
         <tr>
           <th
-            class="border-b-2 border-gray-200 bg-gray-100 px-5 py-3 text-left text-xs uppercase tracking-wider text-gray-600">
+            class="border-b-2 border-gray-200 bg-gray-100 px-5 py-3 text-left text-xs tracking-wider text-gray-600 uppercase">
             ID
             <SortIcon
               isSortedAsc={sortColumn === "id" && sortOrder === "asc"}
@@ -159,7 +155,7 @@
           </th>
 
           <th
-            class="border-b-2 border-gray-200 bg-gray-100 px-5 py-3 text-left text-xs uppercase tracking-wider text-gray-600">
+            class="border-b-2 border-gray-200 bg-gray-100 px-5 py-3 text-left text-xs tracking-wider text-gray-600 uppercase">
             Name
             <SortIcon
               isSortedAsc={sortColumn === "name" && sortOrder === "asc"}
@@ -168,7 +164,7 @@
           </th>
 
           <th
-            class="border-b-2 border-gray-200 bg-gray-100 px-5 py-3 text-left text-xs uppercase tracking-wider text-gray-600">
+            class="border-b-2 border-gray-200 bg-gray-100 px-5 py-3 text-left text-xs tracking-wider text-gray-600 uppercase">
             Size
             <SortIcon
               isSortedAsc={sortColumn === "size" && sortOrder === "asc"}
@@ -177,7 +173,7 @@
           </th>
 
           <th
-            class="border-b-2 border-gray-200 bg-gray-100 px-5 py-3 text-left text-xs uppercase tracking-wider text-gray-600">
+            class="border-b-2 border-gray-200 bg-gray-100 px-5 py-3 text-left text-xs tracking-wider text-gray-600 uppercase">
             Energy Usage
             <SortIcon
               isSortedAsc={sortColumn === "energyUsage" && sortOrder === "asc"}
@@ -186,7 +182,7 @@
           </th>
 
           <th
-            class="border-b-2 border-gray-200 bg-gray-100 px-5 py-3 text-left text-xs uppercase tracking-wider text-gray-600">
+            class="border-b-2 border-gray-200 bg-gray-100 px-5 py-3 text-left text-xs tracking-wider text-gray-600 uppercase">
             Solar Panels
             <SortIcon
               isSortedAsc={sortColumn === "solarPanels" && sortOrder === "asc"}
@@ -195,7 +191,7 @@
           </th>
 
           <th
-            class="border-b-2 border-gray-200 bg-gray-100 px-5 py-3 text-left text-xs uppercase tracking-wider text-gray-600">
+            class="border-b-2 border-gray-200 bg-gray-100 px-5 py-3 text-left text-xs tracking-wider text-gray-600 uppercase">
             Solar Yield Yearly
             <SortIcon
               isSortedAsc={sortColumn === "solarYieldYearly" && sortOrder === "asc"}
@@ -204,7 +200,7 @@
           </th>
 
           <th
-            class="border-b-2 border-gray-200 bg-gray-100 px-5 py-3 text-left text-xs uppercase tracking-wider text-gray-600">
+            class="border-b-2 border-gray-200 bg-gray-100 px-5 py-3 text-left text-xs tracking-wider text-gray-600 uppercase">
             Appliances
           </th>
         </tr>
@@ -264,7 +260,6 @@
             <tr class="border-b border-gray-200 bg-white text-sm hover:bg-white">
               <td colspan={7}>
                 <div transition:slide class="flex justify-center p-4">
-                  <!-- TODO: remove key -->
                   {#key formattedDate}
                     <SchedulableLoadGrid
                       appliances={data.appliances}

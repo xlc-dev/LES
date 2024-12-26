@@ -11,6 +11,12 @@
     getTimeDailies,
   } from "./state.svelte";
 
+  interface Props {
+    newSession: () => void;
+  }
+
+  const { newSession }: Props = $props();
+
   const runtime = getRuntime();
   runtime.stopRuntime();
   const efficiencyResults = getEfficiencyResults();
@@ -87,32 +93,30 @@
     const sumTotalMoneySaved = results.reduce((acc, result) => acc + result.totalAmountSaved, 0);
     const sumEfficiencyNoSolar = sumEfficiencyTotal - sumEfficiencyIndividual;
 
-    const stepper = stepperData.stepperData;
-
     return [
       {
         label: "Number of Households",
-        value: stepper?.steps[0].twinWorld!.households.length,
+        value: stepperData.stepperData.twinworld.households.length,
       },
       {
         label: "Cost Model Price Network Buy Consumer",
-        value: stepper?.steps[1].formData?.price_network_buy_consumer,
+        value: stepperData.stepperData.costmodel.priceNetworkBuyConsumer,
       },
       {
         label: "Cost Model Price Network Sell Consumer",
-        value: stepper?.steps[1].formData?.price_network_sell_consumer,
+        value: stepperData.stepperData.costmodel.priceNetworkSellConsumer,
       },
       {
         label: "Twin World Energy Usage Factor",
-        value: stepper?.steps[3].formData?.energy_usage_factor,
+        value: stepperData.stepperData.energyflow.energyUsageFactor,
       },
       {
         label: "Twin World Solar Panels Factor",
-        value: stepper?.steps[3].formData?.solar_panels_factor,
+        value: stepperData.stepperData.energyflow.solarPanelsFactor,
       },
       {
         label: "Algorithm Max Temperature",
-        value: stepper?.steps[2].formData?.max_temperature,
+        value: stepperData.stepperData.algo.maxTemperature,
       },
       {
         label: "Total Saved by Own Solar Panels",
@@ -136,19 +140,19 @@
       },
       {
         label: "Selected Twin World",
-        value: stepper?.steps[0]?.selectedOption!.label,
+        value: stepperData.stepperData.twinworld.name,
       },
       {
         label: "Selected Cost Model",
-        value: stepper?.steps[1]?.selectedOption!.label,
+        value: stepperData.stepperData.costmodel.name,
       },
       {
         label: "Selected Algorithm",
-        value: stepper?.steps[2]?.selectedOption!.label,
+        value: stepperData.stepperData.algo.name,
       },
       {
         label: "Selected Energyflow",
-        value: stepper?.steps[3]?.selectedOption!.label,
+        value: stepperData.stepperData.energyflowlabel,
       },
     ];
   }
@@ -174,24 +178,22 @@
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }
-
-  function newSessionButton(): void {}
 </script>
 
-<div class="mx-auto max-w-3xl pt-8">
+<div class="mx-auto w-full max-w-4xl px-3 pt-8">
   <h1 class="pb-4 text-center text-4xl font-bold">Statistics for your session</h1>
   <Chart />
   <div
-    class="relative mb-8 mt-8 grid grid-cols-2 gap-4 rounded-lg border-4 border-gray-400 bg-white p-4 text-les-highlight shadow-sm">
+    class="text-les-highlight relative mt-8 mb-8 grid grid-cols-2 gap-4 rounded-lg border-4 border-gray-400 bg-white p-4 shadow-sm">
     <p class="absolute left-1/2 mt-4 -translate-x-1/2 transform">
       Runtime: {runtime.runtime} seconds
     </p>
     <div class="col-span-2 mt-8 flex justify-between">
       <button
-        class="rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600"
-        onclick={newSessionButton}>New session</button>
+        class="cursor-pointer rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600"
+        onclick={newSession}>New session</button>
       <button
-        class="rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600"
+        class="cursor-pointer rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600"
         onclick={downloadExcel}>Download</button>
     </div>
   </div>

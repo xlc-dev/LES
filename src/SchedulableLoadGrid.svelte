@@ -27,9 +27,8 @@
     );
 
     // Find the corresponding day in timeDailies based on the calculated day number
-    // TODO: changed id to day, is this correct?
     const dayData = timeDailies.timeDailies.filter(
-      (entry) => entry.day === daysInPlanning.daysInPlanning * (appliance_id - 1) + dayNumber + 1
+      (entry) => entry.id === daysInPlanning.daysInPlanning * (appliance_id - 1) + dayNumber + 1
     );
 
     // Fallback if user hasn't selected a date that has no timeDailies
@@ -59,10 +58,10 @@
 
 <div class="flex flex-col items-center">
   <div class="flex w-full justify-start">
-    <div class="w-36 pr-2 text-right text-xs font-bold text-les-highlight">Appliances:</div>
+    <div class="text-les-highlight w-36 pr-2 text-right text-xs font-bold">Appliances:</div>
     <div class="flex">
       {#each hours as hour}
-        <div class="h-2 w-2 text-center text-xs text-les-highlight sm:h-3 sm:w-3 md:h-4 md:w-4">
+        <div class="text-les-highlight h-2 w-2 text-center text-xs sm:h-3 sm:w-3 md:h-4 md:w-4">
           {hour}
         </div>
       {/each}
@@ -70,13 +69,13 @@
   </div>
   {#each appliances as appliance}
     <div class="flex items-center">
-      <div class="w-36 whitespace-nowrap pr-2 text-right text-xs text-les-highlight">
+      <div class="text-les-highlight w-36 pr-2 text-right text-xs whitespace-nowrap">
         {appliance.name}
       </div>
       {#each hours as hour}
         <div
           class={`border border-white ${getCellColor(
-            appliance.appliance_windows[(Math.round(unixTimestamp / 86400) + 3) % 7].bitmap_window,
+            appliance.timeDaily[(Math.round(unixTimestamp / 86400) + 3) % 7].bitmapWindow,
             hour,
             date,
             appliance.id
@@ -86,22 +85,3 @@
     </div>
   {/each}
 </div>
-
-<!-- TODO: add Legend somewhere -->
-
-<!-- <div class="mb-2 flex items-center"> -->
-<!--   <div class="mr-2 h-4 w-4 bg-gray-700"></div> -->
-<!--   <p>contain the time slots that are unavailable to plan appliances in.</p> -->
-<!-- </div> -->
-<!-- <div class="mb-2 flex items-center"> -->
-<!--   <div class="mr-2 h-4 w-4 bg-les-blue"></div> -->
-<!--   <p>contain the time slots that are available to plan appliances in.</p> -->
-<!-- </div> -->
-<!-- <div class="mb-2 flex items-center"> -->
-<!--   <div class="mr-2 h-4 w-4 bg-green-700"></div> -->
-<!--   <p>indicate that the planned energy used is drawn from solar panels.</p> -->
-<!-- </div> -->
-<!-- <div class="flex items-center"> -->
-<!--   <div class="mr-2 h-4 w-4 bg-les-red"></div> -->
-<!--   <p>indicate that the planned energy used is drawn from the national grid.</p> -->
-<!-- </div> -->

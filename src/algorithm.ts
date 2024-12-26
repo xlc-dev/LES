@@ -1,11 +1,8 @@
-import {
-  HOURS_IN_WEEK,
-  SECONDS_IN_DAY,
-  SECONDS_IN_HOUR,
-  unixToHour,
-} from "./utils";
+import { HOURS_IN_WEEK, SECONDS_IN_DAY, SECONDS_IN_HOUR, unixToHour } from "./utils";
 
 import { planGreedy } from "./planners";
+
+import { writeResults } from "./plannersHelpers";
 
 /**
  * Calculates the start and end dates for the energyflow data.
@@ -67,8 +64,7 @@ function getEnergyflowChunkStartEndDates({
   daysInChunk: number;
   daysInPlanning: number;
 } {
-  const { totalStartDate, totalEndDate } =
-    getEnergyflowStartEndDate(energyflow);
+  const { totalStartDate, totalEndDate } = getEnergyflowStartEndDate(energyflow);
   if (!totalStartDate || !totalEndDate) {
     throw new Error("No data available to calculate dates.");
   }
@@ -84,8 +80,7 @@ function getEnergyflowChunkStartEndDates({
     SECONDS_IN_HOUR;
 
   const daysInChunk = Math.floor((endDate - startDate) / SECONDS_IN_DAY) + 1;
-  const daysInPlanning =
-    Math.floor((totalEndDate - totalStartDate) / SECONDS_IN_DAY) + 1;
+  const daysInPlanning = Math.floor((totalEndDate - totalStartDate) / SECONDS_IN_DAY) + 1;
 
   return {
     totalStartDate,
@@ -131,7 +126,7 @@ function getAllEnergyflowSortedByTimestamp({
   energy_used: number;
   solar_produced: number;
 }> {
-  return [...data]
+  return data
     .sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
     .slice(offset, offset + limit);
 }
@@ -170,10 +165,9 @@ function getEnergyflowBySolarProduced({
   energy_used: number;
   solar_produced: number;
 }> {
-  return [...data]
-    .filter((item) => item.solar_produced > 0)
-    .sort((a, b) => b.solar_produced - a.solar_produced)
-    .slice(offset, offset + limit);
+  return data
+    .filter((el, i) => el.solar_produced > 0 && i >= offset && i < offset + limit)
+    .sort((a, b) => b.solar_produced - a.solar_produced);
 }
 
 /**
@@ -186,7 +180,6 @@ function getEnergyflowBySolarProduced({
  *   daysInPlanning: number,
  *   chunkOffset: number,
  *   totalStartDate: number,
- *   totalEndDate: number,
  *   startDate: number,
  *   endDate: number,
  *   energyflowDataSim: Energyflow["data"],
@@ -196,12 +189,11 @@ function getEnergyflowBySolarProduced({
  */
 function setupPlanning(
   energyflowDataStepper: Energyflow,
-  chunkOffset: number,
+  chunkOffset: number
 ): {
   daysInChunk: number;
   daysInPlanning: number;
   totalStartDate: number;
-  totalEndDate: number;
   startDate: number;
   endDate: number;
   energyflowDataSim: Energyflow["data"];
@@ -220,7 +212,7 @@ function setupPlanning(
 
   const {
     totalStartDate,
-    totalEndDate,
+    totalEndDate: _,
     startDate,
     endDate,
     daysInChunk,
@@ -230,15 +222,12 @@ function setupPlanning(
     energyflowDataSim,
   });
 
-  const results: number[][] = Array.from({ length: daysInChunk }, () =>
-    Array(7).fill(0.0),
-  );
+  const results: number[][] = Array.from({ length: daysInChunk }, () => Array(7).fill(0.0));
 
   return {
     daysInChunk,
     daysInPlanning,
     totalStartDate,
-    totalEndDate,
     startDate,
     endDate,
     energyflowDataSim,
@@ -252,21 +241,34 @@ function setupPlanning(
  *
  * @param {Energyflow} energyflowData - The energyflow data.
  * @param {Household[]} householdPlanning - The household planning data.
- * @param {string} algoChoice - The algorithm choice.
+ * @param {CostModel} costModel - The selected cost model.
+ * @param {string} algo - The selected algorithm.
  * @param {number} chunkOffsetLoop - The chunk offset for the loop.
- * @returns {void}
+ * @returns {{
+ *   results: number[][],
+ *   timeDaily: number[],
+ *   daysInPlanning: number,
+ *   totalStartDate: number,
+ *   endDate: number
+ * }} The results and time daily data.
  */
 export function loop(
   energyflowData: Energyflow,
   householdPlanning: Household[],
-  algoChoice: string,
-  chunkOffsetLoop: number,
-): void {
+  costModel: CostModel,
+  algo: Algo,
+  chunkOffsetLoop: number
+): {
+  results: number[][];
+  timeDaily: ApplianceTimeDaily[];
+  daysInPlanning: number;
+  totalStartDate: number;
+  endDate: number;
+} {
   const {
     daysInChunk,
     daysInPlanning,
     totalStartDate,
-    totalEndDate,
     startDate,
     endDate,
     energyflowDataSim,
@@ -274,19 +276,19 @@ export function loop(
     results,
   } = setupPlanning(energyflowData, chunkOffsetLoop);
 
+  let lastResults = results;
   const planningLength = householdPlanning.length;
 
-  for (let dayIterator = 0; dayIterator < daysInChunk; dayIterator++) {
+  for (let dayIterator = 1; dayIterator <= daysInChunk; dayIterator++) {
     const dayNumberInPlanning =
       Math.floor((startDate - totalStartDate) / SECONDS_IN_DAY) + dayIterator;
-    const date = startDate + dayNumberInPlanning * SECONDS_IN_DAY;
+    // const date = startDate + dayNumberInPlanning * SECONDS_IN_DAY;
     const energyflowDay = energyflowDataSolar.filter(
-      (el) =>
-        Math.floor((Number(el.timestamp) - startDate) / SECONDS_IN_DAY) ===
-        dayIterator,
+      (el) => Math.floor((Number(el.timestamp) - startDate) / SECONDS_IN_DAY) === dayIterator - 1
     );
-    const householdEnergy = Array.from({ length: 24 }, () =>
-      Array.from({ length: planningLength }, () => 0.0),
+
+    let householdEnergy = Array.from({ length: 24 }, () =>
+      Array.from({ length: planningLength }, () => 0.0)
     );
 
     let totalAvailableEnergy = 0.0;
@@ -298,34 +300,134 @@ export function loop(
       energyflowDay.forEach((flow) => {
         const hour = unixToHour(Number(flow.timestamp));
         const potentialEnergy =
-          (flow.solar_produced * household.solarYieldYearly) /
-          energyflowData.solarPanelsFactor -
-          (flow.energy_used * 0.8 * household.energyUsage) /
-          energyflowData.energyUsageFactor;
+          (flow.solar_produced * household.solarYieldYearly) / energyflowData.solarPanelsFactor -
+          (flow.energy_used * 0.8 * household.energyUsage) / energyflowData.energyUsageFactor;
 
         householdEnergy[hour][householdIdx] += potentialEnergy;
         totalAvailableEnergy += potentialEnergy;
       });
     });
 
-    if (
-      algoChoice === "Greedy Planning" ||
-      algoChoice === "Simulated Annealing"
-    ) {
+    if (algo.name === "Greedy Planning" || algo.name === "Simulated Annealing") {
       householdPlanning.forEach((household, householdIdx) => {
         household.appliances?.forEach((appliance) => {
-          const { applianceTime, newTotalAvailableEnergy, newHouseholdEnergy } =
-            planGreedy({
-              householdIdx: householdIdx,
-              dayNumber: dayNumberInPlanning,
-              totalAvailableEnergy: totalAvailableEnergy,
-              householdEnergy: householdEnergy,
-              appliance: appliance,
-              energyflowDay: energyflowDay,
-              totalStartDate: totalStartDate,
-            });
+          const { newApplianceTime, newTotalAvailableEnergy, newHouseholdEnergy } = planGreedy({
+            householdIdx: householdIdx,
+            dayNumber: dayNumberInPlanning,
+            totalAvailableEnergy: totalAvailableEnergy,
+            householdEnergy: householdEnergy,
+            appliance: appliance,
+            energyflowDay: energyflowDay,
+            totalStartDate: totalStartDate,
+          });
+
+          totalAvailableEnergy = newTotalAvailableEnergy;
+          appliance.timeDaily = newApplianceTime;
+          householdEnergy = newHouseholdEnergy;
         });
       });
     }
+
+    const currentUsed = Array(24).fill(0.0);
+    const solarProduced = Array(24).fill(0.0);
+    const currentAvailable = Array(24).fill(0.0);
+
+    const energyflowDaySim = energyflowDataSim.filter(
+      (el) =>
+        dayNumberInPlanning ===
+        Math.floor((Number(el.timestamp) - totalStartDate) / SECONDS_IN_DAY) + 1
+    );
+
+    const totalYield = householdPlanning.reduce(
+      (acc, household) => acc + household.solarYieldYearly,
+      0
+    );
+
+    for (let hour = 0; hour < 24; hour++) {
+      const hourEnergy = energyflowDaySim
+        .filter((el) => unixToHour(Number(el.timestamp)) === hour)
+        .reduce((acc, el) => acc + el.solar_produced, 0);
+
+      solarProduced[hour] = (hourEnergy * totalYield) / energyflowData.solarPanelsFactor;
+      currentAvailable[hour] = solarProduced[hour] - currentUsed[hour];
+    }
+
+    const newResults = writeResults(
+      dayIterator,
+      results,
+      energyflowData,
+      costModel,
+      energyflowDaySim,
+      householdPlanning
+    );
+    lastResults = newResults;
+
+    if (totalAvailableEnergy <= 0) {
+      continue;
+    }
+
+    if (algo.name === "Simulated Annealing") {
+      // planSimulatedAnnealing();
+
+      const newResults = writeResults(
+        dayIterator,
+        results,
+        energyflowData,
+        costModel,
+        energyflowDaySim,
+        householdPlanning
+      );
+      lastResults = newResults;
+    }
+
+    if (algo.name !== "Simulated Annealing" && algo.name !== "Greedy Planning") {
+      const context = { totalAvailableEnergy };
+
+      try {
+        // Create a new function with 'context' as a parameter.
+        // NOTE: Yes, this is not secure, but since this is only a client side application,
+        // I don't think it matters. Now you are able to execute whatever JS code you want,
+        // making it very powerful for the user.
+        const executeAlgorithm = new Function(
+          "context",
+          `
+      ${algo.algorithm}
+      // Ensure that run is called within this scope
+      if (typeof run === 'function') {
+        run(context);
+      } else {
+        throw new Error("The algorithm string does not define a run() function.");
+      }
+    `
+        );
+
+        executeAlgorithm(context);
+
+        totalAvailableEnergy = context.totalAvailableEnergy;
+      } catch (error) {
+        console.error(`Error executing algorithm: ${error}`);
+      }
+    }
   }
+
+  const startDay = Math.floor((startDate - totalStartDate) / SECONDS_IN_DAY) + 1;
+
+  let timeDaily: ApplianceTimeDaily[] = [];
+  householdPlanning.forEach((household) => {
+    household.appliances?.forEach((appliance) => {
+      const applianceTime = appliance.timeDaily.filter(
+        (el) => el.day >= startDay && el.day < startDay + daysInChunk
+      );
+      timeDaily.push(...applianceTime);
+    });
+  });
+
+  // console.log(timeDaily);
+  return {
+    results: lastResults,
+    timeDaily,
+    daysInPlanning,
+    totalStartDate,
+    endDate,
+  };
 }

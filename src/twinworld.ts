@@ -1,6 +1,18 @@
 import { getRandomInt, randomNormal } from "./utils";
 import { generateAppliancesForHousehold } from "./appliance";
 
+/* Stoate the last household ID */
+let lastHouseholdId = 0;
+
+/**
+ * Generates a unique household ID.
+ *
+ * @returns {number} A unique household ID.
+ */
+export function generateHouseholdId(): number {
+  return ++lastHouseholdId;
+}
+
 /**
  * Default energy usage values based on household size.
  */
@@ -29,55 +41,53 @@ function generateHouseholdSize(): number {
 /**
  * Creates a twin world with a specified number of households and variation.
  *
+ * @param {string} name - The name of the twin world.
  * @param {number} baseHouseholdCount - The base number of households in the twin world.
  * @param {number} variation - The variation in the number of households.
  * @returns {TwinWorld} The generated twin world.
  */
-const createTwinWorld = (
+export const createTwinWorld = (
+  name: string,
   baseHouseholdCount: number,
-  variation: number,
+  variation: number
 ): TwinWorld => {
   const householdCount = getRandomInt(
     Math.max(1, baseHouseholdCount - variation),
-    baseHouseholdCount + variation,
+    baseHouseholdCount + variation
   );
 
+  const households = Array.from({ length: householdCount }, (_, i) => {
+    const householdSize = generateHouseholdSize();
+    const invNorm = randomNormal(1, 0.1);
+    const totalEnergyUsage = Math.round(
+      invNorm * (defaultEnergyUsage[String(householdSize)] || 0)
+    );
+
+    let solarPanels = 0;
+    if (Math.random() < 0.7) {
+      const invNormSolar = randomNormal(1, 0.1);
+      solarPanels = Math.ceil(3 + 2 * householdSize * invNormSolar);
+    }
+
+    const household = {
+      id: lastHouseholdId + i + 1,
+      name: `Household ${lastHouseholdId + i + 1}`,
+      size: householdSize,
+      energyUsage: totalEnergyUsage,
+      solarYieldYearly: solarPanels * 340, // Avg solar capacity
+      solarPanels,
+      appliances: generateAppliancesForHousehold(householdSize, invNorm),
+    };
+
+    return household;
+  });
+
+  lastHouseholdId += householdCount;
+
   return {
+    name,
     description: `A twin world consisting of roughly ${householdCount} households.`,
-    households: Array.from({ length: householdCount }, (_, i) => {
-      const householdSize = generateHouseholdSize();
-      const invNorm = randomNormal(1, 0.1);
-      const totalEnergyUsage = Math.round(
-        invNorm * (defaultEnergyUsage[String(householdSize)] || 0),
-      );
-
-      let solarPanels = 0;
-      if (Math.random() < 0.38) {
-        const invNormSolar = randomNormal(1, 0.1);
-        solarPanels = Math.ceil(3 + 2 * householdSize * invNormSolar);
-      }
-
-      return {
-        id: i + 1,
-        name: `Household ${i + 1}`,
-        size: householdSize,
-        energyUsage: totalEnergyUsage,
-        solarYieldYearly: solarPanels * 340, // Avg solar capacity
-        solarPanels,
-        appliances: generateAppliancesForHousehold(
-          i + 1,
-          householdSize,
-          invNorm,
-        ),
-      };
-    }),
+    solarPanelCapacity: 340,
+    households,
   };
-};
-
-/**
- * Default twin worlds configuration.
- */
-export const defaultTwinWorlds: { [key: string]: TwinWorld } = {
-  "Twin World small": createTwinWorld(25, 5),
-  "Twin World large": createTwinWorld(75, 5),
 };

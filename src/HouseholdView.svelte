@@ -15,9 +15,24 @@
   const setMaxDate: Date = new Date(endDate.endDate * 1000);
 
   let showDatePicker: boolean = $state(false);
-  let selectedDate: Date = $state(new Date(startDate.startDate * 1000));
+  let selectedDate: Date = $state(new Date());
 
-  let weekDates: Date[] = $state([]);
+  let weekDates: Date[] = $derived.by(() => {
+    let curweekDates = [selectedDate];
+
+    let daysLeft = Math.min(
+      6,
+      Math.round((setMaxDate.getTime() - selectedDate.getTime()) / (24 * 60 * 60 * 1000))
+    );
+
+    for (let i = 1; i <= daysLeft; i++) {
+      let nextDay = new Date(selectedDate);
+      nextDay.setDate(nextDay.getDate() + i);
+      curweekDates.push(nextDay);
+    }
+
+    return curweekDates;
+  });
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
@@ -26,23 +41,6 @@
       showDatePicker = false;
     }
   }
-
-  $effect(() => {
-    if (selectedDate) {
-      weekDates = [selectedDate];
-
-      let daysLeft = Math.min(
-        6,
-        Math.round((setMaxDate.getTime() - selectedDate.getTime()) / (24 * 60 * 60 * 1000))
-      );
-
-      for (let i = 1; i <= daysLeft; i++) {
-        let nextDay = new Date(selectedDate);
-        nextDay.setDate(nextDay.getDate() + i);
-        weekDates.push(nextDay);
-      }
-    }
-  });
 
   onDestroy(() => {
     setHousehold.setHousehold(null);
@@ -53,9 +51,9 @@
 
 <div class="flex flex-col gap-12">
   <div
-    class="rounded-lg border-4 border-gray-400 bg-white p-6 shadow-sm w-full max-w-7xl mx-auto space-y-6">
+    class="mx-auto w-full max-w-7xl space-y-6 rounded-lg border-4 border-gray-400 bg-white p-6 shadow-sm">
     <div>
-      <h2 class="text-xl font-bold mb-4">Household Information</h2>
+      <h2 class="mb-4 text-xl font-bold">Household Information</h2>
       <div class="grid grid-cols-2 gap-4">
         <div class="font-semibold">Name:</div>
         <div>{household.name}</div>
@@ -72,12 +70,12 @@
 
     {#if household.appliances}
       <div>
-        <h2 class="text-xl font-bold mb-4">Appliances</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <h2 class="mb-4 text-xl font-bold">Appliances</h2>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {#each household.appliances as appliance}
             <div
-              class="border border-gray-300 rounded-md p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-              <div class="font-semibold text-lg">{appliance.name}</div>
+              class="rounded-md border border-gray-300 p-4 shadow-sm transition-shadow duration-200 hover:shadow-md">
+              <div class="text-lg font-semibold">{appliance.name}</div>
               <div class="mt-2 space-y-1">
                 <div><span class="font-semibold">Power:</span> {appliance.power}</div>
                 <div><span class="font-semibold">Duration:</span> {appliance.duration}</div>
@@ -95,7 +93,7 @@
   <div class="flex justify-center pt-4">
     <div class="date-picker-container relative">
       <button
-        class="rounded-sm bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:brightness-110"
+        class="cursor-pointer rounded-sm bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:brightness-110"
         onclick={(e) => (e.stopPropagation(), (showDatePicker = !showDatePicker))}>
         Select Date
       </button>
@@ -107,9 +105,9 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
     {#each weekDates as date}
-      <div class="rounded-lg border-4 border-gray-400 bg-white p-4 shadow-sm w-full">
+      <div class="w-full rounded-lg border-4 border-gray-400 bg-white p-4 shadow-sm">
         <div class="mt-2 text-center text-gray-500">
           {date.toLocaleDateString("en-US", { weekday: "long" })}
         </div>

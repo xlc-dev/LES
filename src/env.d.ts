@@ -1,54 +1,44 @@
 /// <reference types="@rsbuild/core/types" />
 /// <reference types="svelte" />
 
-interface AppData {
-  stepperData: StepperData;
-  customOptions: Record<number, CustomOption[]>;
-  households: Household[];
-}
+type FormDataStruct = {
+  title: string;
+  formFields: FormField[];
+  options: Option[];
+} & (
+  | { stepType: "twinworld"; twinWorlds: Record<string, TwinWorld> }
+  | { stepType: "costmodel"; costModels: Record<string, CostModel> }
+  | { stepType: "algo"; algos: Record<string, Algo> }
+  | { stepType: "energyflow"; energyflows: Record<string, Energyflow> }
+);
 
 type Option = {
   id: string;
-  description: string;
+  name: string;
   label: string;
-  isCustom?: boolean;
+  description: string;
 };
 
-type FormField = {
+interface FormField {
   label: string;
-  description?: string;
+  name: string;
+  description: string;
   type: "input" | "textarea" | "editor" | "file";
   dataType?: "string" | "int" | "float";
-  file?: File;
   placeholder?: string;
-  value?: string;
-  required?: boolean;
-  error?: string;
+  required: boolean;
   min?: number;
-  max?: number;
   step?: number;
-};
-
-type Step = {
-  title: string;
-  options: Option[];
-  formFields: FormField[];
-};
+  value?: any;
+  error?: string;
+}
 
 type StepperData = {
-  steps: {
-    title: string;
-    selectedOption: Option | null;
-    formData: Record<string, any> | null;
-    twinWorld?: TwinWorld;
-    energyflow?: Energyflow;
-  }[];
-};
-
-type CustomOption = {
-  id: string;
-  option: Option & { energyflow?: Energyflow };
-  formData: Record<string, any>;
+  twinworld: TwinWorld;
+  costmodel: CostModel;
+  algo: Algo;
+  energyflow: Energyflow;
+  energyflowlabel: string;
 };
 
 type Energyflow = {
@@ -62,6 +52,22 @@ type Energyflow = {
   }[];
 };
 
+type CostModel = {
+  name: string;
+  description: string;
+  priceNetworkBuyConsumer: number;
+  priceNetworkSellConsumer: number;
+  fixedPriceRatio: number;
+  algorithm: string;
+};
+
+type Algo = {
+  name: string;
+  description: string;
+  maxTemperature: number;
+  algorithm: string;
+};
+
 type Household = {
   id: number;
   name: string;
@@ -73,7 +79,9 @@ type Household = {
 };
 
 type TwinWorld = {
+  name: string;
   description: string;
+  solarPanelCapacity: number;
   households: Household[];
 };
 
@@ -94,6 +102,7 @@ type Appliance = {
 };
 
 type ApplianceTimeDaily = {
+  id: number;
   day: number;
   bitmapWindow: number;
   bitmapPlanEnergy: number;

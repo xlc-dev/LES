@@ -1,3 +1,5 @@
+import { loop } from "./algorithm";
+
 function createState<T>(initialValue: T) {
   let state = $state(initialValue);
   function setState(newValue: T) {
@@ -11,17 +13,13 @@ function createState<T>(initialValue: T) {
   };
 }
 
-type ComponentList =
-  | "Dashboard"
-  | "Schedulable Loads"
-  | "Simulation"
-  | "Household"
-  | "Stop";
+type ComponentList = "Dashboard" | "Schedulable Loads" | "Simulation" | "Household" | "Stop";
 
 const componentState = createState<ComponentList>("Dashboard");
 const dashboardState = createState<boolean>(false);
 
-const stepperDataState = createState<StepperData | null>(null);
+// @ts-ignore
+const stepperDataState = createState<StepperData>({});
 
 const efficiencyResultsState = createState<EfficiencyResult[]>([]);
 const timeDailiesState = createState<ApplianceTimeDaily[]>([]);
@@ -35,6 +33,9 @@ const householdState = createState<Household | null>(null);
 const startDateState = createState<number>(0);
 const endDateState = createState<number>(0);
 const daysInPlanningState = createState<number>(0);
+
+const loopState = createState<"idle" | "running" | "completed">("idle");
+const loopIntervalState = createState<number | null>(null);
 
 export function getStartDate() {
   function setStartDate(date: number) {
@@ -160,7 +161,7 @@ export function getRuntime() {
             const elapsed = Date.now() - runtimeStartTimeState.state; // Elapsed time in milliseconds
             runtimeState.setState(parseFloat((elapsed / 1000).toFixed(2))); // Convert to seconds with two decimals
           }
-        }, 100), // Update every 100ms for two decimal precision
+        }, 100) // Update every 100ms for two decimal precision
       );
     }
   }
@@ -193,5 +194,103 @@ export function getRuntime() {
     startRuntime,
     stopRuntime,
     resetRuntime,
+  };
+}
+
+export function getLoopManager() {
+  let onCompleteCallback: (() => void) | null = null;
+  let currentOffset = 0;
+
+  /**
+   * Starts the loop process.
+   * Ensures only one loop runs at a time.
+   */
+  function startLoop(onComplete?: () => void) {
+    if (loopIntervalState.state !== null) {
+      console.warn("Loop is already running.");
+      return;
+    }
+
+    if (onComplete) {
+      onCompleteCallback = onComplete;
+    }
+
+    const stepperData = getStepperData();
+    const efficiencyResults = getEfficiencyResults();
+    const startDate = getStartDate();
+    const endDate = getEndDate();
+    const daysInPlanning = getDaysInPlanning();
+    const timedailies = getTimeDailies();
+
+    loopState.setState("running");
+    currentOffset = 0;
+
+    function executeLoop(offset: number): boolean {
+      const results = loop(
+        stepperData.stepperData.energyflow,
+        stepperData.stepperData.twinworld.households,
+        stepperData.stepperData.costmodel,
+        stepperData.stepperData.algo,
+        offset
+      );
+
+      startDate.setStartDate(results.totalStartDate);
+      endDate.setEndDate(results.endDate);
+      daysInPlanning.setDaysInPlanning(results.daysInPlanning);
+      timedailies.setTimeDailies(results.timeDaily);
+
+      const transformedResults = results.results.map((resultArray) => ({
+        solarEnergyIndividual: resultArray[0],
+        solarEnergyTotal: resultArray[1],
+        internalBoughtEnergyPrice: resultArray[2],
+        totalAmountSaved: resultArray[3],
+      }));
+
+      efficiencyResults.setEfficiencyResults([
+        ...efficiencyResults.efficiencyResults,
+        ...transformedResults,
+      ]);
+
+      if (offset < 250) {
+        currentOffset = offset + 7;
+        return true; // Indicate that the loop should continue
+      } else {
+        return false; // Indicate that the loop is complete
+      }
+    }
+
+    // Start the interval
+    loopIntervalState.setState(
+      window.setInterval(() => {
+        const shouldContinue = executeLoop(currentOffset);
+
+        if (!shouldContinue) {
+          stopLoop();
+          if (onCompleteCallback) {
+            onCompleteCallback(); // Notify when done
+          }
+        }
+      }, 100)
+    );
+  }
+
+  /**
+   * Stops the loop process.
+   * Resets state and clears the interval.
+   */
+  function stopLoop() {
+    if (loopIntervalState.state !== null) {
+      clearInterval(loopIntervalState.state);
+      loopIntervalState.setState(null);
+      loopState.setState("completed");
+    }
+  }
+
+  return {
+    get state(): "idle" | "running" | "completed" {
+      return loopState.state;
+    },
+    startLoop,
+    stopLoop,
   };
 }

@@ -9,12 +9,60 @@
   import Stop from "./Stop.svelte";
   import HouseholdView from "./HouseholdView.svelte";
 
-  import { getDashboard, getComponent } from "./state.svelte";
+  import {
+    getDashboard,
+    getComponent,
+    getLoopManager,
+    getRuntime,
+    getStepperData,
+    getStartDate,
+    getEndDate,
+    getDaysInPlanning,
+    getHousehold,
+    getTimeDailies,
+    getEfficiencyResults,
+  } from "./state.svelte";
 
   const dashboard = getDashboard();
   const currentComponent = getComponent();
-  let started = $state(true);
-  let simulationType = $state<"single" | "chain" | null>("single");
+  const loopManager = getLoopManager();
+  const runtime = getRuntime();
+  const stepperData = getStepperData();
+  const startDate = getStartDate();
+  const endDate = getEndDate();
+  const daysInPlanning = getDaysInPlanning();
+  const household = getHousehold();
+  const timeDailies = getTimeDailies();
+  const efficiencyResults = getEfficiencyResults();
+
+  let started = $state(false);
+  let completed = $state(false);
+  let simulationType = $state<"single" | "chain" | null>(null);
+
+  function loop() {
+    runtime.startRuntime();
+    loopManager.startLoop(() => {
+      runtime.stopRuntime();
+      completed = true;
+    });
+  }
+
+  function newSession() {
+    started = false;
+    completed = false;
+    simulationType = null;
+    dashboard.setDashboard(false);
+    runtime.stopRuntime();
+    // @ts-ignore
+    stepperData.setStepperData({});
+    currentComponent.setComponent("Dashboard");
+    startDate.setStartDate(0);
+    endDate.setEndDate(0);
+    daysInPlanning.setDaysInPlanning(0);
+    household.setHousehold(null);
+    timeDailies.setTimeDailies([]);
+    efficiencyResults.setEfficiencyResults([]);
+  }
 </script>
 
 <svelte:head>
@@ -29,7 +77,7 @@
 
 {#snippet msg()}
   <div class="mx-auto max-w-2xl p-8">
-    <img src="/homepagelogo.png" class="w-75 mx-auto rounded-lg" alt="LES Logo" />
+    <img src="/homepagelogo.png" class="mx-auto w-75 rounded-lg" alt="LES Logo" />
     <h1 class="pt-4 text-center text-4xl font-bold">Local Energy System Simulation</h1>
     <p class="py-4 text-center text-lg">
       Welcome to the LES Research application. You can determine the efficiency of algorithms and
@@ -40,7 +88,7 @@
       onclick={() => {
         started = true;
       }}
-      class="block w-full rounded-lg bg-blue-500 py-3 transition-colors duration-200 hover:bg-blue-600">
+      class="block w-full cursor-pointer rounded-lg bg-blue-500 py-3 transition-colors duration-200 hover:bg-blue-600">
       Get started
     </button>
     <p class="py-4 text-center text-sm">
@@ -57,41 +105,43 @@
 {#snippet choices()}
   <div class="mx-auto max-w-2xl p-8">
     <h1 class="text-center text-4xl font-bold">Select your simulation type</h1>
-    <p class="py-4 text-center text-lg">Please select the simulation you would like to run.</p>
+    <p class="py-4 text-center text-lg">
+      Please select the simulation type you would like to run.
+    </p>
 
     <div class="flex flex-col gap-4 py-4">
       <button
         onclick={() => {
           simulationType = "single";
         }}
-        class="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:bg-blue-600">
+        class="cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:bg-blue-600">
         Single
       </button>
       <button
         onclick={() => {
           simulationType = "chain";
         }}
-        class="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:bg-blue-600">
+        class="cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:bg-blue-600">
         Chain
       </button>
     </div>
   </div>
 {/snippet}
 
-<main class="min-h-screen bg-les-gray-500 text-white">
+<main class="bg-les-gray-500 min-h-screen text-white">
   {#if !started && !dashboard.startDashboard}
     {@render msg()}
   {:else if !simulationType && !dashboard.startDashboard}
     {@render choices()}
   {:else if simulationType === "single" && !dashboard.startDashboard}
-    <Stepper />
+    <Stepper onComplete={loop} />
   {:else if simulationType === "chain" && !dashboard.startDashboard}
-    <!-- <Chain /> -->
+    <Stepper onComplete={loop} />
   {:else}
-    <div class="flex md:flex-col h-screen">
+    <div class="flex h-screen md:flex-col">
       {#if currentComponent.currentComponent !== "Stop"}
         <Sidebar />
-        <div class="flex-1 overflow-auto p-4 text-les-highlight">
+        <div class="text-les-highlight flex-1 overflow-auto p-4">
           {#if currentComponent.currentComponent === "Dashboard"}
             <Dashboard />
           {:else if currentComponent.currentComponent === "Simulation"}
@@ -104,8 +154,36 @@
         </div>
       {/if}
       {#if currentComponent.currentComponent === "Stop"}
-        <Stop />
+        <Stop {newSession} />
       {/if}
+    </div>
+  {/if}
+
+  {#if completed}
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-gray-900 opacity-75"></div>
+      <div
+        class="text-les-highlight relative rounded-lg border-4 border-gray-400 bg-white p-8 shadow-2xl">
+        <p class="mb-4 text-2xl font-bold">Simulation finished</p>
+        <div class="flex justify-between">
+          <button
+            class="mt-4 cursor-pointer rounded-lg bg-blue-500 p-2 text-white transition duration-200 hover:bg-blue-600"
+            onclick={() => {
+              completed = false;
+              runtime.stopRuntime();
+            }}>
+            Continue
+          </button>
+          <button
+            class="mt-4 cursor-pointer rounded-lg bg-blue-500 p-2 text-white transition duration-200 hover:bg-blue-600"
+            onclick={() => {
+              completed = false;
+              currentComponent.setComponent("Stop");
+            }}>
+            View Result
+          </button>
+        </div>
+      </div>
     </div>
   {/if}
 </main>

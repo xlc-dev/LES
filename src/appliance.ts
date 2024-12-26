@@ -1,11 +1,26 @@
-import {
-  ApplianceTypes,
-  ApplianceDays,
-  MAX_DAYS_IN_YEAR,
-  roundTo,
-  shuffleArray,
-} from "./utils";
+import { ApplianceTypes, ApplianceDays, MAX_DAYS_IN_YEAR, roundTo, shuffleArray } from "./utils";
 import { createTimeWindow, setAvailability } from "./timewindow";
+
+let applianceIdCounter = 0;
+let timeDailiesIdCounter = 0;
+
+/**
+ * Generates a unique appliance ID.
+ *
+ * @returns {number} A unique appliance ID.
+ */
+export function generateApplianceId(): number {
+  return ++applianceIdCounter;
+}
+
+/**
+ * Generates a unique time dailies ID.
+ *
+ * @returns {number} A unique time dailies ID.
+ */
+export function generateTimeDailiesId(): number {
+  return ++timeDailiesIdCounter;
+}
 
 /**
  * Get typical usage hours for appliances.
@@ -50,6 +65,7 @@ function generateEmptyTimePlan(): ApplianceTimeDaily[] {
 
   for (let day = 0; day < MAX_DAYS_IN_YEAR; day++) {
     emptyPlan.push({
+      id: generateTimeDailiesId(),
       day,
       bitmapWindow: 0,
       bitmapPlanEnergy: 0,
@@ -67,10 +83,7 @@ function generateEmptyTimePlan(): ApplianceTimeDaily[] {
  * @param {number} dailyUsage - The daily usage in hours.
  * @returns {number} The availability bitmap.
  */
-function generateAvailability(
-  name: ApplianceTypes,
-  dailyUsage: number,
-): number {
+function generateAvailability(name: ApplianceTypes, dailyUsage: number): number {
   const availability = Array(24).fill(false);
   const typicalHours = getTypicalUsageHours(name);
   const baseUsage = Math.floor(dailyUsage);
@@ -95,7 +108,6 @@ function generateAvailability(
 /**
  * Creates an appliance based on given data.
  *
- * @param {number} id - The ID of the household.
  * @param {ApplianceTypes} name - The appliance type.
  * @param {number} householdSize - The size of the household.
  * @param {number} duration - The duration of usage in hours.
@@ -108,7 +120,6 @@ function generateAvailability(
  * @returns {Appliance | null} The created appliance or null if not available.
  */
 function createAppliance(
-  id: number,
   name: ApplianceTypes,
   householdSize: number,
   duration: number,
@@ -117,8 +128,9 @@ function createAppliance(
   energyPattern: number,
   usageRandom: number,
   usageMulti: number,
-  usageAddition: number,
+  usageAddition: number
 ): Appliance | null {
+  const applianceId = generateApplianceId();
   const availabilityChance = availabilityMapping[String(householdSize)] || 0;
   if (Math.random() < availabilityChance) {
     const freq = frequencyMapping[String(householdSize)] || 0;
@@ -150,7 +162,7 @@ function createAppliance(
     });
 
     return {
-      id: id,
+      id: applianceId,
       name,
       power,
       duration,
@@ -160,23 +172,18 @@ function createAppliance(
   }
   return null;
 }
+
 /**
  * Creates a dishwasher appliance.
  *
- * @param {number} id - The ID of the household.
  * @param {number} householdSize - The size of the household.
  * @param {number} invNorm - The inverse normal value.
  * @returns {Appliance | null} The created dishwasher appliance or null.
  */
-function createDishwasher(
-  id: number,
-  householdSize: number,
-  invNorm: number,
-): Appliance | null {
+function createDishwasher(householdSize: number, invNorm: number): Appliance | null {
   const available = { "1": 0.47, "2": 0.76, "3": 0.81, "4": 0.89, "5": 0.83 };
   const frequency = { "1": 1.0, "2": 1.2, "3": 1.5, "4": 1.7, "5": 2.0 };
   return createAppliance(
-    id,
     ApplianceTypes.DISHWASHER,
     householdSize,
     1,
@@ -185,27 +192,21 @@ function createDishwasher(
     invNorm,
     Math.random(),
     0.3,
-    0.8,
+    0.8
   );
 }
 
 /**
  * Creates a washing machine appliance.
  *
- * @param {number} id - The ID of the household.
  * @param {number} householdSize - The size of the household.
  * @param {number} invNorm - The inverse normal value.
  * @returns {Appliance | null} The created washing machine appliance or null.
  */
-function createWashingMachine(
-  id: number,
-  householdSize: number,
-  invNorm: number,
-): Appliance | null {
+function createWashingMachine(householdSize: number, invNorm: number): Appliance | null {
   const available = { "1": 0.34, "2": 0.76, "3": 0.79, "4": 0.85, "5": 0.79 };
   const frequency = { "1": 1.2, "2": 1.5, "3": 1.7, "4": 1.9, "5": 2.3 };
   return createAppliance(
-    id,
     ApplianceTypes.WASHING_MACHINE,
     householdSize,
     1,
@@ -214,27 +215,21 @@ function createWashingMachine(
     invNorm,
     Math.random(),
     0.3,
-    0.8,
+    0.8
   );
 }
 
 /**
  * Creates a tumble dryer appliance.
  *
- * @param {number} id - The ID of the household.
  * @param {number} householdSize - The size of the household.
  * @param {number} invNorm - The inverse normal value.
  * @returns {Appliance | null} The created tumble dryer appliance or null.
  */
-function createTumbleDryer(
-  id: number,
-  householdSize: number,
-  invNorm: number,
-): Appliance | null {
+function createTumbleDryer(householdSize: number, invNorm: number): Appliance | null {
   const available = { "1": 0.34, "2": 0.79, "3": 0.81, "4": 0.88, "5": 0.84 };
   const frequency = { "1": 1.0, "2": 1.2, "3": 1.5, "4": 1.6, "5": 1.9 };
   return createAppliance(
-    id,
     ApplianceTypes.TUMBLE_DRYER,
     householdSize,
     1,
@@ -243,27 +238,21 @@ function createTumbleDryer(
     invNorm,
     Math.random(),
     0.3,
-    0.8,
+    0.8
   );
 }
 
 /**
  * Creates a stove appliance.
  *
- * @param {number} id - The ID of the household.
  * @param {number} householdSize - The size of the household.
  * @param {number} invNorm - The inverse normal value.
  * @returns {Appliance | null} The created stove appliance or null.
  */
-function createStove(
-  id: number,
-  householdSize: number,
-  invNorm: number,
-): Appliance | null {
+function createStove(householdSize: number, invNorm: number): Appliance | null {
   const available = { "1": 0.74, "2": 0.85, "3": 0.88, "4": 0.91, "5": 0.87 };
   const frequency = { "1": 1.2, "2": 1.4, "3": 1.7, "4": 1.9, "5": 2.1 };
   return createAppliance(
-    id,
     ApplianceTypes.STOVE,
     householdSize,
     1,
@@ -272,27 +261,21 @@ function createStove(
     invNorm,
     Math.random(),
     0.3,
-    0.8,
+    0.8
   );
 }
 
 /**
  * Creates an electric vehicle appliance.
  *
- * @param {number} id - The ID of the household.
  * @param {number} householdSize - The size of the household.
  * @param {number} invNorm - The inverse normal value.
  * @returns {Appliance | null} The created electric vehicle appliance or null.
  */
-function createElectricVehicle(
-  id: number,
-  householdSize: number,
-  invNorm: number,
-): Appliance | null {
+function createElectricVehicle(householdSize: number, invNorm: number): Appliance | null {
   const available = { "1": 0.2, "2": 0.35, "3": 0.4, "4": 0.5, "5": 0.6 };
   const frequency = { "1": 1.5, "2": 2.0, "3": 2.5, "4": 3.0, "5": 3.5 };
   return createAppliance(
-    id,
     ApplianceTypes.ELECTRIC_VEHICLE,
     householdSize,
     1,
@@ -301,31 +284,27 @@ function createElectricVehicle(
     invNorm,
     Math.random(),
     0.3,
-    0.8,
+    0.8
   );
 }
 
 /**
  * Generates appliances for a household based on size and inverse normal value.
  *
- * @param {number} id - The ID of the household.
  * @param {number} householdSize - The size of the household.
  * @param {number} invNorm - The inverse normal value.
  * @returns {Appliance[]} An array of generated appliances.
  */
 export function generateAppliancesForHousehold(
-  id: number,
   householdSize: number,
-  invNorm: number,
+  invNorm: number
 ): Appliance[] {
   const appliances: (Appliance | null)[] = [];
-  appliances.push(createDishwasher(id, householdSize, invNorm));
-  appliances.push(createWashingMachine(id, householdSize, invNorm));
-  appliances.push(createTumbleDryer(id, householdSize, invNorm));
-  appliances.push(createStove(id, householdSize, invNorm));
-  appliances.push(createElectricVehicle(id, householdSize, invNorm));
+  appliances.push(createDishwasher(householdSize, invNorm));
+  appliances.push(createWashingMachine(householdSize, invNorm));
+  appliances.push(createTumbleDryer(householdSize, invNorm));
+  appliances.push(createStove(householdSize, invNorm));
+  appliances.push(createElectricVehicle(householdSize, invNorm));
 
-  return appliances.filter(
-    (appliance): appliance is Appliance => appliance !== null,
-  );
+  return appliances.filter((appliance): appliance is Appliance => appliance !== null);
 }

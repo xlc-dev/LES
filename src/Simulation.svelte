@@ -23,29 +23,27 @@
   const hasSolarPanels = (household: Household) => household.solarPanels > 0;
 
   $effect(() => {
-    filteredHouseholds = stepperData.stepperData!.steps[0].twinWorld!.households.filter(
-      (h: Household) => {
-        const matchesSearch =
-          !searchQuery || h.name.toLowerCase().includes(searchQuery.toLowerCase());
+    filteredHouseholds = stepperData.stepperData.twinworld.households.filter((h: Household) => {
+      const matchesSearch =
+        !searchQuery || h.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-        const matchesSize =
-          selectedFilters.size.length === 0 || selectedFilters.size.includes(h.size);
+      const matchesSize =
+        selectedFilters.size.length === 0 || selectedFilters.size.includes(h.size);
 
-        const matchesSolarPanels =
-          selectedFilters.solarPanels.length === 0 ||
-          (selectedFilters.solarPanels.includes("Yes") && hasSolarPanels(h)) ||
-          (selectedFilters.solarPanels.includes("No") && !hasSolarPanels(h));
+      const matchesSolarPanels =
+        selectedFilters.solarPanels.length === 0 ||
+        (selectedFilters.solarPanels.includes("Yes") && hasSolarPanels(h)) ||
+        (selectedFilters.solarPanels.includes("No") && !hasSolarPanels(h));
 
-        return matchesSearch && matchesSize && matchesSolarPanels;
-      }
-    );
+      return matchesSearch && matchesSize && matchesSolarPanels;
+    });
   });
 </script>
 
 <div class="flex flex-col gap-8">
   <Filter {filters} bind:selectedFilters bind:searchQuery />
   <div
-    class="grid grid-cols-8 items-center justify-start gap-4 rounded-lg border-4 border-gray-400 p-2 bg-white">
+    class="grid grid-cols-8 items-center justify-start gap-4 rounded-lg border-4 border-gray-400 bg-white p-2">
     {#each filteredHouseholds as data}
       <HouseSVG {data} />
     {/each}
