@@ -7,6 +7,7 @@ export default defineConfig({
     assetPrefix: "/LES/",
   },
   html: {
+    favicon: "./public/favicon.ico",
     meta: {
       charset: {
         charset: "UTF-8",
