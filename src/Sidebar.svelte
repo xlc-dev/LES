@@ -1,6 +1,12 @@
 <script lang="ts">
   import { getComponent, getStepperData, getRuntime, getLoopManager } from "./state.svelte";
 
+  import Arrows from "/public/arrows.png";
+  import Rectangle from "/public/rectangle.png";
+  import Adjustment from "/public/adjustment.png";
+  import Calendar from "/public/calendar.png";
+  import Stop from "/public/stop.png";
+
   const component = getComponent();
   const stepperData = getStepperData();
   const runtime = getRuntime();
@@ -35,7 +41,7 @@
           {isMenuOpen ? 'translate-x-0' : '-translate-x-full'} flex flex-col">
   <div class="grow overflow-auto">
     <div class="bg-les-gray-700 flex w-full items-center gap-3 p-4">
-      <img src="/arrows.png" alt="" class="rotate-180 transform" />
+      <img src={Arrows} alt="" class="rotate-180 transform" />
       <p class="font-bold">LES</p>
     </div>
     <div class="mt-4 flex flex-col items-start justify-center gap-3">
@@ -46,7 +52,7 @@
           component.setComponent("Dashboard");
           isMenuOpen = false;
         }}>
-        <img src="/rectangle.png" alt="" />
+        <img src={Rectangle} alt="" />
         <p>Dashboard</p>
       </button>
       <button
@@ -56,7 +62,7 @@
           component.setComponent("Simulation");
           isMenuOpen = false;
         }}>
-        <img src="/adjustment.png" alt="" />
+        <img src={Adjustment} alt="" />
         <p>Simulation</p>
       </button>
       <button
@@ -66,7 +72,7 @@
           component.setComponent("Schedulable Loads");
           isMenuOpen = false;
         }}>
-        <img src="/calendar.png" alt="" />
+        <img src={Calendar} alt="" />
         <p>Schedulable Loads</p>
       </button>
     </div>
@@ -100,7 +106,7 @@
       id="stop-button"
       class="flex w-full items-center gap-3 bg-red-950 p-4 py-6 transition-colors duration-200 hover:bg-red-800 hover:brightness-110"
       onclick={stop}>
-      <img src="/stop.png" alt="" />
+      <img src={Stop} alt="" />
       <p>Stop Simulation</p>
     </button>
   </div>
@@ -110,7 +116,7 @@
 <div
   class="sticky hidden w-full items-center justify-between border-b border-gray-800 bg-gray-900 px-4 py-2 lg:flex">
   <div class="flex items-center gap-2">
-    <img src="/arrows.png" alt="" class="h-6 w-6 rotate-180 transform" />
+    <img src={Arrows} alt="" class="h-6 w-6 rotate-180 transform" />
     <span class="text-lg font-bold text-white">LES</span>
   </div>
   <nav class="flex items-center space-x-4">
@@ -119,7 +125,7 @@
       class:bg-les-highlight={component.currentComponent === "Dashboard"}
       class:text-white={component.currentComponent === "Dashboard"}
       onclick={() => component.setComponent("Dashboard")}>
-      <img src="/rectangle.png" alt="" class="h-4 w-4" />
+      <img src={Rectangle} alt="" class="h-4 w-4" />
       <span>Dashboard</span>
     </button>
     <button
@@ -127,7 +133,7 @@
       class:bg-les-highlight={component.currentComponent === "Simulation"}
       class:text-white={component.currentComponent === "Simulation"}
       onclick={() => component.setComponent("Simulation")}>
-      <img src="/adjustment.png" alt="" class="h-4 w-4" />
+      <img src={Adjustment} alt="" class="h-4 w-4" />
       <span>Simulation</span>
     </button>
     <button
@@ -135,7 +141,7 @@
       class:bg-les-highlight={component.currentComponent === "Schedulable Loads"}
       class:text-white={component.currentComponent === "Schedulable Loads"}
       onclick={() => component.setComponent("Schedulable Loads")}>
-      <img src="/calendar.png" alt="" class="h-4 w-4" />
+      <img src={Calendar} alt="" class="h-4 w-4" />
       <span>Schedulable Loads</span>
     </button>
   </nav>
@@ -162,7 +168,7 @@
       class="flex cursor-pointer items-center gap-1.5 rounded-md bg-red-950 px-3 py-1.5 text-sm
              text-white transition-colors duration-200 hover:bg-red-900"
       onclick={stop}>
-      <img src="/stop.png" alt="" class="h-4 w-4" />
+      <img src={Stop} alt="" class="h-4 w-4" />
       <span>Stop</span>
     </button>
   </div>
