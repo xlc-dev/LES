@@ -24,6 +24,7 @@
   } from "./state.svelte";
 
   import HomepageLogo from "/public/homepagelogo.png";
+  import Favicon from "/public/favicon.png";
 
   const dashboard = getDashboard();
   const currentComponent = getComponent();
@@ -73,7 +74,7 @@
     name="description"
     content="A simulation tool for comparing schedulable load algorithms and twinworlds in a local energy system environment." />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" href="/favicon.png" />
+  <link rel="icon" href={Favicon} />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.36.5/ace.min.js"></script>
 </svelte:head>
 
