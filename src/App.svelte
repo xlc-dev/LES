@@ -23,6 +23,8 @@
     getEfficiencyResults,
   } from "./state.svelte";
 
+  import HomepageLogo from "/public/homepagelogo.png";
+
   const dashboard = getDashboard();
   const currentComponent = getComponent();
   const loopManager = getLoopManager();
@@ -77,7 +79,7 @@
 
 {#snippet msg()}
   <div class="mx-auto max-w-2xl p-8">
-    <img src="/homepagelogo.png" class="mx-auto w-75 rounded-lg" alt="LES Logo" />
+    <img src={HomepageLogo} class="mx-auto w-75 rounded-lg" alt="LES Logo" />
     <h1 class="pt-4 text-center text-4xl font-bold">Local Energy System Simulation</h1>
     <p class="py-4 text-center text-lg">
       Welcome to the LES Research application. You can determine the efficiency of algorithms and
