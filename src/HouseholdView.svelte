@@ -15,7 +15,7 @@
   const setMaxDate: Date = new Date(endDate.endDate * 1000);
 
   let showDatePicker: boolean = $state(false);
-  let selectedDate: Date = $state(new Date());
+  let selectedDate: Date = $state(setMinDate);
 
   let weekDates: Date[] = $derived.by(() => {
     let curweekDates = [selectedDate];
@@ -49,34 +49,34 @@
 
 <svelte:window onclick={handleClickOutsideDatePicker} />
 
-<div class="flex flex-col gap-12">
+<div class="text-les-highlight flex flex-col gap-12">
   <div
-    class="mx-auto w-full max-w-7xl space-y-6 rounded-lg border-4 border-gray-400 bg-white p-6 shadow-sm">
+    class="mx-auto w-full max-w-7xl space-y-8 rounded-xl border-4 border-gray-300 bg-white p-8 shadow-lg">
     <div>
-      <h2 class="mb-4 text-xl font-bold">Household Information</h2>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="font-semibold">Name:</div>
-        <div>{household.name}</div>
-        <div class="font-semibold">Size:</div>
-        <div>{household.size}</div>
-        <div class="font-semibold">Energy Usage:</div>
-        <div>{household.energyUsage}</div>
-        <div class="font-semibold">Solar Panels:</div>
-        <div>{household.solarPanels}</div>
-        <div class="font-semibold">Solar Yield Yearly:</div>
-        <div>{household.solarYieldYearly}</div>
+      <h1 class="mb-6 text-4xl font-extrabold text-gray-800">Household Information</h1>
+      <div class="grid grid-cols-2 gap-6">
+        <div class="font-semibold text-gray-600">Name:</div>
+        <div class="text-gray-800">{household.name}</div>
+        <div class="font-semibold text-gray-600">Size:</div>
+        <div class="text-gray-800">{household.size}</div>
+        <div class="font-semibold text-gray-600">Energy Usage:</div>
+        <div class="text-gray-800">{household.energyUsage}</div>
+        <div class="font-semibold text-gray-600">Solar Panels:</div>
+        <div class="text-gray-800">{household.solarPanels}</div>
+        <div class="font-semibold text-gray-600">Solar Yield Yearly:</div>
+        <div class="text-gray-800">{household.solarYieldYearly}</div>
       </div>
     </div>
 
     {#if household.appliances}
       <div>
-        <h2 class="mb-4 text-xl font-bold">Appliances</h2>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <h2 class="mb-6 text-2xl font-bold text-gray-800">Appliances</h2>
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {#each household.appliances as appliance}
             <div
-              class="rounded-md border border-gray-300 p-4 shadow-sm transition-shadow duration-300 hover:shadow-md">
-              <div class="text-lg font-semibold">{appliance.name}</div>
-              <div class="mt-2 space-y-1">
+              class="rounded-lg border border-gray-200 bg-gray-50 p-6 shadow-sm transition-shadow duration-300">
+              <div class="text-lg font-semibold text-gray-700">{appliance.name}</div>
+              <div class="mt-3 space-y-2 text-gray-600">
                 <div><span class="font-semibold">Power:</span> {appliance.power}</div>
                 <div><span class="font-semibold">Duration:</span> {appliance.duration}</div>
                 <div><span class="font-semibold">Daily Usage:</span> {appliance.dailyUsage}</div>
@@ -86,37 +86,44 @@
         </div>
       </div>
     {/if}
-  </div>
 
-  <h2 class="text-3xl font-bold text-white">Schedulable Load</h2>
-
-  <div class="flex justify-center pt-4">
-    <div class="date-picker-container relative">
-      <button
-        class="cursor-pointer rounded-sm bg-blue-500 px-4 py-2 text-white transition-colors duration-300 hover:brightness-110"
-        onclick={(e) => (e.stopPropagation(), (showDatePicker = !showDatePicker))}>
-        Select Date
-      </button>
-      {#if showDatePicker}
-        <div class="calendar absolute z-10 mt-2 rounded-sm shadow-lg">
-          <DatePicker bind:value={selectedDate} min={setMinDate} max={setMaxDate} />
-        </div>
-      {/if}
-    </div>
-  </div>
-
-  <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-    {#each weekDates as date}
-      <div class="w-full rounded-lg border-4 border-gray-400 bg-white p-4 shadow-sm">
-        <div class="mt-2 text-center text-gray-500">
-          {date.toLocaleDateString("en-US", { weekday: "long" })}
-        </div>
-        <SchedulableLoadGrid
-          appliances={household.appliances}
-          date={date.toLocaleDateString("en-US")}
-          dateNoFormat={date}
-          {hours} />
+    <div>
+      <h2 class="mb-6 text-3xl font-extrabold text-gray-800">Schedulable Load</h2>
+      <div class="relative mb-6">
+        <button
+          class="cursor-pointer rounded-lg bg-blue-600 px-6 py-3 text-white transition-transform duration-300 hover:bg-blue-500"
+          onclick={(e) => (e.stopPropagation(), (showDatePicker = !showDatePicker))}>
+          Select Date
+        </button>
+        {#if showDatePicker}
+          <div id="" class="calendar absolute z-10 mt-2 rounded-lg bg-white shadow-lg">
+            <DatePicker bind:value={selectedDate} min={setMinDate} max={setMaxDate} />
+          </div>
+        {/if}
       </div>
-    {/each}
+
+      <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        {#each weekDates as date}
+          <div class="flex w-full flex-col items-center justify-center rounded-lg bg-gray-50 p-4">
+            <div class="mb-3 text-center text-lg font-semibold text-gray-700">
+              {date.toLocaleDateString("en-US", { weekday: "long" })}
+            </div>
+            <table>
+              <tbody>
+                <tr>
+                  <td class="flex items-center justify-center p-4">
+                    <SchedulableLoadGrid
+                      appliances={household.appliances}
+                      date={date.toLocaleDateString("en-US")}
+                      dateNoFormat={date}
+                      {hours} />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        {/each}
+      </div>
+    </div>
   </div>
 </div>
