@@ -60,7 +60,7 @@
     {#each Object.entries(filters) as [filterName, options]}
       <div class="dropdown-container flex-shrink-0">
         <button
-          class="focus:ring-les-highlight focus:ring-opacity-50 active:bg-les-highlight cursor-pointer rounded-md border border-gray-300 bg-white px-3 py-2 whitespace-nowrap shadow-xs transition-colors duration-200 focus:ring-2 focus:outline-none"
+          class="focus:ring-les-highlight focus:ring-opacity-50 active:bg-les-highlight cursor-pointer rounded-md border border-gray-300 bg-white px-3 py-2 whitespace-nowrap shadow-xs transition-colors duration-300 focus:ring-2 focus:outline-none"
           aria-haspopup="true"
           aria-expanded={showDropdown === filterName ? "true" : "false"}
           aria-controls={`${filterName}-dropdown-list`}
@@ -106,7 +106,7 @@
       <div class="date-picker-container flex-shrink-0">
         <button
           type="button"
-          class="focus:ring-opacity-50 cursor-pointer rounded-sm bg-blue-500 px-4 py-2 whitespace-nowrap text-white transition-colors duration-200 hover:bg-blue-600 focus:ring-2 focus:ring-blue-600 focus:outline-none active:bg-blue-600"
+          class="focus:ring-opacity-50 cursor-pointer rounded-sm bg-blue-500 px-4 py-2 whitespace-nowrap text-white transition-colors duration-300 hover:bg-blue-600 focus:ring-2 focus:ring-blue-600 focus:outline-none active:bg-blue-600"
           onclick={() => (showDatePicker = !showDatePicker)}>
           Select Date
         </button>

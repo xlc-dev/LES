@@ -46,7 +46,7 @@
     </div>
     <div class="mt-4 flex flex-col items-start justify-center gap-3">
       <button
-        class="hover:bg-les-gray-700 flex w-full items-center gap-3 p-4 transition-colors duration-200"
+        class="hover:bg-les-gray-700 flex w-full items-center gap-3 p-4 transition-colors duration-300"
         class:bg-les-gray-700={component.currentComponent === "Dashboard"}
         onclick={() => {
           component.setComponent("Dashboard");
@@ -56,7 +56,7 @@
         <p>Dashboard</p>
       </button>
       <button
-        class="hover:bg-les-gray-700 flex w-full items-center gap-3 p-4 transition-colors duration-200"
+        class="hover:bg-les-gray-700 flex w-full items-center gap-3 p-4 transition-colors duration-300"
         class:bg-les-gray-700={component.currentComponent === "Simulation"}
         onclick={() => {
           component.setComponent("Simulation");
@@ -66,7 +66,7 @@
         <p>Simulation</p>
       </button>
       <button
-        class="hover:bg-les-gray-700 flex w-full items-center gap-3 p-4 transition-colors duration-200"
+        class="hover:bg-les-gray-700 flex w-full items-center gap-3 p-4 transition-colors duration-300"
         class:bg-les-gray-700={component.currentComponent === "Schedulable Loads"}
         onclick={() => {
           component.setComponent("Schedulable Loads");
@@ -79,7 +79,7 @@
   </div>
   <div class="shrink-0">
     <button
-      class="bg-les-highlight hover:bg-les-gray-700 flex w-full items-center gap-3 p-4 text-white transition-colors duration-200"
+      class="bg-les-highlight hover:bg-les-gray-700 flex w-full items-center gap-3 p-4 text-white transition-colors duration-300"
       aria-label="Show Legend"
       onclick={() => {
         showLegend = !showLegend;
@@ -104,7 +104,7 @@
     </div>
     <button
       id="stop-button"
-      class="flex w-full items-center gap-3 bg-red-950 p-4 py-6 transition-colors duration-200 hover:bg-red-800 hover:brightness-110"
+      class="flex w-full items-center gap-3 bg-red-950 p-4 py-6 transition-colors duration-300 hover:bg-red-800 hover:brightness-110"
       onclick={stop}>
       <img src={Stop} alt="" />
       <p>Stop Simulation</p>
@@ -121,7 +121,7 @@
   </div>
   <nav class="flex items-center space-x-4">
     <button
-      class="hover:bg-les-gray-700 flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-gray-300 transition-colors duration-200 hover:text-white"
+      class="hover:bg-les-gray-700 flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-gray-300 transition-colors duration-300 hover:text-white"
       class:bg-les-highlight={component.currentComponent === "Dashboard"}
       class:text-white={component.currentComponent === "Dashboard"}
       onclick={() => component.setComponent("Dashboard")}>
@@ -129,7 +129,7 @@
       <span>Dashboard</span>
     </button>
     <button
-      class="hover:bg-les-gray-700 flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-gray-300 transition-colors duration-200 hover:text-white"
+      class="hover:bg-les-gray-700 flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-gray-300 transition-colors duration-300 hover:text-white"
       class:bg-les-highlight={component.currentComponent === "Simulation"}
       class:text-white={component.currentComponent === "Simulation"}
       onclick={() => component.setComponent("Simulation")}>
@@ -137,7 +137,7 @@
       <span>Simulation</span>
     </button>
     <button
-      class="hover:bg-les-gray-700 flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-gray-300 transition-colors duration-200 hover:text-white"
+      class="hover:bg-les-gray-700 flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-gray-300 transition-colors duration-300 hover:text-white"
       class:bg-les-highlight={component.currentComponent === "Schedulable Loads"}
       class:text-white={component.currentComponent === "Schedulable Loads"}
       onclick={() => component.setComponent("Schedulable Loads")}>
@@ -159,14 +159,14 @@
     </div>
     <button
       class="bg-les-highlight hover:bg-les-gray-700 flex cursor-pointer items-center gap-1.5 rounded-md px-3
-             py-1.5 text-sm text-white transition-colors duration-200"
+             py-1.5 text-sm text-white transition-colors duration-300"
       onclick={() => (showLegend = !showLegend)}>
       <span>Show Legend</span>
     </button>
     <button
       id="stop-button"
       class="flex cursor-pointer items-center gap-1.5 rounded-md bg-red-950 px-3 py-1.5 text-sm
-             text-white transition-colors duration-200 hover:bg-red-900"
+             text-white transition-colors duration-300 hover:bg-red-900"
       onclick={stop}>
       <img src={Stop} alt="" class="h-4 w-4" />
       <span>Stop</span>
@@ -202,7 +202,7 @@
   <div
     class="text-les-highlight legend-container absolute top-1/3 left-1/2 z-50 mx-auto w-3/4 max-w-2xl -translate-x-1/2 -translate-y-1/2 transform rounded-lg border-4 border-gray-400 bg-white p-4 shadow-lg lg:w-full">
     <button
-      class="text-les-highlight absolute top-0 right-0 cursor-pointer p-2 text-xs transition-colors duration-200 hover:text-blue-500"
+      class="text-les-highlight absolute top-0 right-0 cursor-pointer p-2 text-xs transition-colors duration-300 hover:text-blue-500"
       aria-label="Close legend"
       onclick={() => (showLegend = !showLegend)}>
       <svg

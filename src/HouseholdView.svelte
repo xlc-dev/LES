@@ -74,7 +74,7 @@
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {#each household.appliances as appliance}
             <div
-              class="rounded-md border border-gray-300 p-4 shadow-sm transition-shadow duration-200 hover:shadow-md">
+              class="rounded-md border border-gray-300 p-4 shadow-sm transition-shadow duration-300 hover:shadow-md">
               <div class="text-lg font-semibold">{appliance.name}</div>
               <div class="mt-2 space-y-1">
                 <div><span class="font-semibold">Power:</span> {appliance.power}</div>
@@ -93,7 +93,7 @@
   <div class="flex justify-center pt-4">
     <div class="date-picker-container relative">
       <button
-        class="cursor-pointer rounded-sm bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:brightness-110"
+        class="cursor-pointer rounded-sm bg-blue-500 px-4 py-2 text-white transition-colors duration-300 hover:brightness-110"
         onclick={(e) => (e.stopPropagation(), (showDatePicker = !showDatePicker))}>
         Select Date
       </button>

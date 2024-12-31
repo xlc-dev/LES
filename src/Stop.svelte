@@ -190,10 +190,10 @@
     </p>
     <div class="col-span-2 mt-8 flex justify-between">
       <button
-        class="cursor-pointer rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600"
+        class="cursor-pointer rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-300 hover:bg-blue-600"
         onclick={newSession}>New session</button>
       <button
-        class="cursor-pointer rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 hover:bg-blue-600"
+        class="cursor-pointer rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-300 hover:bg-blue-600"
         onclick={downloadExcel}>Download</button>
     </div>
   </div>
