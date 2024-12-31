@@ -1,11 +1,9 @@
 <script lang="ts">
   const { appliances, hours, date, dateNoFormat } = $props();
 
-  import { getTimeDailies, getStartDate, getDaysInPlanning } from "./state.svelte";
+  import { getStartDate } from "./state.svelte";
 
-  const timeDailies = getTimeDailies();
   const startDate = getStartDate();
-  const daysInPlanning = getDaysInPlanning();
 
   const unixTimestamp = Math.floor(dateNoFormat.getTime() / 1000);
 
@@ -13,7 +11,7 @@
     bitmap: number,
     hour: number,
     selectedDate: string,
-    appliance_id: number
+    appliance: Appliance
   ) => {
     const bitmapString = bitmap.toString(2).padStart(24, "0");
 
@@ -26,10 +24,7 @@
       (dateObj.getTime() - (baseDate.getTime() - 1 * 60 * 60 * 1000)) / (24 * 60 * 60 * 1000)
     );
 
-    // Find the corresponding day in timeDailies based on the calculated day number
-    const dayData = timeDailies.timeDailies.filter(
-      (entry) => entry.id === daysInPlanning.daysInPlanning * (appliance_id - 1) + dayNumber + 1
-    );
+    const dayData = appliance.timeDaily.filter((entry) => entry.day === dayNumber + 1);
 
     // Fallback if user hasn't selected a date that has no timeDailies
     if (dayData.length === 0) {
@@ -78,7 +73,7 @@
             appliance.timeDaily[(Math.round(unixTimestamp / 86400) + 3) % 7].bitmapWindow,
             hour,
             date,
-            appliance.id
+            appliance
           )} h-2 w-2 sm:h-3 sm:w-3 md:h-4 md:w-4`}>
         </div>
       {/each}
