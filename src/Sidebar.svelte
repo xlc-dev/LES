@@ -88,7 +88,9 @@
       <span>Show Legend</span>
     </button>
     <div class="px-4 py-4">
-      <h3 class="pb-4 text-lg font-semibold">Selected Options:</h3>
+      <p class="text-2xs pb-2 font-bold tracking-wider text-gray-400 uppercase">
+        Selected Configuration:
+      </p>
       <p class="text-gray-400">
         Twin World: {stepperData.stepperData.twinworld.name}
       </p>
