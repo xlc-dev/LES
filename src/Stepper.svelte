@@ -1099,12 +1099,58 @@
               {#each household.appliances! as appliance, aIndex}
                 <div
                   class="flex flex-col space-y-4 rounded-lg border-2 border-gray-300 bg-gray-100 p-5">
-                  <div class="flex items-center justify-between">
-                    <label
-                      class="mb-1 block font-medium"
-                      for={`appliance-select-${hIndex}-${aIndex}`}>
-                      Appliance
-                    </label>
+                  <div class="flex items-center space-x-3">
+                    <button
+                      class="flex cursor-pointer items-center justify-center rounded-full bg-gray-200 p-2 transition duration-300 hover:bg-gray-300"
+                      onclick={() => toggleApplianceFold(hIndex, aIndex)}
+                      aria-label={foldedAppliances[hIndex][aIndex]
+                        ? "Expand Appliance"
+                        : "Collapse Appliance"}>
+                      {#if foldedAppliances[hIndex][aIndex]}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                        </svg>
+                      {:else}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 14l-7 7m0 0l-7-7m7 7V2" />
+                        </svg>
+                      {/if}
+                    </button>
+
+                    <select
+                      id={`appliance-select-${hIndex}-${aIndex}`}
+                      bind:value={appliance.name}
+                      onchange={(e: Event) =>
+                        handleApplianceTypeChange(
+                          hIndex,
+                          aIndex,
+                          e.target!.value as ApplianceType
+                        )}
+                      class="flex-grow rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                      <option disabled value="">Select Appliance</option>
+                      {#each getAvailableApplianceTypes(household, appliance.name) as type}
+                        <option value={type}>{type}</option>
+                      {/each}
+                    </select>
+
                     <button
                       class="flex cursor-pointer items-center text-red-500 transition hover:underline"
                       onclick={() => deleteAppliance(hIndex, aIndex)}>
@@ -1123,84 +1169,75 @@
                       Delete
                     </button>
                   </div>
-                  <select
-                    id={`appliance-select-${hIndex}-${aIndex}`}
-                    bind:value={appliance.name}
-                    onchange={(e: Event) =>
-                      handleApplianceTypeChange(hIndex, aIndex, e.target!.value as ApplianceType)}
-                    class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <option disabled value="">Select Appliance</option>
-                    {#each getAvailableApplianceTypes(household, appliance.name) as type}
-                      <option value={type}>{type}</option>
-                    {/each}
-                  </select>
 
-                  <div class="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                      <label
-                        class="mb-1 block text-sm font-medium"
-                        for={`power-${hIndex}-${aIndex}`}>
-                        Power (W)
-                      </label>
-                      <input
-                        type="number"
-                        id={`power-${hIndex}-${aIndex}`}
-                        bind:value={appliance.power}
-                        min="0"
-                        class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        placeholder="Enter power in watts" />
-                    </div>
-                    <div>
-                      <label
-                        class="mb-1 block text-sm font-medium"
-                        for={`duration-${hIndex}-${aIndex}`}>
-                        Duration (hours)
-                      </label>
-                      <input
-                        type="number"
-                        id={`duration-${hIndex}-${aIndex}`}
-                        bind:value={appliance.duration}
-                        min="0"
-                        class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        placeholder="Enter duration in hours" />
-                    </div>
-                    <div>
-                      <label
-                        class="mb-1 block text-sm font-medium"
-                        for={`dailyUsage-${hIndex}-${aIndex}`}>
-                        Daily Usage (times)
-                      </label>
-                      <input
-                        type="number"
-                        id={`dailyUsage-${hIndex}-${aIndex}`}
-                        bind:value={appliance.dailyUsage}
-                        min="0"
-                        class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        placeholder="Enter daily usage times" />
-                    </div>
-                  </div>
-
-                  <div class="mt-4">
-                    {#each appliance.timeDaily as time}
-                      <div class="mb-4">
-                        <label class="mb-2 block font-semibold" for="time-{time.day}">
-                          {daysOfWeek[time.day - 1]}
+                  {#if !foldedAppliances[hIndex][aIndex]}
+                    <div class="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div>
+                        <label
+                          class="mb-1 block text-sm font-medium"
+                          for={`power-${hIndex}-${aIndex}`}>
+                          Power (W)
                         </label>
-                        <div class="grid grid-cols-6 gap-2">
-                          {#each Array(24) as _, hour}
-                            <label class="flex items-center space-x-1 text-xs">
-                              <input
-                                type="checkbox"
-                                bind:group={time.bitmapWindow}
-                                value={hour}
-                                class="rounded text-blue-600 focus:ring-blue-500" />
-                              <span>{hour}:00</span>
-                            </label>
-                          {/each}
-                        </div>
+                        <input
+                          type="number"
+                          id={`power-${hIndex}-${aIndex}`}
+                          bind:value={appliance.power}
+                          min="0"
+                          class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          placeholder="Enter power in watts" />
                       </div>
-                    {/each}
-                  </div>
+                      <div>
+                        <label
+                          class="mb-1 block text-sm font-medium"
+                          for={`duration-${hIndex}-${aIndex}`}>
+                          Duration (hours)
+                        </label>
+                        <input
+                          type="number"
+                          id={`duration-${hIndex}-${aIndex}`}
+                          bind:value={appliance.duration}
+                          min="0"
+                          class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          placeholder="Enter duration in hours" />
+                      </div>
+                      <div>
+                        <label
+                          class="mb-1 block text-sm font-medium"
+                          for={`dailyUsage-${hIndex}-${aIndex}`}>
+                          Daily Usage (times)
+                        </label>
+                        <input
+                          type="number"
+                          id={`dailyUsage-${hIndex}-${aIndex}`}
+                          bind:value={appliance.dailyUsage}
+                          min="0"
+                          class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          placeholder="Enter daily usage times" />
+                      </div>
+                    </div>
+
+                    <div class="mt-4">
+                      {#each appliance.timeDaily as time}
+                        <div class="mb-4">
+                          <label class="mb-2 block font-semibold" for="time-{time.day}">
+                            {daysOfWeek[time.day - 1]}
+                          </label>
+                          <div class="grid grid-cols-6 gap-2">
+                            {#each Array(24) as _, hour}
+                              <label class="flex items-center space-x-1 text-xs">
+                                <input
+                                  type="checkbox"
+                                  bind:group={time.bitmapWindow}
+                                  value={hour}
+                                  class="rounded text-blue-600 focus:ring-blue-500" />
+                                <span>{hour}:00</span>
+                              </label>
+                            {/each}
+                          </div>
+                        </div>
+                      {/each}
+                    </div>
+                  {/if}
                 </div>
               {/each}
             </div>
