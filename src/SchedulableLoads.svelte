@@ -48,10 +48,10 @@
   let sortOrder: string = $state("asc");
   let searchQuery: string = $state("");
   let filteredData: Household[] = $state([]);
-  let selectedDate: Date = $state(new Date());
-  let formattedDate: string = $derived(new Date(selectedDate).toLocaleDateString("en-US"));
   let setMinDate: Date = $derived(new Date(startDate.startDate * 1000));
   let setMaxDate: Date = $derived(new Date(endDate.endDate * 1000));
+  let selectedDate: Date = $state(new Date(startDate.startDate * 1000));
+  let formattedDate: string = $derived(new Date(selectedDate).toLocaleDateString("en-US"));
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
