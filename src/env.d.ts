@@ -6,17 +6,18 @@ type FormDataStruct = {
   formFields: FormField[];
   options: Option[];
 } & (
-  | { stepType: "twinworld"; twinWorlds: Record<string, TwinWorld> }
-  | { stepType: "costmodel"; costModels: Record<string, CostModel> }
-  | { stepType: "algo"; algos: Record<string, Algo> }
-  | { stepType: "energyflow"; energyflows: Record<string, Energyflow> }
-);
+    | { stepType: "twinworld"; twinWorlds: Record<string, TwinWorld> }
+    | { stepType: "costmodel"; costModels: Record<string, CostModel> }
+    | { stepType: "algo"; algos: Record<string, Algo> }
+    | { stepType: "energyflow"; energyflows: Record<string, Energyflow> }
+  );
 
 type Option = {
   id: string;
   name: string;
   label: string;
   description: string;
+  isDefault: boolean;
 };
 
 interface FormField {
