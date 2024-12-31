@@ -17,9 +17,7 @@
     getStepperData,
     getStartDate,
     getEndDate,
-    getDaysInPlanning,
     getHousehold,
-    getTimeDailies,
     getEfficiencyResults,
   } from "./state.svelte";
 
@@ -33,9 +31,7 @@
   const stepperData = getStepperData();
   const startDate = getStartDate();
   const endDate = getEndDate();
-  const daysInPlanning = getDaysInPlanning();
   const household = getHousehold();
-  const timeDailies = getTimeDailies();
   const efficiencyResults = getEfficiencyResults();
 
   let started = $state(false);
@@ -61,9 +57,7 @@
     currentComponent.setComponent("Dashboard");
     startDate.setStartDate(0);
     endDate.setEndDate(0);
-    daysInPlanning.setDaysInPlanning(0);
     household.setHousehold(null);
-    timeDailies.setTimeDailies([]);
     efficiencyResults.setEfficiencyResults([]);
   }
 </script>

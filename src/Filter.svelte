@@ -101,7 +101,6 @@
       </div>
     {/each}
 
-    <!-- Date Picker (Optional) -->
     {#if selectedDate && setMinDate && setMaxDate}
       <div class="date-picker-container flex-shrink-0">
         <button
