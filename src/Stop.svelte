@@ -4,12 +4,7 @@
 
   import { s2ab } from "./utils";
 
-  import {
-    getRuntime,
-    getEfficiencyResults,
-    getStepperData,
-    getTimeDailies,
-  } from "./state.svelte";
+  import { getRuntime, getEfficiencyResults, getStepperData } from "./state.svelte";
 
   interface Props {
     newSession: () => void;
@@ -21,7 +16,6 @@
   runtime.stopRuntime();
   const efficiencyResults = getEfficiencyResults();
   const stepperData = getStepperData();
-  const timeDailies = getTimeDailies();
 
   interface GraphData {
     graph1: string[];
@@ -161,8 +155,15 @@
     const graphData = getGraphData();
     const dashboardData = getDashboardData();
     const workbook = XLSX.utils.book_new();
-    const timeDailiesData = timeDailies.timeDailies;
-    const timeDailiesSheet = XLSX.utils.json_to_sheet(timeDailiesData);
+    const timeDailies: ApplianceTimeDaily[] = [];
+    stepperData.stepperData.twinworld.households.forEach((household) => {
+      household.appliances?.forEach((appliance) => {
+        appliance.timeDaily.forEach((timeDaily) => {
+          timeDailies.push(timeDaily);
+        });
+      });
+    });
+    const timeDailiesSheet = XLSX.utils.json_to_sheet(timeDailies);
     XLSX.utils.book_append_sheet(workbook, timeDailiesSheet, "Time Dailies");
     processGraphDataAndAddToWorkbook(graphData, workbook);
     const dashboardSheet = XLSX.utils.json_to_sheet(dashboardData);
