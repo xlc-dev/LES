@@ -117,16 +117,6 @@ export async function readCSV(input: string | File): Promise<Energyflow> {
 }
 
 /**
- * Returns the highest set bit in a number.
- *
- * @param {number} n - The number to find the highest set bit in.
- * @returns {number} The highest set bit.
- */
-export function highestSetBit(n: number): number {
-  return 31 - Math.clz32(n);
-}
-
-/**
  * Rounds a number to a specified number of decimals.
  *
  * @param {number} num - The number to round.

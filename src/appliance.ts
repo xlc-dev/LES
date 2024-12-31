@@ -63,7 +63,7 @@ function pickRandomHours(possibleHours: number[], count: number): number[] {
 function generateEmptyTimePlan(): ApplianceTimeDaily[] {
   const emptyPlan: ApplianceTimeDaily[] = [];
 
-  for (let day = 0; day < MAX_DAYS_IN_YEAR; day++) {
+  for (let day = 1; day <= MAX_DAYS_IN_YEAR; day++) {
     emptyPlan.push({
       id: generateTimeDailiesId(),
       day,
@@ -130,7 +130,6 @@ function createAppliance(
   usageMulti: number,
   usageAddition: number
 ): Appliance | null {
-  const applianceId = generateApplianceId();
   const availabilityChance = availabilityMapping[String(householdSize)] || 0;
   if (Math.random() < availabilityChance) {
     const freq = frequencyMapping[String(householdSize)] || 0;
@@ -139,30 +138,35 @@ function createAppliance(
 
     let availability = generateAvailability(name, dailyUsage);
 
+    let availabilityWeek: number[] = [];
+
     const daysOfWeek: ApplianceDays[] = [
       ApplianceDays.MONDAY,
       ApplianceDays.TUESDAY,
       ApplianceDays.WEDNESDAY,
       ApplianceDays.THURSDAY,
       ApplianceDays.FRIDAY,
+      ApplianceDays.SATURDAY,
+      ApplianceDays.SUNDAY,
     ];
     daysOfWeek.forEach((day) => {
       const timeWindow = createTimeWindow(day, name);
-      availability = setAvailability(availability, timeWindow, true);
+      const newAvailability = setAvailability(availability, timeWindow, true);
+      availabilityWeek.push(newAvailability);
     });
 
     // Generate time dailies for the full year
     const timeDaily: ApplianceTimeDaily[] = generateEmptyTimePlan();
     daysOfWeek.forEach((day) => {
       timeDaily.forEach((daily) => {
-        if (daily.day === day) {
-          daily.bitmapWindow = availability;
+        if (daily.day % 7 === day) {
+          daily.bitmapWindow = availabilityWeek[day];
         }
       });
     });
 
     return {
-      id: applianceId,
+      id: generateApplianceId(),
       name,
       power,
       duration,
@@ -203,9 +207,28 @@ function createDishwasher(householdSize: number, invNorm: number): Appliance | n
  * @param {number} invNorm - The inverse normal value.
  * @returns {Appliance | null} The created washing machine appliance or null.
  */
-function createWashingMachine(householdSize: number, invNorm: number): Appliance | null {
+function createWashingMachine(
+  householdSize: number,
+  invNorm: number,
+  force: boolean = false
+): Appliance | null {
   const available = { "1": 0.34, "2": 0.76, "3": 0.79, "4": 0.85, "5": 0.79 };
   const frequency = { "1": 1.2, "2": 1.5, "3": 1.7, "4": 1.9, "5": 2.3 };
+
+  if (force) {
+    return createAppliance(
+      ApplianceTypes.WASHING_MACHINE,
+      householdSize,
+      1,
+      { "1": 1, "2": 1, "3": 1, "4": 1, "5": 1 },
+      frequency,
+      invNorm,
+      Math.random(),
+      0.3,
+      0.8
+    );
+  }
+
   return createAppliance(
     ApplianceTypes.WASHING_MACHINE,
     householdSize,
@@ -299,12 +322,26 @@ export function generateAppliancesForHousehold(
   householdSize: number,
   invNorm: number
 ): Appliance[] {
-  const appliances: (Appliance | null)[] = [];
+  let appliances: (Appliance | null)[] = [];
+
+  const washingMachine = createWashingMachine(householdSize, invNorm);
+  appliances.push(washingMachine);
+
+  if (washingMachine) {
+    appliances.push(createTumbleDryer(householdSize, invNorm));
+  }
+
   appliances.push(createDishwasher(householdSize, invNorm));
-  appliances.push(createWashingMachine(householdSize, invNorm));
-  appliances.push(createTumbleDryer(householdSize, invNorm));
   appliances.push(createStove(householdSize, invNorm));
   appliances.push(createElectricVehicle(householdSize, invNorm));
 
-  return appliances.filter((appliance): appliance is Appliance => appliance !== null);
+  const validAppliances = appliances.filter(
+    (appliance): appliance is Appliance => appliance !== null
+  );
+
+  if (validAppliances.length === 0) {
+    return [createWashingMachine(householdSize, invNorm, true) as Appliance];
+  }
+
+  return validAppliances;
 }

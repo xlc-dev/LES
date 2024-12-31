@@ -17,9 +17,7 @@
     getStepperData,
     getStartDate,
     getEndDate,
-    getDaysInPlanning,
     getHousehold,
-    getTimeDailies,
     getEfficiencyResults,
   } from "./state.svelte";
 
@@ -33,9 +31,7 @@
   const stepperData = getStepperData();
   const startDate = getStartDate();
   const endDate = getEndDate();
-  const daysInPlanning = getDaysInPlanning();
   const household = getHousehold();
-  const timeDailies = getTimeDailies();
   const efficiencyResults = getEfficiencyResults();
 
   let started = $state(false);
@@ -61,9 +57,7 @@
     currentComponent.setComponent("Dashboard");
     startDate.setStartDate(0);
     endDate.setEndDate(0);
-    daysInPlanning.setDaysInPlanning(0);
     household.setHousehold(null);
-    timeDailies.setTimeDailies([]);
     efficiencyResults.setEfficiencyResults([]);
   }
 </script>
@@ -91,7 +85,7 @@
       onclick={() => {
         started = true;
       }}
-      class="block w-full cursor-pointer rounded-lg bg-blue-500 py-3 transition-colors duration-200 hover:bg-blue-600">
+      class="block w-full cursor-pointer rounded-lg bg-blue-500 py-3 transition-colors duration-300 hover:bg-blue-600">
       Get started
     </button>
     <p class="py-4 text-center text-sm">
@@ -117,14 +111,14 @@
         onclick={() => {
           simulationType = "single";
         }}
-        class="cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:bg-blue-600">
+        class="cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors duration-300 hover:bg-blue-600">
         Single
       </button>
       <button
         onclick={() => {
           simulationType = "chain";
         }}
-        class="cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:bg-blue-600">
+        class="cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors duration-300 hover:bg-blue-600">
         Chain
       </button>
     </div>
@@ -170,7 +164,7 @@
         <p class="mb-4 text-2xl font-bold">Simulation finished</p>
         <div class="flex justify-between">
           <button
-            class="mt-4 cursor-pointer rounded-lg bg-blue-500 p-2 text-white transition duration-200 hover:bg-blue-600"
+            class="mt-4 cursor-pointer rounded-lg bg-blue-500 p-2 text-white transition duration-300 hover:bg-blue-600"
             onclick={() => {
               completed = false;
               runtime.stopRuntime();
@@ -178,7 +172,7 @@
             Continue
           </button>
           <button
-            class="mt-4 cursor-pointer rounded-lg bg-blue-500 p-2 text-white transition duration-200 hover:bg-blue-600"
+            class="mt-4 cursor-pointer rounded-lg bg-blue-500 p-2 text-white transition duration-300 hover:bg-blue-600"
             onclick={() => {
               completed = false;
               currentComponent.setComponent("Stop");

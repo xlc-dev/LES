@@ -46,7 +46,6 @@ function getEnergyflowStartEndDate(energyflow: Energyflow): {
  *   startDate: number,
  *   endDate: number,
  *   daysInChunk: number
- *   daysInPlanning: number
  * }} The calculated dates and days in the chunk.
  * @throws {Error} If there is no data available to calculate dates.
  */
@@ -62,7 +61,6 @@ function getEnergyflowChunkStartEndDates({
   startDate: number;
   endDate: number;
   daysInChunk: number;
-  daysInPlanning: number;
 } {
   const { totalStartDate, totalEndDate } = getEnergyflowStartEndDate(energyflow);
   if (!totalStartDate || !totalEndDate) {
@@ -80,7 +78,6 @@ function getEnergyflowChunkStartEndDates({
     SECONDS_IN_HOUR;
 
   const daysInChunk = Math.floor((endDate - startDate) / SECONDS_IN_DAY) + 1;
-  const daysInPlanning = Math.floor((totalEndDate - totalStartDate) / SECONDS_IN_DAY) + 1;
 
   return {
     totalStartDate,
@@ -88,7 +85,6 @@ function getEnergyflowChunkStartEndDates({
     startDate,
     endDate,
     daysInChunk,
-    daysInPlanning,
   };
 }
 
@@ -177,7 +173,6 @@ function getEnergyflowBySolarProduced({
  * @param {number} chunkOffset - The chunk offset.
  * @returns {{
  *   daysInChunk: number,
- *   daysInPlanning: number,
  *   chunkOffset: number,
  *   totalStartDate: number,
  *   startDate: number,
@@ -192,7 +187,6 @@ function setupPlanning(
   chunkOffset: number
 ): {
   daysInChunk: number;
-  daysInPlanning: number;
   totalStartDate: number;
   startDate: number;
   endDate: number;
@@ -205,10 +199,34 @@ function setupPlanning(
     offset: chunkOffset * 24,
   });
 
+  if (energyflowDataSolar.length === 0) {
+    return {
+      daysInChunk: 0,
+      totalStartDate: 0,
+      startDate: 0,
+      endDate: 0,
+      energyflowDataSim: [],
+      energyflowDataSolar: [],
+      results: [],
+    };
+  }
+
   const energyflowDataSim = getAllEnergyflowSortedByTimestamp({
     data: energyflowDataStepper.data,
     offset: chunkOffset * 24,
   });
+
+  if (energyflowDataSim.length === 0) {
+    return {
+      daysInChunk: 0,
+      totalStartDate: 0,
+      startDate: 0,
+      endDate: 0,
+      energyflowDataSim: [],
+      energyflowDataSolar: [],
+      results: [],
+    };
+  }
 
   const {
     totalStartDate,
@@ -216,7 +234,6 @@ function setupPlanning(
     startDate,
     endDate,
     daysInChunk,
-    daysInPlanning,
   } = getEnergyflowChunkStartEndDates({
     energyflow: energyflowDataStepper,
     energyflowDataSim,
@@ -226,7 +243,6 @@ function setupPlanning(
 
   return {
     daysInChunk,
-    daysInPlanning,
     totalStartDate,
     startDate,
     endDate,
@@ -247,7 +263,6 @@ function setupPlanning(
  * @returns {{
  *   results: number[][],
  *   timeDaily: number[],
- *   daysInPlanning: number,
  *   totalStartDate: number,
  *   endDate: number
  * }} The results and time daily data.
@@ -260,14 +275,11 @@ export function loop(
   chunkOffsetLoop: number
 ): {
   results: number[][];
-  timeDaily: ApplianceTimeDaily[];
-  daysInPlanning: number;
   totalStartDate: number;
   endDate: number;
 } {
   const {
     daysInChunk,
-    daysInPlanning,
     totalStartDate,
     startDate,
     endDate,
@@ -276,13 +288,20 @@ export function loop(
     results,
   } = setupPlanning(energyflowData, chunkOffsetLoop);
 
+  if (energyflowDataSim.length === 0 || energyflowDataSolar.length === 0) {
+    return {
+      results: [],
+      totalStartDate: 0,
+      endDate: 0,
+    };
+  }
+
   let lastResults = results;
   const planningLength = householdPlanning.length;
 
   for (let dayIterator = 1; dayIterator <= daysInChunk; dayIterator++) {
     const dayNumberInPlanning =
       Math.floor((startDate - totalStartDate) / SECONDS_IN_DAY) + dayIterator;
-    // const date = startDate + dayNumberInPlanning * SECONDS_IN_DAY;
     const energyflowDay = energyflowDataSolar.filter(
       (el) => Math.floor((Number(el.timestamp) - startDate) / SECONDS_IN_DAY) === dayIterator - 1
     );
@@ -410,23 +429,8 @@ export function loop(
     }
   }
 
-  const startDay = Math.floor((startDate - totalStartDate) / SECONDS_IN_DAY) + 1;
-
-  let timeDaily: ApplianceTimeDaily[] = [];
-  householdPlanning.forEach((household) => {
-    household.appliances?.forEach((appliance) => {
-      const applianceTime = appliance.timeDaily.filter(
-        (el) => el.day >= startDay && el.day < startDay + daysInChunk
-      );
-      timeDaily.push(...applianceTime);
-    });
-  });
-
-  // console.log(timeDaily);
   return {
     results: lastResults,
-    timeDaily,
-    daysInPlanning,
     totalStartDate,
     endDate,
   };

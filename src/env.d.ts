@@ -17,6 +17,7 @@ type Option = {
   name: string;
   label: string;
   description: string;
+  isDefault: boolean;
 };
 
 interface FormField {

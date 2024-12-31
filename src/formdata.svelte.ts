@@ -8,14 +8,6 @@ The frequency of use and power usage are randomized for each appliance.
 `;
 
 /**
- * Default twin worlds configuration.
- */
-const defaultTwinWorlds: { [key: string]: TwinWorld } = {
-  "Twin World small": createTwinWorld("Twin World small", 25, 5),
-  "Twin World large": createTwinWorld("Twin World large", 75, 5),
-};
-
-/**
  * Default cost model configurations.
  */
 const defaultCostModels: { [key: string]: CostModel } = {
@@ -72,21 +64,23 @@ const defaultAlgorithms: { [key: string]: Algo } = {
   },
 };
 
-const formData: FormDataStruct[] = $state([
+let formData: FormDataStruct[] = $state([
   {
     title: "Twin World",
     stepType: "twinworld",
     options: [
       {
         id: "1",
-        name: "twinWorldSmall",
-        label: "Twin World small",
+        name: "Twin World Small",
+        label: "Twin World Small",
+        isDefault: true,
         description: `A small twin world consisting of roughly 25 households. ${TWIN_WORLD_DESCRIPTION}`,
       },
       {
         id: "2",
-        name: "twinWorldLarge",
-        label: "Twin World large",
+        name: "Twin World Large",
+        label: "Twin World Large",
+        isDefault: true,
         description: `A large twin world consisting of roughly 75 households. ${TWIN_WORLD_DESCRIPTION}`,
       },
     ],
@@ -121,8 +115,8 @@ const formData: FormDataStruct[] = $state([
       },
     ],
     twinWorlds: {
-      "1": defaultTwinWorlds["Twin World small"],
-      "2": defaultTwinWorlds["Twin World large"],
+      "1": createTwinWorld("Twin World Small", 25, 5),
+      "2": createTwinWorld("Twin World Large", 75, 5),
     },
   },
   {
@@ -131,8 +125,9 @@ const formData: FormDataStruct[] = $state([
     options: [
       {
         id: "1",
-        name: "fixedPrice",
+        name: "fixed Price",
         label: "Fixed Price",
+        isDefault: true,
         description:
           "A fixed price for buying and selling energy. The price for buying from the utility is 0.4 and the price for selling is 0.1. The price is determined by 0.25. A higher fixed devisision means a higher trading price.",
       },
@@ -140,6 +135,7 @@ const formData: FormDataStruct[] = $state([
         id: "2",
         name: "TEMO",
         label: "TEMO",
+        isDefault: true,
         description:
           "A price model based on the TEMO model. The price is determined by a formula that compares the energy needed to the various prices available, and returns an internal buying and selling prices",
       },
@@ -216,15 +212,17 @@ const formData: FormDataStruct[] = $state([
     options: [
       {
         id: "1",
-        name: "greedyPlanning",
+        name: "Greedy Planning",
         label: "Greedy Planning",
+        isDefault: true,
         description:
           "An initial planning that puts appliances in their local optimum through a greedy algorithm. Will not optimize further than one pass through all appliances.",
       },
       {
         id: "2",
-        name: "simulatedAnnealing",
+        name: "Simulated Annealing",
         label: "Simulated Annealing",
+        isDefault: true,
         description:
           "An algorithm that improves on a given algorithm by randomly changing the time of planned in appliances. The conditions for what changes becomes stricter over time, resulting in a further optimized solution.",
       },
@@ -276,8 +274,9 @@ const formData: FormDataStruct[] = $state([
     options: [
       {
         id: "1",
-        name: "energyflowZoetermeer",
+        name: "Energyflow Zoetermeer",
         label: "Energyflow Zoetermeer",
+        isDefault: true,
         description:
           "The energy data from a green household in Zoetermeer that is associated with the THUAS.",
       },
@@ -336,8 +335,8 @@ const formData: FormDataStruct[] = $state([
 ]);
 
 export function getFormData() {
-  function setFormData(formData: FormData[]) {
-    formData = formData;
+  function setFormData(newFormData: FormDataStruct[]) {
+    formData = newFormData;
   }
   return {
     get formData() {
