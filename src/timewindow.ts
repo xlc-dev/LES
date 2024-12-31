@@ -1,4 +1,4 @@
-import { ApplianceTypes, ApplianceDays, highestSetBit } from "./utils";
+import { ApplianceTypes, ApplianceDays } from "./utils";
 
 /**
  * Generates a random time window within a 24-hour period, ensuring no overlap with existing availability.
@@ -7,12 +7,22 @@ import { ApplianceTypes, ApplianceDays, highestSetBit } from "./utils";
  * @returns {[number, number]} A tuple containing the start and end hours of the generated time window.
  */
 function generateRandomTimeWindow(bitmap: number): [number, number] {
+  // Generate longer windows (2-8 hours)
   let startHour = Math.floor(Math.random() * 24);
-  let endHour = Math.floor(Math.random() * (24 - startHour)) + startHour + 1;
+  let windowLength = 2 + Math.floor(Math.random() * 6);
+  let endHour = Math.min(24, startHour + windowLength);
 
+  // If overlap found, try a different time slot
   const existingBits = bitmap & ((1 << endHour) - 1);
   if (existingBits & ((1 << startHour) - 1)) {
-    startHour = highestSetBit(existingBits) % 24;
+    // Find a free slot
+    for (let hour = 0; hour < 24; hour++) {
+      if (!(bitmap & (1 << hour))) {
+        startHour = hour;
+        endHour = Math.min(24, startHour + windowLength);
+        break;
+      }
+    }
   }
 
   return [startHour, endHour];
@@ -28,27 +38,25 @@ function generateRandomTimeWindow(bitmap: number): [number, number] {
 export function createTimeWindow(day: ApplianceDays, applianceName: ApplianceTypes): number {
   let bitmap = 0;
 
-  // Stove has fixed time window from 5 PM to 8 PM
   if (applianceName === ApplianceTypes.STOVE) {
     return 0b000000000000000011110000;
   }
 
-  // Electric vehicle is restricted to 8 AM to 5 PM on weekdays
   if (
     applianceName === ApplianceTypes.ELECTRIC_VEHICLE &&
     ![ApplianceDays.SATURDAY, ApplianceDays.SUNDAY].includes(day)
   ) {
-    bitmap |= 0b000000001111111100000000; // Restrict hours 8-19
+    const restricted_hours = 0b111111111111111111111111 & ~(0b111111111111 << 8);
+    bitmap |= restricted_hours;
   }
 
-  // Random time window generation
-  const numWindows = Math.floor(Math.random() * 100) + 1;
-  const amount = numWindows < 90 ? 1 : numWindows < 99 ? 2 : 3;
+  const num_windows = Math.floor(Math.random() * 100);
+  const amount = num_windows < 90 ? 1 : num_windows < 99 ? 2 : 3;
 
   for (let i = 0; i < amount; i++) {
-    let [startHour, endHour] = generateRandomTimeWindow(bitmap);
-    const windowMask = ((1 << (endHour - startHour)) - 1) << startHour;
-    bitmap |= windowMask;
+    const [startHour, endHour] = generateRandomTimeWindow(bitmap);
+    const window_mask = (((1 << (endHour - startHour)) - 1) << startHour) & 0xffffff;
+    bitmap |= window_mask;
   }
 
   return bitmap;
