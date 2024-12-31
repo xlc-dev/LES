@@ -1142,7 +1142,7 @@
                         handleApplianceTypeChange(
                           hIndex,
                           aIndex,
-                          e.target!.value as ApplianceType
+                          (e.target as HTMLSelectElement).value as ApplianceType
                         )}
                       class="flex-grow rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                       <option disabled value="">Select Appliance</option>
