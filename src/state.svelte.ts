@@ -22,7 +22,6 @@ const dashboardState = createState<boolean>(false);
 const stepperDataState = createState<StepperData>({});
 
 const efficiencyResultsState = createState<EfficiencyResult[]>([]);
-const timeDailiesState = createState<ApplianceTimeDaily[]>([]);
 
 const runtimeState = createState<number | null>(null);
 const runtimeIntervalState = createState<number | null>(null);
@@ -32,7 +31,6 @@ const householdState = createState<Household | null>(null);
 
 const startDateState = createState<number>(0);
 const endDateState = createState<number>(0);
-const daysInPlanningState = createState<number>(0);
 
 const loopState = createState<"idle" | "running" | "completed">("idle");
 const loopIntervalState = createState<number | null>(null);
@@ -58,18 +56,6 @@ export function getEndDate() {
       return endDateState.state;
     },
     setEndDate,
-  };
-}
-
-export function getDaysInPlanning() {
-  function setDaysInPlanning(days: number) {
-    daysInPlanningState.setState(days);
-  }
-  return {
-    get daysInPlanning() {
-      return daysInPlanningState.state;
-    },
-    setDaysInPlanning,
   };
 }
 
@@ -131,18 +117,6 @@ export function getEfficiencyResults() {
       return efficiencyResultsState.state;
     },
     setEfficiencyResults,
-  };
-}
-
-export function getTimeDailies() {
-  function setTimeDailies(data: ApplianceTimeDaily[]) {
-    timeDailiesState.setState(data);
-  }
-  return {
-    get timeDailies() {
-      return timeDailiesState.state;
-    },
-    setTimeDailies,
   };
 }
 
@@ -219,8 +193,6 @@ export function getLoopManager() {
     const efficiencyResults = getEfficiencyResults();
     const startDate = getStartDate();
     const endDate = getEndDate();
-    const daysInPlanning = getDaysInPlanning();
-    const timedailies = getTimeDailies();
 
     loopState.setState("running");
     currentOffset = 0;
@@ -234,10 +206,13 @@ export function getLoopManager() {
         offset
       );
 
-      startDate.setStartDate(results.totalStartDate);
-      endDate.setEndDate(results.endDate);
-      daysInPlanning.setDaysInPlanning(results.daysInPlanning);
-      timedailies.setTimeDailies(results.timeDaily);
+      if (startDate.startDate === 0) {
+        startDate.setStartDate(results.totalStartDate);
+      }
+
+      if (endDate.endDate === 0) {
+        endDate.setEndDate(results.endDate);
+      }
 
       const transformedResults = results.results.map((resultArray) => ({
         solarEnergyIndividual: resultArray[0],
@@ -251,12 +226,13 @@ export function getLoopManager() {
         ...transformedResults,
       ]);
 
-      if (offset < 250) {
-        currentOffset = offset + 7;
-        return true; // Indicate that the loop should continue
-      } else {
-        return false; // Indicate that the loop is complete
+      // Stop the loop if results are empty
+      if (results.results.length === 0 && results.totalStartDate === 0 && results.endDate === 0) {
+        return false;
       }
+
+      currentOffset += 7;
+      return true;
     }
 
     // Start the interval
