@@ -15,7 +15,7 @@
     "chartjs-plugin-zoom": "^2.2.0",
     "date-picker-svelte": "^2.15.1",
     "idb": "^8.0.1",
-    "svelte": "^5.16.0",
+    "svelte": "^5.16.2",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
