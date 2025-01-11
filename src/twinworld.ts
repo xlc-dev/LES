@@ -14,6 +14,15 @@ export function generateHouseholdId(): number {
 }
 
 /**
+ * Sets the last household ID.
+ *
+ * @param {number} id - The new last household ID.
+ */
+export function setLastHouseholdId(id: number) {
+  lastHouseholdId = id;
+}
+
+/**
  * Default energy usage values based on household size.
  */
 const defaultEnergyUsage: Record<string, number> = {
