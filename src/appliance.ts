@@ -23,6 +23,24 @@ export function generateTimeDailiesId(): number {
 }
 
 /**
+ * Sets the last appliance ID.
+ *
+ * @param {number} id - The new last appliance ID.
+ */
+export function setLastApplianceId(id: number) {
+  applianceIdCounter = id;
+}
+
+/**
+ * Sets the last time dailies ID.
+ *
+ * @param {number} id - The new last time dailies ID.
+ */
+export function setLastTimeDailiesId(id: number) {
+  timeDailiesIdCounter = id;
+}
+
+/**
  * Get typical usage hours for appliances.
  *
  * @param {ApplianceTypes} applianceName - The appliance type.
