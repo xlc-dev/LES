@@ -29,6 +29,9 @@ interface FormField {
   placeholder?: string;
   required: boolean;
   min?: number;
+  max?: number;
+  minLength?: number;
+  maxLength?: number;
   step?: number;
   value?: any;
   error?: string;
