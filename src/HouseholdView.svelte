@@ -96,7 +96,8 @@
           Select Date
         </button>
         {#if showDatePicker}
-          <div id="" class="calendar absolute z-10 mt-2 rounded-lg bg-white shadow-lg">
+          <div
+            class="date-picker-container calendar absolute z-10 mt-2 rounded-lg bg-white shadow-lg">
             <DatePicker bind:value={selectedDate} min={setMinDate} max={setMaxDate} />
           </div>
         {/if}
