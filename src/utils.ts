@@ -189,3 +189,17 @@ export function bitmapToBoolArray(bitmap: number): boolean[] {
 
   return boolArray;
 }
+
+/**
+ * Debounces a function.
+ * @param func The function to debounce.
+ * @param wait The delay in milliseconds.
+ * @returns A debounced version of the function.
+ */
+export function debounce(func: Function, wait: number) {
+  let timeout: number;
+  return (...args: any[]) => {
+    clearTimeout(timeout);
+    timeout = window.setTimeout(() => func(...args), wait);
+  };
+}
