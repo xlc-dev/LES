@@ -29,6 +29,9 @@ interface FormField {
   placeholder?: string;
   required: boolean;
   min?: number;
+  max?: number;
+  minLength?: number;
+  maxLength?: number;
   step?: number;
   value?: any;
   error?: string;
@@ -75,6 +78,7 @@ type Household = {
   size: number;
   energyUsage: number;
   solarPanels: number;
+  solarPanelType: PanelType;
   solarYieldYearly: number;
   appliances?: Appliance[];
 };
@@ -85,6 +89,8 @@ type TwinWorld = {
   solarPanelCapacity: number;
   households: Household[];
 };
+
+type PanelType = "Good" | "Average" | "Bad";
 
 type ApplianceTypes =
   | "Washing Machine"

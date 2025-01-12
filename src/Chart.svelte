@@ -5,6 +5,7 @@
   import zoomPlugin from "chartjs-plugin-zoom";
 
   import { getEfficiencyResults } from "./state.svelte";
+  import { throttle } from "./utils";
 
   const efficiencyResults = getEfficiencyResults();
 
@@ -109,10 +110,10 @@
    */
   const getYAxisChartLabel = (index: number): string => {
     const labels: string[] = [
-      "Fraction of solar energy used by houses themselves",
-      "Fraction of solar energy used by all houses",
-      "Price of internal energy (local currency)",
-      "Money saved by community (local currency)",
+      "Fraction of solar used by houses themselves",
+      "Fraction of solar used by all houses",
+      "Price of internal energy",
+      "Money saved by community",
     ];
     return labels[index] || "";
   };
@@ -161,6 +162,10 @@
    */
   const getColor = (index: number, array: string[]): string => array[index];
 
+  const throttledUpdateCharts = throttle((results: any[]) => {
+    updateCharts(results);
+  }, 600);
+
   onMount(() => {
     initializeCharts();
     updateCharts(efficiencyResults.efficiencyResults);
@@ -173,7 +178,7 @@
 
   $effect(() => {
     if (efficiencyResults.efficiencyResults.length) {
-      updateCharts(efficiencyResults.efficiencyResults);
+      throttledUpdateCharts(efficiencyResults.efficiencyResults);
     }
   });
 </script>

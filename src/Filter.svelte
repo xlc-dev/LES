@@ -60,7 +60,7 @@
     {#each Object.entries(filters) as [filterName, options]}
       <div class="dropdown-container relative">
         <button
-          class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 shadow-sm transition-colors duration-300 hover:bg-gray-100 focus:ring-2 focus:ring-gray-400 focus:outline-none lg:w-auto"
+          class="w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 shadow-sm transition-colors duration-300 hover:bg-gray-100 focus:ring-2 focus:ring-gray-400 focus:outline-none lg:w-auto"
           onclick={() => toggleDropdown(filterName)}>
           {toReadableName(filterName)}
         </button>
@@ -93,7 +93,7 @@
   {#if selectedDate && setMinDate && setMaxDate}
     <div class="date-picker-container relative">
       <button
-        class="w-full rounded-lg bg-blue-500 px-4 py-2 text-white shadow transition-colors duration-300 hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 lg:w-auto"
+        class="w-full cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-white shadow transition-colors duration-300 hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 lg:w-auto"
         onclick={() => (showDatePicker = !showDatePicker)}>
         Select Date
       </button>

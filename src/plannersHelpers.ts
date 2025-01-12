@@ -1,4 +1,4 @@
-import { unixToHour } from "./utils";
+import { SECONDS_IN_DAY, unixToHour, ensureValidBitmap } from "./utils";
 
 /**
  * Calculates the appliance duration bitmask based on duration and hour.
@@ -9,22 +9,12 @@ import { unixToHour } from "./utils";
  * @throws {Error} If duration or hour is out of valid range.
  */
 function calculateApplianceDurationBit(duration: number, hour: number): number {
-  if (hour < 0 || hour > 23) {
-    throw new Error("Hour must be between 0 and 23.");
-  }
+  if (hour < 0 || hour > 23) throw new Error("Hour must be between 0 and 23");
+  if (duration <= 0) throw new Error("Duration must be positive");
 
-  if (duration <= 0) {
-    throw new Error("Duration must be a positive integer.");
-  }
-
-  const shift = 24 - hour - duration;
-  const base = 2 ** duration - 1;
-
-  if (shift >= 0) {
-    return base << shift;
-  } else {
-    return base >> -shift;
-  }
+  const base = (1 << duration) - 1;
+  const shift = 23 - hour - (duration - 1);
+  return ensureValidBitmap(shift >= 0 ? base << shift : base >> -shift);
 }
 
 /**
@@ -59,13 +49,12 @@ function energyEfficiencyDay(
   costmodel: CostModel
 ): [number, number, number, number, number] {
   const totalYield = planning.reduce((sum, household) => sum + household.solarYieldYearly, 0);
-
   const solarEnergyProduced = energyFlow.map(
     (ef) => (ef.solar_produced * totalYield) / solarPanelsFactor
   );
 
-  const solarEnergyUsedSelf: number[] = new Array(24).fill(0);
-  const solarEnergyUsedTotal: number[] = new Array(24).fill(0);
+  const solarEnergyUsedSelf = new Array(24).fill(0);
+  const solarEnergyUsedTotal = new Array(24).fill(0);
 
   for (const household of planning) {
     const householdEnergyAvailable = energyFlow.map(
@@ -75,7 +64,7 @@ function energyEfficiencyDay(
     if (household.appliances) {
       for (const appliance of household.appliances) {
         const bitmap = appliance.timeDaily[appliance.id - 1].bitmapPlanEnergy
-          .toString()
+          .toString(2)
           .padStart(24, "0");
 
         for (let hour = 0; hour < 24; hour++) {
@@ -113,20 +102,26 @@ function energyEfficiencyDay(
     ratio = costmodel.fixedPriceRatio;
   }
 
-  let energyPrice: number;
+  if (costmodel.name === "TEMO") {
+    ratio = 1 - currentEfficiency;
+  }
 
+  let energyPrice: number;
   if (costmodel.name === "Fixed Price" || costmodel.name === "TEMO") {
     energyPrice =
       costmodel.priceNetworkBuyConsumer * ratio + costmodel.priceNetworkSellConsumer * (1 - ratio);
   } else {
     try {
-      const localVars: any = {};
       const algoWithParams = costmodel.algorithm.replace(
         "cost_model()",
-        `cost_model(\n    buy_consumer=${costmodel.priceNetworkBuyConsumer},\n    sell_consumer=${costmodel.priceNetworkSellConsumer},\n    ratio=${ratio}\n)`
+        `cost_model(
+          buy_consumer=${costmodel.priceNetworkBuyConsumer},
+          sell_consumer=${costmodel.priceNetworkSellConsumer},
+          ratio=${ratio}
+        )`
       );
-      eval(algoWithParams);
-      energyPrice = localVars.cost_model();
+      const dynamicCostModel = new Function("return " + algoWithParams)();
+      energyPrice = dynamicCostModel();
     } catch (e) {
       console.error("Error in algorithm:", e);
       energyPrice = costmodel.priceNetworkBuyConsumer;
@@ -162,8 +157,7 @@ export function checkApplianceTime(
   unix: number,
   applianceBitmapPlan: number
 ): boolean {
-  const date = new Date(unix * 1000);
-  const dayNumber = (date.getUTCDay() + 6) % 7; // Adjust Sunday (0) to match ApplianceDays.SUNDAY (6)
+  let dayNumber = (Math.floor(unix / SECONDS_IN_DAY + 3) % 7) + 1;
 
   const bitmapWindow = appliance.timeDaily.find((w) => w.day === dayNumber)?.bitmapWindow;
 
@@ -172,8 +166,9 @@ export function checkApplianceTime(
   }
 
   const hour = unixToHour(unix);
-  const applianceDurationBit = (1 << appliance.duration) - 1;
+  const applianceDurationBit = Math.pow(2, appliance.duration) - 1;
   const shift = 24 - hour - appliance.duration;
+
   const currentTimeWindow =
     shift >= 0 ? applianceDurationBit << shift : applianceDurationBit >> -shift;
 
@@ -181,7 +176,7 @@ export function checkApplianceTime(
     return false;
   }
 
-  if ((currentTimeWindow & applianceBitmapPlan) !== 0) {
+  if (currentTimeWindow & applianceBitmapPlan) {
     return false;
   }
 
@@ -198,8 +193,8 @@ export function checkApplianceTime(
  * @returns {number} The updated bitmap window.
  */
 export function planEnergy(hour: number, duration: number, bitmap: number): number {
-  const applianceDurationBit = calculateApplianceDurationBit(duration, hour);
-  return applianceDurationBit | bitmap;
+  const newBit = calculateApplianceDurationBit(duration, hour);
+  return ensureValidBitmap(newBit | bitmap);
 }
 
 /**
@@ -249,4 +244,46 @@ export function writeResults(
   }
 
   return results;
+}
+
+/**
+ * Updates the energy usage of an appliance in a given time window.
+ *
+ * @param {number} oldHour - The old hour of the time window.
+ * @param {number} newHour - The new hour of the time window.
+ * @param {boolean} hasEnergy - Whether the appliance has energy in the time window.
+ * @param {boolean} getsEnergy - Whether the appliance gets energy in the time window.
+ * @param {Appliance} appliance - The appliance to update.
+ * @param {number} applianceBitmapPlanEnergy - The current bitmap plan for energy usage.
+ * @param {number} applianceBitmapPlanNoEnergy - The current bitmap plan for no energy usage.
+ * @returns {[number, number]} A tuple containing the updated bitmap plans for energy and no energy usage.
+ */
+export function updateEnergy(
+  oldHour: number,
+  newHour: number,
+  hasEnergy: boolean,
+  getsEnergy: boolean,
+  appliance: Appliance,
+  applianceBitmapPlanEnergy: number,
+  applianceBitmapPlanNoEnergy: number
+): [number, number] {
+  const applianceDurationBitOld = calculateApplianceDurationBit(appliance.duration, oldHour);
+  const applianceDurationBitNew = calculateApplianceDurationBit(appliance.duration, newHour);
+
+  let newBitmapWindowEnergy = applianceBitmapPlanEnergy;
+  let newBitmapWindowNoEnergy = applianceBitmapPlanNoEnergy;
+
+  if (hasEnergy) {
+    newBitmapWindowEnergy ^= applianceDurationBitOld;
+  } else {
+    newBitmapWindowNoEnergy ^= applianceDurationBitOld;
+  }
+
+  if (getsEnergy) {
+    newBitmapWindowEnergy |= applianceDurationBitNew;
+  } else {
+    newBitmapWindowNoEnergy |= applianceDurationBitNew;
+  }
+
+  return [newBitmapWindowEnergy, newBitmapWindowNoEnergy];
 }

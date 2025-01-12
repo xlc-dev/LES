@@ -54,17 +54,22 @@
     class="mx-auto w-full max-w-7xl space-y-8 rounded-xl border-4 border-gray-300 bg-white p-8 shadow-lg">
     <div>
       <h1 class="mb-6 text-4xl font-extrabold text-gray-800">Household Information</h1>
-      <div class="grid grid-cols-2 gap-6">
-        <div class="font-semibold text-gray-600">Name:</div>
-        <div class="text-gray-800">{household.name}</div>
-        <div class="font-semibold text-gray-600">Size:</div>
-        <div class="text-gray-800">{household.size}</div>
-        <div class="font-semibold text-gray-600">Energy Usage:</div>
-        <div class="text-gray-800">{household.energyUsage}</div>
-        <div class="font-semibold text-gray-600">Solar Panels:</div>
-        <div class="text-gray-800">{household.solarPanels}</div>
-        <div class="font-semibold text-gray-600">Solar Yield Yearly:</div>
-        <div class="text-gray-800">{household.solarYieldYearly}</div>
+      <div
+        class="rounded-lg border border-gray-200 bg-gray-50 p-6 shadow-sm transition-shadow duration-300">
+        <div class="grid grid-cols-2 gap-6">
+          <div class="font-semibold text-gray-600">Name:</div>
+          <div class="text-gray-800">{household.name}</div>
+          <div class="font-semibold text-gray-600">Size:</div>
+          <div class="text-gray-800">{household.size}</div>
+          <div class="font-semibold text-gray-600">Energy Usage:</div>
+          <div class="text-gray-800">{household.energyUsage}</div>
+          <div class="font-semibold text-gray-600">Solar Panels:</div>
+          <div class="text-gray-800">{household.solarPanels}</div>
+          <div class="font-semibold text-gray-600">Solar Panel Type:</div>
+          <div class="text-gray-800">{household.solarPanelType}</div>
+          <div class="font-semibold text-gray-600">Solar Yield Yearly:</div>
+          <div class="text-gray-800">{household.solarYieldYearly}</div>
+        </div>
       </div>
     </div>
 
@@ -88,23 +93,27 @@
     {/if}
 
     <div>
-      <h2 class="mb-6 text-3xl font-extrabold text-gray-800">Schedulable Load</h2>
-      <div class="relative mb-6">
-        <button
-          class="cursor-pointer rounded-lg bg-blue-600 px-6 py-3 text-white transition-transform duration-300 hover:bg-blue-500"
-          onclick={(e) => (e.stopPropagation(), (showDatePicker = !showDatePicker))}>
-          Select Date
-        </button>
-        {#if showDatePicker}
-          <div id="" class="calendar absolute z-10 mt-2 rounded-lg bg-white shadow-lg">
-            <DatePicker bind:value={selectedDate} min={setMinDate} max={setMaxDate} />
-          </div>
-        {/if}
+      <div class="flex justify-between">
+        <h2 class="mb-6 text-3xl font-extrabold text-gray-800">Schedulable Load</h2>
+        <div class="relative mb-6">
+          <button
+            class="cursor-pointer rounded-lg bg-blue-600 px-6 py-3 text-white transition-transform duration-300 hover:bg-blue-500"
+            onclick={(e) => (e.stopPropagation(), (showDatePicker = !showDatePicker))}>
+            Select Date
+          </button>
+          {#if showDatePicker}
+            <div
+              class="date-picker-container calendar absolute z-10 mt-2 rounded-lg bg-white shadow-lg">
+              <DatePicker bind:value={selectedDate} min={setMinDate} max={setMaxDate} />
+            </div>
+          {/if}
+        </div>
       </div>
 
       <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
         {#each weekDates as date}
-          <div class="flex w-full flex-col items-center justify-center rounded-lg bg-gray-50 p-4">
+          <div
+            class="flex w-full flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div class="mb-3 text-center text-lg font-semibold text-gray-700">
               {date.toLocaleDateString("en-US", { weekday: "long" })}
             </div>

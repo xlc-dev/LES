@@ -189,3 +189,46 @@ export function bitmapToBoolArray(bitmap: number): boolean[] {
 
   return boolArray;
 }
+
+/**
+ * Debounces a function.
+ * @param func The function to debounce.
+ * @param wait The delay in milliseconds.
+ * @returns A debounced version of the function.
+ */
+export function debounce(func: Function, wait: number) {
+  let timeout: number;
+  function debounced(...args: any[]) {
+    clearTimeout(timeout);
+    timeout = window.setTimeout(() => func(...args), wait);
+  }
+  debounced.cancel = () => clearTimeout(timeout);
+  return debounced;
+}
+
+/**
+ * Throttles a function so it's only called at most once every wait milliseconds.
+ * @param func The function to throttle.
+ * @param wait The time to wait between calls in milliseconds.
+ * @returns A throttled version of the function.
+ */
+export function throttle(func: Function, wait: number) {
+  let lastCall = 0;
+  return (...args: any[]) => {
+    const now = Date.now();
+    if (now - lastCall >= wait) {
+      lastCall = now;
+      func(...args);
+    }
+  };
+}
+
+/**
+ * Ensures that the bitmap is valid by masking it to 24 bits.
+ *
+ * @param {number} bitmap - The bitmap to ensure validity.
+ * @returns {number} The masked bitmap.
+ */
+export function ensureValidBitmap(bitmap: number): number {
+  return bitmap & 0xffffff; // Mask to keep only lowest 24 bits
+}
