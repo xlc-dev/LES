@@ -1,6 +1,6 @@
 import { HOURS_IN_WEEK, SECONDS_IN_DAY, SECONDS_IN_HOUR, unixToHour } from "./utils";
 
-import { planGreedy } from "./planners";
+import { planGreedy, planSimulatedAnnealing } from "./planners";
 
 import { writeResults } from "./plannersHelpers";
 
@@ -330,7 +330,7 @@ export function loop(
     if (algo.name === "Greedy Planning" || algo.name === "Simulated Annealing") {
       householdPlanning.forEach((household, householdIdx) => {
         household.appliances?.forEach((appliance) => {
-          const { newApplianceTime, newTotalAvailableEnergy, newHouseholdEnergy } = planGreedy({
+          const { newTotalAvailableEnergy, newHouseholdEnergy } = planGreedy({
             householdIdx: householdIdx,
             dayNumber: dayNumberInPlanning,
             totalAvailableEnergy: totalAvailableEnergy,
@@ -341,7 +341,6 @@ export function loop(
           });
 
           totalAvailableEnergy = newTotalAvailableEnergy;
-          appliance.timeDaily = newApplianceTime;
           householdEnergy = newHouseholdEnergy;
         });
       });
@@ -386,7 +385,16 @@ export function loop(
     }
 
     if (algo.name === "Simulated Annealing") {
-      // planSimulatedAnnealing();
+      planSimulatedAnnealing(
+        dayIterator,
+        householdPlanning.length,
+        currentAvailable,
+        solarProduced,
+        currentUsed,
+        algo,
+        householdPlanning,
+        totalStartDate
+      );
 
       const newResults = writeResults(
         dayIterator,
