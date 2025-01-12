@@ -25,7 +25,7 @@ export function setLastHouseholdId(id: number) {
 /**
  * Default energy usage values based on household size.
  */
-const defaultEnergyUsage: Record<string, number> = {
+export const defaultEnergyUsage: Record<string, number> = {
   "1": 1600,
   "2": 2500,
   "3": 3400,
@@ -45,6 +45,23 @@ function generateHouseholdSize(): number {
   if (randint <= 81) return 3;
   if (randint <= 95) return 4;
   return 5;
+}
+
+/**
+ * Gets the panel multiplier based on the number of solar panels.
+ *
+ * @param {PanelType} panelType - The number of solar panels.
+ * @returns {number} The panel multiplier.
+ */
+export function getPanelMultiplier(panelType: PanelType): number {
+  switch (panelType) {
+    case "Good":
+      return 1.5;
+    case "Average":
+      return 1;
+    case "Bad":
+      return 0.5;
+  }
 }
 
 /**
@@ -78,12 +95,17 @@ export const createTwinWorld = (
       solarPanels = Math.ceil(3 + 2 * householdSize * invNormSolar);
     }
 
+    const panelTypes: PanelType[] = ["Good", "Average", "Bad"];
+    const randomPanelType = panelTypes[Math.floor(Math.random() * panelTypes.length)];
+    const multiplier = getPanelMultiplier(randomPanelType);
+
     const household = {
       id: lastHouseholdId + i + 1,
       name: `Household ${lastHouseholdId + i + 1}`,
       size: householdSize,
       energyUsage: totalEnergyUsage,
-      solarYieldYearly: solarPanels * 340, // Avg solar capacity
+      solarYieldYearly: solarPanels * 340 * multiplier,
+      solarPanelType: randomPanelType,
       solarPanels,
       appliances: generateAppliancesForHousehold(householdSize, invNorm),
     };
