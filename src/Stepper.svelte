@@ -1,9 +1,15 @@
 <script lang="ts">
   import { openDB } from "idb";
   import { onMount } from "svelte";
-  import { getDashboard, getStepperData } from "./state.svelte";
-  import { readCSV } from "./utils";
-  import { setLastHouseholdId, generateHouseholdId } from "./twinworld";
+  import { readCSV, randomNormal } from "./utils";
+  import { setAvailability } from "./timewindow";
+  import { getDashboard, getStepperData, getSimulationType } from "./state.svelte";
+  import {
+    setLastHouseholdId,
+    generateHouseholdId,
+    getPanelMultiplier,
+    defaultEnergyUsage,
+  } from "./twinworld";
   import {
     generateApplianceId,
     generateTimeDailiesId,
@@ -20,7 +26,6 @@
   } from "./formdata.svelte";
 
   import Spinner from "./Spinner.svelte";
-  import { setAvailability } from "./timewindow";
 
   interface Props {
     onComplete: () => void;
@@ -31,6 +36,7 @@
   const formData = getFormData();
   const dashboard = getDashboard();
   const stepperData = getStepperData();
+  const simulationType = getSimulationType();
 
   let currentStep = $state(0);
   let selectedOptions = $state(Array(formData.formData.length).fill(null));
@@ -45,8 +51,8 @@
       {
         name?: string;
         size?: string;
-        energyUsage?: string;
         solarPanels?: string;
+        solarPanelType?: string;
       }
     >;
     appliances: Record<
@@ -121,13 +127,16 @@
     const twinWorld = getSelectedTwinWorld();
     if (!twinWorld) return;
     const id = generateHouseholdId();
+    const invNorm = randomNormal(1, 0.1);
+    const totalEnergyUsage = Math.round(invNorm * defaultEnergyUsage[String(1)]);
     const newHousehold: Household = {
       id: id,
       name: `Household ${id}`,
       size: 1,
-      energyUsage: 1,
+      energyUsage: totalEnergyUsage,
       solarPanels: 0,
-      solarYieldYearly: twinWorld.solarPanelCapacity,
+      solarPanelType: "Average",
+      solarYieldYearly: twinWorld.solarPanelCapacity * getPanelMultiplier("Average"),
       appliances: [],
     };
     twinWorld.households.push(newHousehold);
@@ -229,17 +238,17 @@
       } else {
         delete householdErrors.size;
       }
-    } else if (field === "energyUsage") {
-      if (value < 1) {
-        householdErrors.energyUsage = "Energy usage must be at least 1.";
-      } else {
-        delete householdErrors.energyUsage;
-      }
     } else if (field === "solarPanels") {
       if (value < 0) {
         householdErrors.solarPanels = "Number of solar panels cannot be negative.";
       } else {
         delete householdErrors.solarPanels;
+      }
+    } else if (field === "solarPanelType") {
+      if (!["Good", "Average", "Bad"].includes(value)) {
+        householdErrors.solarPanelType = "Invalid solar panel type.";
+      } else {
+        delete householdErrors.solarPanelType;
       }
     }
 
@@ -252,6 +261,16 @@
     // @ts-ignore
     household[field] = value;
     household.solarYieldYearly = twinworld.solarPanelCapacity * household.solarPanels;
+
+    if (field === "size") {
+      const invNorm = randomNormal(1, 0.1);
+      const totalEnergyUsage = Math.round(invNorm * defaultEnergyUsage[String(value)] || 0);
+      household.energyUsage = totalEnergyUsage;
+    }
+
+    if (field === "solarPanelType") {
+      household.solarYieldYearly = twinworld.solarPanelCapacity * getPanelMultiplier(value);
+    }
   }
 
   function handleApplianceChange(hIndex: number, aIndex: number, field: string, value: any) {
@@ -930,7 +949,10 @@
     saveStorage();
 
     stepperData.setStepperData(mappedOptions);
-    dashboard.setDashboard(true);
+
+    if (simulationType.simulationType === "single") {
+      dashboard.setDashboard(true);
+    }
     onComplete();
   }
 
@@ -957,6 +979,8 @@
 
   onMount(async () => {
     await loadStorage();
+    errors.households = {};
+    errors.appliances = {};
   });
 </script>
 
@@ -1235,376 +1259,377 @@
         Add Household
       </button>
 
-      {#each twinworld.households as household, hIndex}
-        <div class="flex flex-col space-y-4 rounded-lg border-2 border-gray-300 bg-gray-50 p-5">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-              <button
-                class="flex cursor-pointer items-center justify-center rounded-full bg-gray-200 p-2 transition duration-300 hover:bg-gray-300"
-                onclick={() => toggleFold(hIndex)}
-                aria-label={foldedHouseholds[hIndex] ? "Expand Household" : "Collapse Household"}>
-                {#if foldedHouseholds[hIndex]}
-                  <svg
-                    width="20px"
-                    height="20px"
-                    viewBox="0 0 24 24"
-                    class="rotate-180 transform"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M7 10L12 15L17 10"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round" />
-                  </svg>
-                {:else}
-                  <svg
-                    width="20px"
-                    height="20px"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M7 10L12 15L17 10"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round" />
-                  </svg>
-                {/if}
-              </button>
-              <div class="w-3/4">
-                <input
-                  type="text"
-                  bind:value={household.name}
-                  placeholder="Household Name"
-                  maxlength="20"
-                  onchange={(e: Event) =>
-                    handleHouseholdChange(hIndex, "name", (e.target as HTMLInputElement).value)}
-                  class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                {#if errors.households[household.id]?.name}
-                  <p class="mt-1 text-sm text-red-500">{errors.households[household.id].name}</p>
-                {/if}
-              </div>
-            </div>
-            <button
-              class="flex cursor-pointer items-center text-red-500 transition hover:underline"
-              onclick={() => deleteHousehold(hIndex)}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="mr-1 h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Delete
-            </button>
-          </div>
-
-          {#if !foldedHouseholds[hIndex]}
-            <div
-              class="mt-4 grid grid-cols-1 gap-4 rounded-lg border-2 border-blue-200 bg-blue-50 p-4 md:grid-cols-3">
-              <div>
-                <label class="mb-1 block text-sm font-medium text-blue-700" for={`size-${hIndex}`}>
-                  Household Size
-                </label>
-                <input
-                  type="number"
-                  id={`size-${hIndex}`}
-                  bind:value={household.size}
-                  min="1"
-                  onchange={(e: Event) =>
-                    handleHouseholdChange(
-                      hIndex,
-                      "size",
-                      Number((e.target as HTMLInputElement).value)
-                    )}
-                  class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  placeholder="Enter number of members" />
-                {#if errors.households[household.id]?.size}
-                  <p class="mt-1 text-sm text-red-500">{errors.households[household.id].size}</p>
-                {/if}
-              </div>
-              <div>
-                <label
-                  class="mb-1 block text-sm font-medium text-blue-700"
-                  for={`energyUsage-${hIndex}`}>
-                  Energy Usage (kWh)
-                </label>
-                <input
-                  type="number"
-                  id={`energyUsage-${hIndex}`}
-                  bind:value={household.energyUsage}
-                  min="1"
-                  onchange={(e: Event) =>
-                    handleHouseholdChange(
-                      hIndex,
-                      "energyUsage",
-                      Number((e.target as HTMLInputElement).value)
-                    )}
-                  class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  placeholder="Enter energy usage" />
-                {#if errors.households[household.id]?.energyUsage}
-                  <p class="mt-1 text-sm text-red-500">
-                    {errors.households[household.id].energyUsage}
-                  </p>
-                {/if}
-              </div>
-              <div>
-                <label
-                  class="mb-1 block text-sm font-medium text-blue-700"
-                  for={`solarPanels-${hIndex}`}>
-                  Solar Panels
-                </label>
-                <input
-                  type="number"
-                  id={`solarPanels-${hIndex}`}
-                  bind:value={household.solarPanels}
-                  min="0"
-                  onchange={(e: Event) => {
-                    const value = Number((e.target as HTMLInputElement).value);
-                    household.solarPanels = value >= 0 ? value : 0;
-                    handleHouseholdChange(hIndex, "solarPanels", household.solarPanels);
-                  }}
-                  class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  placeholder="Enter number of solar panels" />
-                {#if errors.households[household.id]?.solarPanels}
-                  <p class="mt-1 text-sm text-red-500">
-                    {errors.households[household.id].solarPanels}
-                  </p>
-                {/if}
-              </div>
-            </div>
-
-            <div class="mt-6 flex flex-col space-y-4">
-              <div class="flex items-center justify-between">
-                <h4 class="text-lg font-semibold">Appliances</h4>
+      {#if twinworld.households.length > 0}
+        {#each twinworld.households as household, hIndex}
+          <div class="flex flex-col space-y-4 rounded-lg border-2 border-gray-300 bg-gray-50 p-5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
                 <button
-                  class="flex cursor-pointer items-center rounded-md bg-blue-500 px-3 py-2 text-white transition hover:bg-blue-600"
-                  onclick={() => addAppliance(hIndex)}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="mr-2 h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 4v16m8-8H4" />
-                  </svg>
-                  Add Appliance
+                  class="flex cursor-pointer items-center justify-center rounded-full bg-gray-200 p-2 transition duration-300 hover:bg-gray-300"
+                  onclick={() => toggleFold(hIndex)}
+                  aria-label={foldedHouseholds[hIndex]
+                    ? "Expand Household"
+                    : "Collapse Household"}>
+                  {#if foldedHouseholds[hIndex]}
+                    <svg
+                      width="20px"
+                      height="20px"
+                      viewBox="0 0 24 24"
+                      class="rotate-180 transform"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M7 10L12 15L17 10"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    </svg>
+                  {:else}
+                    <svg
+                      width="20px"
+                      height="20px"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M7 10L12 15L17 10"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    </svg>
+                  {/if}
                 </button>
-              </div>
-              {#each household.appliances! as appliance, aIndex}
-                <div
-                  class="flex flex-col space-y-4 rounded-lg border-2 border-gray-300 bg-gray-100 p-5">
-                  <div class="flex items-center space-x-3">
-                    <button
-                      class="flex cursor-pointer items-center justify-center rounded-full bg-gray-200 p-2 transition duration-300 hover:bg-gray-300"
-                      onclick={() => toggleApplianceFold(hIndex, aIndex)}
-                      aria-label={foldedAppliances[hIndex][aIndex]
-                        ? "Expand Appliance"
-                        : "Collapse Appliance"}>
-                      {#if foldedAppliances[hIndex][aIndex]}
-                        <svg
-                          width="20px"
-                          height="20px"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          class="rotate-180 transform"
-                          xmlns="http://www.w3.org/2000/svg">
-                          <path
-                            d="M7 10L12 15L17 10"
-                            stroke="currentColor"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        </svg>
-                      {:else}
-                        <svg
-                          width="20px"
-                          height="20px"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg">
-                          <path
-                            d="M7 10L12 15L17 10"
-                            stroke="currentColor"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        </svg>
-                      {/if}
-                    </button>
-
-                    <div class="flex-grow">
-                      <select
-                        id={`appliance-select-${hIndex}-${aIndex}`}
-                        bind:value={appliance.name}
-                        onchange={(e: Event) =>
-                          handleApplianceTypeChange(
-                            hIndex,
-                            aIndex,
-                            (e.target as HTMLSelectElement).value as ApplianceTypes
-                          )}
-                        class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                        <option disabled value="">Select Appliance</option>
-                        {#each getAvailableApplianceTypes(household, appliance.name) as type}
-                          <option value={type}>{type}</option>
-                        {/each}
-                      </select>
-                      {#if errors.appliances[household.id]?.[appliance.id]?.name}
-                        <p class="mt-1 text-sm text-red-500">
-                          {errors.appliances[household.id][appliance.id].name}
-                        </p>
-                      {/if}
-                    </div>
-
-                    <button
-                      class="flex cursor-pointer items-center text-red-500 transition hover:underline"
-                      onclick={() => deleteAppliance(hIndex, aIndex)}>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="mr-1 h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                      Delete
-                    </button>
-                  </div>
-
-                  {#if !foldedAppliances[hIndex][aIndex]}
-                    <div class="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <div>
-                        <label
-                          class="mb-1 block text-sm font-medium"
-                          for={`power-${hIndex}-${aIndex}`}>
-                          Power (W)
-                        </label>
-                        <input
-                          type="number"
-                          id={`power-${hIndex}-${aIndex}`}
-                          bind:value={appliance.power}
-                          min="1"
-                          onchange={(e: Event) =>
-                            handleApplianceChange(
-                              hIndex,
-                              aIndex,
-                              "power",
-                              Number((e.target as HTMLInputElement).value)
-                            )}
-                          class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                          placeholder="Enter power in watts" />
-                        {#if errors.appliances[household.id]?.[appliance.id]?.power}
-                          <p class="mt-1 text-sm text-red-500">
-                            {errors.appliances[household.id][appliance.id].power}
-                          </p>
-                        {/if}
-                      </div>
-                      <div>
-                        <label
-                          class="mb-1 block text-sm font-medium"
-                          for={`duration-${hIndex}-${aIndex}`}>
-                          Duration (hours)
-                        </label>
-                        <input
-                          type="number"
-                          id={`duration-${hIndex}-${aIndex}`}
-                          bind:value={appliance.duration}
-                          min="1"
-                          onchange={(e: Event) =>
-                            handleApplianceChange(
-                              hIndex,
-                              aIndex,
-                              "duration",
-                              Number((e.target as HTMLInputElement).value)
-                            )}
-                          class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                          placeholder="Enter duration in hours" />
-                        {#if errors.appliances[household.id]?.[appliance.id]?.duration}
-                          <p class="mt-1 text-sm text-red-500">
-                            {errors.appliances[household.id][appliance.id].duration}
-                          </p>
-                        {/if}
-                      </div>
-                      <div>
-                        <label
-                          class="mb-1 block text-sm font-medium"
-                          for={`dailyUsage-${hIndex}-${aIndex}`}>
-                          Daily Usage (times)
-                        </label>
-                        <input
-                          type="number"
-                          id={`dailyUsage-${hIndex}-${aIndex}`}
-                          bind:value={appliance.dailyUsage}
-                          min="1"
-                          onchange={(e: Event) =>
-                            handleApplianceChange(
-                              hIndex,
-                              aIndex,
-                              "dailyUsage",
-                              Number((e.target as HTMLInputElement).value)
-                            )}
-                          class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                          placeholder="Enter daily usage times" />
-                        {#if errors.appliances[household.id]?.[appliance.id]?.dailyUsage}
-                          <p class="mt-1 text-sm text-red-500">
-                            {errors.appliances[household.id][appliance.id].dailyUsage}
-                          </p>
-                        {/if}
-                      </div>
-                    </div>
-                    <div class="mt-4">
-                      {#each appliance.timeDaily.slice(0, 7) as time}
-                        <div class="mb-4">
-                          <label class="mb-2 block font-semibold" for="time-{time.day}">
-                            {daysOfWeek[time.day - 1]}
-                          </label>
-                          <div class="grid grid-cols-6 gap-2">
-                            {#each Array(24) as _, hour}
-                              <label class="flex items-center space-x-1 text-xs">
-                                <input
-                                  type="checkbox"
-                                  checked={(time.bitmapWindow & (1 << hour)) !== 0}
-                                  onchange={(e) => {
-                                    const target = e.target as HTMLInputElement;
-                                    handleTimeDailyChange(
-                                      hIndex,
-                                      aIndex,
-                                      time.day,
-                                      hour,
-                                      target.checked
-                                    );
-                                  }}
-                                  class="rounded text-blue-600 focus:ring-blue-500" />
-                                <span>{hour}:00</span>
-                              </label>
-                            {/each}
-                          </div>
-                        </div>
-                      {/each}
-                    </div>
+                <div class="w-3/4">
+                  <input
+                    type="text"
+                    bind:value={household.name}
+                    placeholder="Household Name"
+                    maxlength="20"
+                    onchange={(e: Event) =>
+                      handleHouseholdChange(hIndex, "name", (e.target as HTMLInputElement).value)}
+                    class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                  {#if errors.households[household.id]?.name}
+                    <p class="mt-1 text-sm text-red-500">{errors.households[household.id].name}</p>
                   {/if}
                 </div>
-              {/each}
+              </div>
+              <button
+                class="flex cursor-pointer items-center text-red-500 transition hover:underline"
+                onclick={() => deleteHousehold(hIndex)}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="mr-1 h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Delete
+              </button>
             </div>
-          {/if}
-        </div>
-      {/each}
+
+            {#if !foldedHouseholds[hIndex]}
+              <div
+                class="mt-4 grid grid-cols-1 gap-4 rounded-lg border-2 border-blue-200 bg-blue-50 p-4 md:grid-cols-3">
+                <div>
+                  <label
+                    class="mb-1 block text-sm font-medium text-blue-700"
+                    for={`size-${hIndex}`}>
+                    Household Size
+                  </label>
+                  <input
+                    type="number"
+                    id={`size-${hIndex}`}
+                    bind:value={household.size}
+                    min="1"
+                    onchange={(e: Event) =>
+                      handleHouseholdChange(
+                        hIndex,
+                        "size",
+                        Number((e.target as HTMLInputElement).value)
+                      )}
+                    class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="Enter number of members" />
+                  {#if errors.households[household.id]?.size}
+                    <p class="mt-1 text-sm text-red-500">{errors.households[household.id].size}</p>
+                  {/if}
+                </div>
+                <div>
+                  <label
+                    class="mb-1 block text-sm font-medium text-blue-700"
+                    for={`solarPanels-${hIndex}`}>
+                    Solar Panels
+                  </label>
+                  <input
+                    type="number"
+                    id={`solarPanels-${hIndex}`}
+                    bind:value={household.solarPanels}
+                    min="0"
+                    onchange={(e: Event) => {
+                      const value = Number((e.target as HTMLInputElement).value);
+                      household.solarPanels = value >= 0 ? value : 0;
+                      handleHouseholdChange(hIndex, "solarPanels", household.solarPanels);
+                    }}
+                    class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="Enter number of solar panels" />
+                  {#if errors.households[household.id]?.solarPanels}
+                    <p class="mt-1 text-sm text-red-500">
+                      {errors.households[household.id].solarPanels}
+                    </p>
+                  {/if}
+                </div>
+                <div>
+                  <label
+                    class="mb-1 block text-sm font-medium text-blue-700"
+                    for={`solarPanelType-${hIndex}`}>
+                    Panel Type
+                  </label>
+                  <select
+                    id={`solarPanelType-${hIndex}`}
+                    bind:value={household.solarPanelType}
+                    class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option value="Average">Average</option>
+                    <option value="Good">Good</option>
+                    <option value="Bad">Bad</option>
+                  </select>
+                  {#if errors.households[household.id]?.solarPanelType}
+                    <p class="mt-1 text-sm text-red-500">
+                      {errors.households[household.id].solarPanelType}
+                    </p>
+                  {/if}
+                </div>
+              </div>
+
+              <div class="mt-6 flex flex-col space-y-4">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-lg font-semibold">Appliances</h4>
+                  <button
+                    class="flex cursor-pointer items-center rounded-md bg-blue-500 px-3 py-2 text-white transition hover:bg-blue-600"
+                    onclick={() => addAppliance(hIndex)}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="mr-2 h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Appliance
+                  </button>
+                </div>
+                {#each household.appliances! as appliance, aIndex}
+                  <div
+                    class="flex flex-col space-y-4 rounded-lg border-2 border-gray-300 bg-gray-100 p-5">
+                    <div class="flex items-center space-x-3">
+                      <button
+                        class="flex cursor-pointer items-center justify-center rounded-full bg-gray-200 p-2 transition duration-300 hover:bg-gray-300"
+                        onclick={() => toggleApplianceFold(hIndex, aIndex)}
+                        aria-label={foldedAppliances[hIndex][aIndex]
+                          ? "Expand Appliance"
+                          : "Collapse Appliance"}>
+                        {#if foldedAppliances[hIndex][aIndex]}
+                          <svg
+                            width="20px"
+                            height="20px"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            class="rotate-180 transform"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                              d="M7 10L12 15L17 10"
+                              stroke="currentColor"
+                              stroke-width="1.5"
+                              stroke-linecap="round"
+                              stroke-linejoin="round" />
+                          </svg>
+                        {:else}
+                          <svg
+                            width="20px"
+                            height="20px"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                              d="M7 10L12 15L17 10"
+                              stroke="currentColor"
+                              stroke-width="1.5"
+                              stroke-linecap="round"
+                              stroke-linejoin="round" />
+                          </svg>
+                        {/if}
+                      </button>
+
+                      <div class="flex-grow">
+                        <select
+                          id={`appliance-select-${hIndex}-${aIndex}`}
+                          bind:value={appliance.name}
+                          onchange={(e: Event) =>
+                            handleApplianceTypeChange(
+                              hIndex,
+                              aIndex,
+                              (e.target as HTMLSelectElement).value as ApplianceTypes
+                            )}
+                          class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                          <option disabled value="">Select Appliance</option>
+                          {#each getAvailableApplianceTypes(household, appliance.name) as type}
+                            <option value={type}>{type}</option>
+                          {/each}
+                        </select>
+                        {#if errors.appliances[household.id]?.[appliance.id]?.name}
+                          <p class="mt-1 text-sm text-red-500">
+                            {errors.appliances[household.id][appliance.id].name}
+                          </p>
+                        {/if}
+                      </div>
+
+                      <button
+                        class="flex cursor-pointer items-center text-red-500 transition hover:underline"
+                        onclick={() => deleteAppliance(hIndex, aIndex)}>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="mr-1 h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Delete
+                      </button>
+                    </div>
+
+                    {#if !foldedAppliances[hIndex][aIndex]}
+                      <div class="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div>
+                          <label
+                            class="mb-1 block text-sm font-medium"
+                            for={`power-${hIndex}-${aIndex}`}>
+                            Power (W)
+                          </label>
+                          <input
+                            type="number"
+                            id={`power-${hIndex}-${aIndex}`}
+                            bind:value={appliance.power}
+                            min="1"
+                            onchange={(e: Event) =>
+                              handleApplianceChange(
+                                hIndex,
+                                aIndex,
+                                "power",
+                                Number((e.target as HTMLInputElement).value)
+                              )}
+                            class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            placeholder="Enter power in watts" />
+                          {#if errors.appliances[household.id]?.[appliance.id]?.power}
+                            <p class="mt-1 text-sm text-red-500">
+                              {errors.appliances[household.id][appliance.id].power}
+                            </p>
+                          {/if}
+                        </div>
+                        <div>
+                          <label
+                            class="mb-1 block text-sm font-medium"
+                            for={`duration-${hIndex}-${aIndex}`}>
+                            Duration (hours)
+                          </label>
+                          <input
+                            type="number"
+                            id={`duration-${hIndex}-${aIndex}`}
+                            bind:value={appliance.duration}
+                            min="1"
+                            onchange={(e: Event) =>
+                              handleApplianceChange(
+                                hIndex,
+                                aIndex,
+                                "duration",
+                                Number((e.target as HTMLInputElement).value)
+                              )}
+                            class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            placeholder="Enter duration in hours" />
+                          {#if errors.appliances[household.id]?.[appliance.id]?.duration}
+                            <p class="mt-1 text-sm text-red-500">
+                              {errors.appliances[household.id][appliance.id].duration}
+                            </p>
+                          {/if}
+                        </div>
+                        <div>
+                          <label
+                            class="mb-1 block text-sm font-medium"
+                            for={`dailyUsage-${hIndex}-${aIndex}`}>
+                            Daily Usage (times)
+                          </label>
+                          <input
+                            type="number"
+                            id={`dailyUsage-${hIndex}-${aIndex}`}
+                            bind:value={appliance.dailyUsage}
+                            min="1"
+                            onchange={(e: Event) =>
+                              handleApplianceChange(
+                                hIndex,
+                                aIndex,
+                                "dailyUsage",
+                                Number((e.target as HTMLInputElement).value)
+                              )}
+                            class="w-full rounded-lg border-2 border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            placeholder="Enter daily usage times" />
+                          {#if errors.appliances[household.id]?.[appliance.id]?.dailyUsage}
+                            <p class="mt-1 text-sm text-red-500">
+                              {errors.appliances[household.id][appliance.id].dailyUsage}
+                            </p>
+                          {/if}
+                        </div>
+                      </div>
+                      <div class="mt-4">
+                        {#each appliance.timeDaily.slice(0, 7) as time}
+                          <div class="mb-4">
+                            <label class="mb-2 block font-semibold" for="time-{time.day}">
+                              {daysOfWeek[time.day - 1]}
+                            </label>
+                            <div class="grid grid-cols-6 gap-2">
+                              {#each Array(24) as _, hour}
+                                <label class="flex items-center space-x-1 text-xs">
+                                  <input
+                                    type="checkbox"
+                                    checked={(time.bitmapWindow & (1 << hour)) !== 0}
+                                    onchange={(e) => {
+                                      const target = e.target as HTMLInputElement;
+                                      handleTimeDailyChange(
+                                        hIndex,
+                                        aIndex,
+                                        time.day,
+                                        hour,
+                                        target.checked
+                                      );
+                                    }}
+                                    class="rounded text-blue-600 focus:ring-blue-500" />
+                                  <span>{hour}:00</span>
+                                </label>
+                              {/each}
+                            </div>
+                          </div>
+                        {/each}
+                      </div>
+                    {/if}
+                  </div>
+                {/each}
+              </div>
+            {/if}
+          </div>
+        {/each}
+      {/if}
     </div>
   </div>
 {/snippet}
