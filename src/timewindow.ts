@@ -1,4 +1,4 @@
-import { ApplianceTypes, ApplianceDays } from "./utils";
+import { ApplianceTypes, ApplianceDays, ensureValidBitmap } from "./utils";
 
 /**
  * Generates a random time window within a 24-hour period, ensuring no overlap with existing availability.
@@ -7,25 +7,32 @@ import { ApplianceTypes, ApplianceDays } from "./utils";
  * @returns {[number, number]} A tuple containing the start and end hours of the generated time window.
  */
 function generateRandomTimeWindow(bitmap: number): [number, number] {
-  // Generate longer windows (2-8 hours)
-  let startHour = Math.floor(Math.random() * 24);
-  let windowLength = 2 + Math.floor(Math.random() * 6);
-  let endHour = Math.min(24, startHour + windowLength);
+  const windowLength = 2 + Math.floor(Math.random() * 6);
 
-  // If overlap found, try a different time slot
-  const existingBits = bitmap & ((1 << endHour) - 1);
-  if (existingBits & ((1 << startHour) - 1)) {
-    // Find a free slot
-    for (let hour = 0; hour < 24; hour++) {
-      if (!(bitmap & (1 << hour))) {
-        startHour = hour;
-        endHour = Math.min(24, startHour + windowLength);
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const startHour = Math.floor(Math.random() * (24 - windowLength));
+    const endHour = startHour + windowLength;
+
+    let hasOverlap = false;
+    for (let h = startHour; h < endHour; h++) {
+      if ((bitmap & (1 << h)) !== 0) {
+        hasOverlap = true;
         break;
       }
     }
+
+    if (!hasOverlap) {
+      return [startHour, endHour];
+    }
   }
 
-  return [startHour, endHour];
+  for (let h = 0; h < 24 - windowLength; h++) {
+    if ((bitmap & (1 << h)) === 0) {
+      return [h, h + windowLength];
+    }
+  }
+
+  throw new Error("No available time window found");
 }
 
 /**
@@ -39,24 +46,24 @@ export function createTimeWindow(day: ApplianceDays, applianceName: ApplianceTyp
   let bitmap = 0;
 
   if (applianceName === ApplianceTypes.STOVE) {
-    return 0b000000000000000011110000;
+    return 0x0f0000; // 000000000000000011110000
   }
 
   if (
     applianceName === ApplianceTypes.ELECTRIC_VEHICLE &&
     ![ApplianceDays.SATURDAY, ApplianceDays.SUNDAY].includes(day)
   ) {
-    const restricted_hours = 0b111111111111111111111111 & ~(0b111111111111 << 8);
-    bitmap |= restricted_hours;
+    bitmap = 0xffffff & ~(0xfff << 8);
+    return bitmap;
   }
 
-  const num_windows = Math.floor(Math.random() * 100);
-  const amount = num_windows < 90 ? 1 : num_windows < 99 ? 2 : 3;
+  const numWindows = Math.random() * 100;
+  const amount = numWindows < 90 ? 1 : numWindows < 99 ? 2 : 3;
 
   for (let i = 0; i < amount; i++) {
     const [startHour, endHour] = generateRandomTimeWindow(bitmap);
-    const window_mask = (((1 << (endHour - startHour)) - 1) << startHour) & 0xffffff;
-    bitmap |= window_mask;
+    const windowMask = ((1 << (endHour - startHour)) - 1) << startHour;
+    bitmap |= ensureValidBitmap(windowMask);
   }
 
   return bitmap;
@@ -70,6 +77,9 @@ export function createTimeWindow(day: ApplianceDays, applianceName: ApplianceTyp
  * @returns {boolean} True if the hour is available, false otherwise.
  */
 export function isAvailable(bitmap: number, hour: number): boolean {
+  if (hour < 0 || hour > 23) {
+    throw new Error("Hour must be between 0 and 23.");
+  }
   return (bitmap & (1 << hour)) !== 0;
 }
 
@@ -83,8 +93,8 @@ export function isAvailable(bitmap: number, hour: number): boolean {
  */
 export function setAvailability(bitmap: number, hour: number, isAvailable: boolean): number {
   if (isAvailable) {
-    return bitmap | (1 << hour); // Set the bit to 1 (available)
+    return ensureValidBitmap(bitmap | (1 << hour));
   } else {
-    return bitmap & ~(1 << hour); // Set the bit to 0 (not available)
+    return ensureValidBitmap(bitmap & ~(1 << hour));
   }
 }
