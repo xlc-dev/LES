@@ -1,4 +1,11 @@
-import { ApplianceTypes, ApplianceDays, MAX_DAYS_IN_YEAR, roundTo, shuffleArray } from "./utils";
+import {
+  ApplianceTypes,
+  ApplianceDays,
+  MAX_DAYS_IN_YEAR,
+  roundTo,
+  shuffleArray,
+  ensureValidBitmap,
+} from "./utils";
 import { createTimeWindow, setAvailability } from "./timewindow";
 
 let applianceIdCounter = 0;
@@ -103,24 +110,58 @@ function generateEmptyTimePlan(): ApplianceTimeDaily[] {
  */
 function generateAvailability(name: ApplianceTypes, dailyUsage: number): number {
   const availability = Array(24).fill(false);
+
   const typicalHours = getTypicalUsageHours(name);
+
   const baseUsage = Math.floor(dailyUsage);
-  let totalUsage = baseUsage + (Math.random() < dailyUsage - baseUsage ? 1 : 0);
-  totalUsage = Math.max(1, totalUsage); // Ensure at least 1 hour of usage
+  const extraHour = Math.random() < dailyUsage - baseUsage ? 1 : 0;
+  let totalUsage = baseUsage + extraHour;
+  totalUsage = Math.max(1, totalUsage); // At least 1 hour of usage
 
-  const hoursToPick = Math.min(totalUsage, typicalHours.length);
-  const usageTimes = pickRandomHours(typicalHours, hoursToPick);
+  if (Math.random() < 0.1) {
+    const additionalUsage = Math.floor(Math.random() * 3) + 1;
+    totalUsage = Math.min(totalUsage + additionalUsage, 24);
+  }
 
-  usageTimes.forEach((hour) => (availability[hour] = true));
+  const useTypical = Math.random() >= 0.25;
 
-  // Convert availability array to bitmap
+  if (useTypical) {
+    const hoursFromTypical = Math.min(totalUsage, typicalHours.length);
+    const usageTimes = pickRandomHours(typicalHours, hoursFromTypical);
+
+    usageTimes.forEach((hour) => {
+      availability[hour] = true;
+    });
+
+    const remainingHours = totalUsage - hoursFromTypical;
+    if (remainingHours > 0) {
+      const nonTypical = [];
+      for (let hour = 0; hour < 24; hour++) {
+        if (!typicalHours.includes(hour)) {
+          nonTypical.push(hour);
+        }
+      }
+      const extraUsageTimes = pickRandomHours(nonTypical, remainingHours);
+      extraUsageTimes.forEach((hour) => {
+        availability[hour] = true;
+      });
+    }
+  } else {
+    const allHours = Array.from({ length: 24 }, (_, i) => i);
+    const usageTimes = pickRandomHours(allHours, totalUsage);
+    usageTimes.forEach((hour) => {
+      availability[hour] = true;
+    });
+  }
+
   let bitmap = 0;
-  availability.forEach((isAvailable, index) => {
-    if (isAvailable) {
-      bitmap |= 1 << index;
+  availability.forEach((isActive, hour) => {
+    if (isActive) {
+      bitmap |= 1 << hour;
     }
   });
-  return bitmap;
+
+  return ensureValidBitmap(bitmap);
 }
 
 /**
@@ -154,10 +195,7 @@ function createAppliance(
     const dailyUsage = freq * energyPattern;
     const power = roundTo(usageRandom * usageMulti + usageAddition, 1);
 
-    let availability = generateAvailability(name, dailyUsage);
-
     let availabilityWeek: number[] = [];
-
     const daysOfWeek: ApplianceDays[] = [
       ApplianceDays.MONDAY,
       ApplianceDays.TUESDAY,
@@ -167,10 +205,13 @@ function createAppliance(
       ApplianceDays.SATURDAY,
       ApplianceDays.SUNDAY,
     ];
+
     daysOfWeek.forEach((day) => {
       const timeWindow = createTimeWindow(day, name);
-      const newAvailability = setAvailability(availability, timeWindow, true);
-      availabilityWeek.push(newAvailability);
+      let dailyAvailability = generateAvailability(name, dailyUsage);
+      dailyAvailability = setAvailability(dailyAvailability, timeWindow, true);
+
+      availabilityWeek.push(dailyAvailability);
     });
 
     // Generate time dailies for the full year
