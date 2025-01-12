@@ -35,6 +35,8 @@ const endDateState = createState<number>(0);
 const loopState = createState<"idle" | "running" | "completed">("idle");
 const loopIntervalState = createState<number | null>(null);
 
+const simulationTypeState = createState<"single" | "chain" | null>(null);
+
 export function getStartDate() {
   function setStartDate(date: number) {
     startDateState.setState(date);
@@ -117,6 +119,18 @@ export function getEfficiencyResults() {
       return efficiencyResultsState.state;
     },
     setEfficiencyResults,
+  };
+}
+
+export function getSimulationType() {
+  function setSimulationType(type: "single" | "chain" | null) {
+    simulationTypeState.setState(type);
+  }
+  return {
+    get simulationType() {
+      return simulationTypeState.state;
+    },
+    setSimulationType,
   };
 }
 
@@ -210,7 +224,7 @@ export function getLoopManager() {
         startDate.setStartDate(results.totalStartDate);
       }
 
-      if (endDate.endDate === 0) {
+      if (results.endDate !== 0) {
         endDate.setEndDate(results.endDate);
       }
 
