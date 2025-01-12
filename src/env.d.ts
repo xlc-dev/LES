@@ -78,6 +78,7 @@ type Household = {
   size: number;
   energyUsage: number;
   solarPanels: number;
+  solarPanelType: PanelType;
   solarYieldYearly: number;
   appliances?: Appliance[];
 };
@@ -88,6 +89,8 @@ type TwinWorld = {
   solarPanelCapacity: number;
   households: Household[];
 };
+
+type PanelType = "Good" | "Average" | "Bad";
 
 type ApplianceTypes =
   | "Washing Machine"
