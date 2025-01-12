@@ -2,6 +2,7 @@
 
 <script lang="ts">
   import Stepper from "./Stepper.svelte";
+  import Chain from "./Chain.svelte";
   import Dashboard from "./Dashboard.svelte";
   import Simulation from "./Simulation.svelte";
   import SchedulableLoads from "./SchedulableLoads.svelte";
@@ -19,6 +20,7 @@
     getEndDate,
     getHousehold,
     getEfficiencyResults,
+    getSimulationType,
   } from "./state.svelte";
 
   import HomepageLogo from "/public/homepagelogo.png";
@@ -33,23 +35,31 @@
   const endDate = getEndDate();
   const household = getHousehold();
   const efficiencyResults = getEfficiencyResults();
+  const simulationType = getSimulationType();
 
   let started = $state(false);
   let completed = $state(false);
-  let simulationType = $state<"single" | "chain" | null>(null);
 
   function loop() {
     runtime.startRuntime();
     loopManager.startLoop(() => {
-      runtime.stopRuntime();
-      completed = true;
+      if (simulationType.simulationType === "single") {
+        runtime.stopRuntime();
+        completed = true;
+      } else {
+        runtime.stopRuntime();
+        efficiencyResults.setEfficiencyResults([]);
+        startDate.setStartDate(0);
+        endDate.setEndDate(0);
+        // TODO: fix
+      }
     });
   }
 
   function newSession() {
     started = false;
     completed = false;
-    simulationType = null;
+    simulationType.setSimulationType(null);
     dashboard.setDashboard(false);
     runtime.stopRuntime();
     // @ts-ignore
@@ -109,14 +119,14 @@
     <div class="flex flex-col gap-4 py-4">
       <button
         onclick={() => {
-          simulationType = "single";
+          simulationType.setSimulationType("single");
         }}
         class="cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors duration-300 hover:bg-blue-600">
         Single
       </button>
       <button
         onclick={() => {
-          simulationType = "chain";
+          simulationType.setSimulationType("chain");
         }}
         class="cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors duration-300 hover:bg-blue-600">
         Chain
@@ -128,12 +138,12 @@
 <main class="bg-les-gray-500 min-h-screen text-white">
   {#if !started && !dashboard.startDashboard}
     {@render msg()}
-  {:else if !simulationType && !dashboard.startDashboard}
+  {:else if !simulationType.simulationType && !dashboard.startDashboard}
     {@render choices()}
-  {:else if simulationType === "single" && !dashboard.startDashboard}
+  {:else if simulationType.simulationType === "single" && !dashboard.startDashboard}
     <Stepper onComplete={loop} />
-  {:else if simulationType === "chain" && !dashboard.startDashboard}
-    <Stepper onComplete={loop} />
+  {:else if simulationType.simulationType === "chain" && !dashboard.startDashboard}
+    <Chain {loop} />
   {:else}
     <div class="flex h-screen md:flex-col">
       {#if currentComponent.currentComponent !== "Stop"}
@@ -165,10 +175,7 @@
         <div class="flex justify-between">
           <button
             class="mt-4 cursor-pointer rounded-lg bg-blue-500 p-2 text-white transition duration-300 hover:bg-blue-600"
-            onclick={() => {
-              completed = false;
-              runtime.stopRuntime();
-            }}>
+            onclick={() => (completed = false)}>
             Continue
           </button>
           <button
