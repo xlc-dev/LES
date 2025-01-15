@@ -237,6 +237,20 @@
         <div class="mr-2 h-4 w-4 bg-red-700"></div>
         <p>indicate that the planned energy used is drawn from the national grid.</p>
       </div>
+      <div class="flex items-center">
+        <div class="mr-2 h-4 w-4 bg-red-950"></div>
+        <p>
+          The algorithm attempted to plan energy usage at a location where energy was drawn from
+          the national grid, but the household's time window was missing.
+        </p>
+      </div>
+      <div class="flex items-center">
+        <div class="mr-2 h-4 w-4 bg-yellow-700"></div>
+        <p>
+          The algorithm attempted to plan energy usage at a location where energy was drawn from
+          the solar panels, but the household's time window was missing.
+        </p>
+      </div>
     </div>
   </div>
 {/if}

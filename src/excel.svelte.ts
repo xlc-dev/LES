@@ -150,7 +150,7 @@ export function downloadExcel(name?: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = name || "session-data.xlsx";
+  a.download = name + ".xlsx" || "session-data.xlsx";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

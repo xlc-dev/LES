@@ -37,124 +37,90 @@
   let initial = $state(true);
   let prevChainCount = $state(0);
   let stepperDone = $state(false);
-
+  let hasErrors = $state(false);
   let errors: { [field: string]: string } = $state({});
 
-  // Helper function to check if a value is a valid number.
   const isValidNumber = (value: any) =>
     value !== null && value !== undefined && !isNaN(parseFloat(value)) && isFinite(value);
 
+  function validateField(key: string, value: any, validateFn: (val: any) => string): void {
+    const errorMessage = validateFn(value);
+    if (errorMessage) {
+      errors = { ...errors, [key]: errorMessage };
+    } else {
+      const { [key]: removed, ...rest } = errors;
+      errors = rest;
+    }
+  }
+
+  function validatePositiveNumber(val: any): string {
+    if (val === null || val === undefined || val === "") {
+      return "This field is required.";
+    } else if (!isValidNumber(val)) {
+      return "Please enter a valid number.";
+    } else if (Number(val) < 0) {
+      return "Please enter a valid positive number.";
+    }
+    return "";
+  }
+
   function validateCurrentIteration(): boolean {
-    // Clear previous errors
     errors = {};
-
-    // Validate Twinworld fields
-    if (chainIterations[currentChainIndex]?.twinworld) {
-      const value = chainIterations[currentChainIndex].twinworld.solarPanelCapacity;
-      if (value === null || value === undefined) {
-        errors[`twinworld-solarPanelCapacity-${currentChainIndex}`] =
-          "Solar Panel Capacity is required.";
-      } else if (!isValidNumber(value) || Number(value) < 0) {
-        errors[`twinworld-solarPanelCapacity-${currentChainIndex}`] =
-          "Please enter a valid positive number.";
-      }
+    const twinworld = chainIterations[currentChainIndex]?.twinworld;
+    if (twinworld) {
+      validateField(
+        `twinworld-solarPanelCapacity-${currentChainIndex}`,
+        twinworld.solarPanelCapacity,
+        validatePositiveNumber
+      );
     }
-
-    // Validate Cost Model fields
-    if (chainIterations[currentChainIndex]?.costmodel) {
-      const costModel = chainIterations[currentChainIndex].costmodel;
-
-      // Price Network Buy Consumer
-      if (
-        costModel.priceNetworkBuyConsumer === null ||
-        costModel.priceNetworkBuyConsumer === undefined
-      ) {
-        errors[`costmodel-priceNetworkBuyConsumer-${currentChainIndex}`] =
-          "Price Network Buy Consumer is required.";
-      } else if (
-        !isValidNumber(costModel.priceNetworkBuyConsumer) ||
-        Number(costModel.priceNetworkBuyConsumer) < 0
-      ) {
-        errors[`costmodel-priceNetworkBuyConsumer-${currentChainIndex}`] =
-          "Please enter a valid positive number.";
-      }
-
-      // Price Network Sell Consumer
-      if (
-        costModel.priceNetworkSellConsumer === null ||
-        costModel.priceNetworkSellConsumer === undefined
-      ) {
-        errors[`costmodel-priceNetworkSellConsumer-${currentChainIndex}`] =
-          "Price Network Sell Consumer is required.";
-      } else if (
-        !isValidNumber(costModel.priceNetworkSellConsumer) ||
-        Number(costModel.priceNetworkSellConsumer) < 0
-      ) {
-        errors[`costmodel-priceNetworkSellConsumer-${currentChainIndex}`] =
-          "Please enter a valid positive number.";
-      }
-
-      // Fixed Price Ratio
-      if (costModel.fixedPriceRatio === null || costModel.fixedPriceRatio === undefined) {
-        errors[`costmodel-fixedPriceRatio-${currentChainIndex}`] =
-          "Fixed Price Ratio is required.";
-      } else if (
-        !isValidNumber(costModel.fixedPriceRatio) ||
-        Number(costModel.fixedPriceRatio) < 0
-      ) {
-        errors[`costmodel-fixedPriceRatio-${currentChainIndex}`] =
-          "Please enter a valid positive number.";
-      }
+    const costmodel = chainIterations[currentChainIndex]?.costmodel;
+    if (costmodel) {
+      validateField(
+        `costmodel-priceNetworkBuyConsumer-${currentChainIndex}`,
+        costmodel.priceNetworkBuyConsumer,
+        validatePositiveNumber
+      );
+      validateField(
+        `costmodel-priceNetworkSellConsumer-${currentChainIndex}`,
+        costmodel.priceNetworkSellConsumer,
+        validatePositiveNumber
+      );
+      validateField(
+        `costmodel-fixedPriceRatio-${currentChainIndex}`,
+        costmodel.fixedPriceRatio,
+        validatePositiveNumber
+      );
     }
-
-    // Validate Algorithm fields
-    if (chainIterations[currentChainIndex]?.algo) {
-      const algo = chainIterations[currentChainIndex].algo;
-      if (algo.maxTemperature === null || algo.maxTemperature === undefined) {
-        errors[`algo-maxTemperature-${currentChainIndex}`] = "Max Temperature is required.";
-      } else if (!isValidNumber(algo.maxTemperature) || Number(algo.maxTemperature) < 0) {
-        errors[`algo-maxTemperature-${currentChainIndex}`] =
-          "Please enter a valid positive number.";
-      }
+    const algo = chainIterations[currentChainIndex]?.algo;
+    if (algo) {
+      validateField(
+        `algo-maxTemperature-${currentChainIndex}`,
+        algo.maxTemperature,
+        validatePositiveNumber
+      );
     }
-
-    // Validate Energyflow fields
-    if (chainIterations[currentChainIndex]?.energyflow) {
-      const energyflow = chainIterations[currentChainIndex].energyflow;
-      if (energyflow.solarPanelsFactor === null || energyflow.solarPanelsFactor === undefined) {
-        errors[`energyflow-solarPanelsFactor-${currentChainIndex}`] =
-          "Solar Panels Factor is required.";
-      } else if (
-        !isValidNumber(energyflow.solarPanelsFactor) ||
-        Number(energyflow.solarPanelsFactor) < 0
-      ) {
-        errors[`energyflow-solarPanelsFactor-${currentChainIndex}`] =
-          "Please enter a valid positive number.";
-      }
-
-      if (energyflow.energyUsageFactor === null || energyflow.energyUsageFactor === undefined) {
-        errors[`energyflow-energyUsageFactor-${currentChainIndex}`] =
-          "Energy Usage Factor is required.";
-      } else if (
-        !isValidNumber(energyflow.energyUsageFactor) ||
-        Number(energyflow.energyUsageFactor) < 0
-      ) {
-        errors[`energyflow-energyUsageFactor-${currentChainIndex}`] =
-          "Please enter a valid positive number.";
-      }
+    const energyflow = chainIterations[currentChainIndex]?.energyflow;
+    if (energyflow) {
+      validateField(
+        `energyflow-solarPanelsFactor-${currentChainIndex}`,
+        energyflow.solarPanelsFactor,
+        validatePositiveNumber
+      );
+      validateField(
+        `energyflow-energyUsageFactor-${currentChainIndex}`,
+        energyflow.energyUsageFactor,
+        validatePositiveNumber
+      );
     }
-
-    // Return true if no errors, false otherwise.
     return Object.keys(errors).length === 0;
   }
 
   function nextChainIteration() {
-    // Validate current chain settings before proceeding
     if (!validateCurrentIteration()) {
       alert("Please correct the errors before proceeding.");
       return;
     }
-
     if (currentChainIndex < chainCount - 1) {
       currentChainIndex++;
       loadEditors("costmodelalgo", chainIterations[currentChainIndex].costmodel.algorithm);
@@ -163,7 +129,6 @@
   }
 
   function previousChainIteration() {
-    // Even when going back, you might want to validate—but here we allow going back without validation.
     if (currentChainIndex > 0) {
       currentChainIndex--;
       loadEditors("costmodelalgo", chainIterations[currentChainIndex].costmodel.algorithm);
@@ -178,7 +143,6 @@
   }
 
   async function runChain() {
-    // Validate current iteration before starting the chain run.
     if (!validateCurrentIteration()) {
       alert("Please correct the errors before running the chain.");
       return;
@@ -211,7 +175,7 @@
 
   function loadEditors(id: string, value: string) {
     if (!document.getElementById(id)) return;
-    // @ts-ignore
+    // @ts-ignore - aceEditor is defined in the global scope
     const aceEditor = ace.edit(id, {
       mode: "ace/mode/javascript",
       selectionStyle: "text",
@@ -219,7 +183,6 @@
       animatedScroll: true,
       fontSize: "15px",
     });
-
     aceEditor.setValue(value, -1);
   }
 
@@ -254,6 +217,10 @@
     loadEditors("costmodelalgo", chainIterations[currentChainIndex].costmodel.algorithm);
     loadEditors("algorithm", chainIterations[currentChainIndex].algo.algorithm);
   });
+
+  $effect(() => {
+    hasErrors = Object.keys(errors).length > 0;
+  });
 </script>
 
 <svelte:window onclick={handleClickOutside} />
@@ -272,14 +239,12 @@
           Please select a chain length to continue
         {/if}
       </h1>
-
       <div class="dropdown-container relative w-full">
         <button
           class="w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 shadow-sm transition-colors duration-300 hover:bg-gray-100 focus:ring-2 focus:ring-gray-400 focus:outline-none"
           onclick={() => (showChainDropdown = !showChainDropdown)}>
           Chain length: {chainCount || "Not set"}
         </button>
-
         {#if showChainDropdown}
           <div
             class="absolute left-0 z-10 mt-2 w-full rounded-lg border bg-white ring-1 shadow-lg ring-black transition-all"
@@ -300,7 +265,6 @@
           </div>
         {/if}
       </div>
-
       {#if chainCount === 0}
         <div class="flex w-full items-center justify-center">
           <p class="text-lg text-gray-600">
@@ -310,7 +274,6 @@
       {:else if !done}
         <div class="flex w-full flex-col space-y-6">
           {#if chainIterations[currentChainIndex]}
-            <!-- Twinworld Fieldset -->
             {#if chainIterations[currentChainIndex].twinworld}
               <fieldset class="rounded-lg border-2 border-gray-300 p-4">
                 <legend class="mb-2 text-2xl font-bold text-gray-800">Twin World</legend>
@@ -327,7 +290,16 @@
                     min="0"
                     step="any"
                     class="text-les-highlight w-full rounded-lg border-2 border-gray-400 p-2"
-                    bind:value={chainIterations[currentChainIndex].twinworld.solarPanelCapacity} />
+                    bind:value={chainIterations[currentChainIndex].twinworld.solarPanelCapacity}
+                    oninput={(e) => {
+                      const value = +e.currentTarget.value;
+                      chainIterations[currentChainIndex].twinworld.solarPanelCapacity = value;
+                      validateField(
+                        `twinworld-solarPanelCapacity-${currentChainIndex}`,
+                        value,
+                        validatePositiveNumber
+                      );
+                    }} />
                   {#if errors[`twinworld-solarPanelCapacity-${currentChainIndex}`]}
                     <p class="text-sm text-red-500">
                       {errors[`twinworld-solarPanelCapacity-${currentChainIndex}`]}
@@ -336,8 +308,6 @@
                 </div>
               </fieldset>
             {/if}
-
-            <!-- Cost Model Fieldset -->
             {#if chainIterations[currentChainIndex].costmodel}
               <fieldset class="rounded-lg border-2 border-gray-300 p-4">
                 <legend class="mb-2 text-2xl font-bold text-gray-800">Cost Model</legend>
@@ -356,7 +326,16 @@
                     class="text-les-highlight w-full rounded-lg border-2 border-gray-400 p-2"
                     bind:value={
                       chainIterations[currentChainIndex].costmodel.priceNetworkBuyConsumer
-                    } />
+                    }
+                    oninput={(e) => {
+                      const value = +e.currentTarget.value;
+                      chainIterations[currentChainIndex].costmodel.priceNetworkBuyConsumer = value;
+                      validateField(
+                        `costmodel-priceNetworkBuyConsumer-${currentChainIndex}`,
+                        value,
+                        validatePositiveNumber
+                      );
+                    }} />
                   {#if errors[`costmodel-priceNetworkBuyConsumer-${currentChainIndex}`]}
                     <p class="text-sm text-red-500">
                       {errors[`costmodel-priceNetworkBuyConsumer-${currentChainIndex}`]}
@@ -378,7 +357,17 @@
                     class="text-les-highlight w-full rounded-lg border-2 border-gray-400 p-2"
                     bind:value={
                       chainIterations[currentChainIndex].costmodel.priceNetworkSellConsumer
-                    } />
+                    }
+                    oninput={(e) => {
+                      const value = +e.currentTarget.value;
+                      chainIterations[currentChainIndex].costmodel.priceNetworkSellConsumer =
+                        value;
+                      validateField(
+                        `costmodel-priceNetworkSellConsumer-${currentChainIndex}`,
+                        value,
+                        validatePositiveNumber
+                      );
+                    }} />
                   {#if errors[`costmodel-priceNetworkSellConsumer-${currentChainIndex}`]}
                     <p class="text-sm text-red-500">
                       {errors[`costmodel-priceNetworkSellConsumer-${currentChainIndex}`]}
@@ -398,7 +387,16 @@
                     step="0.01"
                     min="0"
                     class="text-les-highlight w-full rounded-lg border-2 border-gray-400 p-2"
-                    bind:value={chainIterations[currentChainIndex].costmodel.fixedPriceRatio} />
+                    bind:value={chainIterations[currentChainIndex].costmodel.fixedPriceRatio}
+                    oninput={(e) => {
+                      const value = +e.currentTarget.value;
+                      chainIterations[currentChainIndex].costmodel.fixedPriceRatio = value;
+                      validateField(
+                        `costmodel-fixedPriceRatio-${currentChainIndex}`,
+                        value,
+                        validatePositiveNumber
+                      );
+                    }} />
                   {#if errors[`costmodel-fixedPriceRatio-${currentChainIndex}`]}
                     <p class="text-sm text-red-500">
                       {errors[`costmodel-fixedPriceRatio-${currentChainIndex}`]}
@@ -420,8 +418,6 @@
                 {/if}
               </fieldset>
             {/if}
-
-            <!-- Algorithm Fieldset -->
             {#if chainIterations[currentChainIndex].algo}
               <fieldset class="rounded-lg border-2 border-gray-300 p-4">
                 <legend class="mb-2 text-2xl font-bold text-gray-800">Algorithm</legend>
@@ -438,7 +434,16 @@
                     step="any"
                     min="0"
                     class="text-les-highlight w-full rounded-lg border-2 border-gray-400 p-2"
-                    bind:value={chainIterations[currentChainIndex].algo.maxTemperature} />
+                    bind:value={chainIterations[currentChainIndex].algo.maxTemperature}
+                    oninput={(e) => {
+                      const value = +e.currentTarget.value;
+                      chainIterations[currentChainIndex].algo.maxTemperature = value;
+                      validateField(
+                        `algo-maxTemperature-${currentChainIndex}`,
+                        value,
+                        validatePositiveNumber
+                      );
+                    }} />
                   {#if errors[`algo-maxTemperature-${currentChainIndex}`]}
                     <p class="text-sm text-red-500">
                       {errors[`algo-maxTemperature-${currentChainIndex}`]}
@@ -459,78 +464,91 @@
                   </div>
                 {/if}
               </fieldset>
-
-              <!-- Energyflow Fieldset -->
               {#if chainIterations[currentChainIndex].energyflow}
                 <fieldset class="rounded-lg border-2 border-gray-300 p-4">
                   <legend class="mb-2 text-2xl font-bold text-gray-800">Energyflow</legend>
                   <div class="mb-4">
                     <label
-                      for="energyflow-{currentChainIndex}"
+                      for="energyflowPanels-{currentChainIndex}"
                       class="mb-1 block text-lg text-gray-700">
                       Solar Panels Factor
                     </label>
                     <input
-                      id="energyflow-{currentChainIndex}"
+                      id="energyflowPanels-{currentChainIndex}"
                       type="number"
                       required
                       step="any"
                       min="0"
                       class="text-les-highlight w-full rounded-lg border-2 border-gray-400 p-2"
-                      bind:value={
-                        chainIterations[currentChainIndex].energyflow.solarPanelsFactor
-                      } />
+                      bind:value={chainIterations[currentChainIndex].energyflow.solarPanelsFactor}
+                      oninput={(e) => {
+                        const value = +e.currentTarget.value;
+                        chainIterations[currentChainIndex].energyflow.solarPanelsFactor = value;
+                        validateField(
+                          `energyflow-solarPanelsFactor-${currentChainIndex}`,
+                          value,
+                          validatePositiveNumber
+                        );
+                      }} />
                     {#if errors[`energyflow-solarPanelsFactor-${currentChainIndex}`]}
                       <p class="text-sm text-red-500">
                         {errors[`energyflow-solarPanelsFactor-${currentChainIndex}`]}
                       </p>
                     {/if}
                   </div>
-                  <label
-                    for="energyflow-{currentChainIndex}"
-                    class="mb-1 block text-lg text-gray-700">
-                    Energy Usage Factor
-                  </label>
-                  <input
-                    id="energyflow-{currentChainIndex}"
-                    type="number"
-                    required
-                    step="any"
-                    min="0"
-                    class="text-les-highlight w-full rounded-lg border-2 border-gray-400 p-2"
-                    bind:value={chainIterations[currentChainIndex].energyflow.energyUsageFactor} />
-                  {#if errors[`energyflow-energyUsageFactor-${currentChainIndex}`]}
-                    <p class="text-sm text-red-500">
-                      {errors[`energyflow-energyUsageFactor-${currentChainIndex}`]}
-                    </p>
-                  {/if}
+                  <div>
+                    <label
+                      for="energyflowUsage-{currentChainIndex}"
+                      class="mb-1 block text-lg text-gray-700">
+                      Energy Usage Factor
+                    </label>
+                    <input
+                      id="energyflowUsage-{currentChainIndex}"
+                      type="number"
+                      required
+                      step="any"
+                      min="0"
+                      class="text-les-highlight w-full rounded-lg border-2 border-gray-400 p-2"
+                      bind:value={chainIterations[currentChainIndex].energyflow.energyUsageFactor}
+                      oninput={(e) => {
+                        const value = +e.currentTarget.value;
+                        chainIterations[currentChainIndex].energyflow.energyUsageFactor = value;
+                        validateField(
+                          `energyflow-energyUsageFactor-${currentChainIndex}`,
+                          value,
+                          validatePositiveNumber
+                        );
+                      }} />
+                    {#if errors[`energyflow-energyUsageFactor-${currentChainIndex}`]}
+                      <p class="text-sm text-red-500">
+                        {errors[`energyflow-energyUsageFactor-${currentChainIndex}`]}
+                      </p>
+                    {/if}
+                  </div>
                 </fieldset>
               {/if}
             {/if}
           {/if}
         </div>
-
         <div class="flex w-full justify-between">
           <button
-            class="rounded-md bg-gray-300 px-4 py-2 text-gray-700 transition-colors duration-300 disabled:opacity-50 {currentChainIndex !==
-            0
-              ? 'hover:bg-gray-400'
-              : 'cursor-not-allowed'}"
+            class="rounded-md bg-gray-300 px-4 py-2 text-gray-700 transition-colors duration-300 hover:bg-gray-400"
             onclick={previousChainIteration}
-            disabled={currentChainIndex === 0}>
+            disabled={currentChainIndex === 0 || hasErrors}>
             Previous
           </button>
-
           {#if currentChainIndex < chainCount - 1}
             <button
               class="cursor-pointer rounded-md bg-blue-500 px-4 py-2 text-white transition-colors duration-300 hover:bg-blue-600 disabled:opacity-50"
-              onclick={nextChainIteration}>
+              onclick={nextChainIteration}
+              disabled={hasErrors}>
               Next
             </button>
           {:else}
             <button
               class="bg-les-highlight hover:bg-sidebar cursor-pointer rounded-md px-4 py-2 text-white transition-colors duration-300"
-              onclick={runChain}>
+              onclick={runChain}
+              disabled={hasErrors}>
               Run
             </button>
           {/if}
