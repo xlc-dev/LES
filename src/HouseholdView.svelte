@@ -16,7 +16,6 @@
 
   let showDatePicker: boolean = $state(false);
   let selectedDate: Date = $state(setMinDate);
-  let formattedDate: string = $derived(new Date(selectedDate).toLocaleDateString("en-US"));
 
   let weekDates: Date[] = $derived.by(() => {
     let curweekDates = [selectedDate];
