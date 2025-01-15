@@ -222,30 +222,30 @@
     </button>
     <div class="flex flex-col gap-2 p-4">
       <div class="mb-2 flex items-center">
-        <div class="mr-2 h-4 w-4 bg-gray-700"></div>
-        <p>contain the time slots that are unavailable to plan appliances in.</p>
+        <div class="mr-2 h-4 w-4 flex-shrink-0 bg-gray-700"></div>
+        <p>Contain the time slots that are unavailable to plan appliances in.</p>
       </div>
       <div class="mb-2 flex items-center">
-        <div class="mr-2 h-4 w-4 bg-blue-700"></div>
-        <p>contain the time slots that are available to plan appliances in.</p>
+        <div class="mr-2 h-4 w-4 flex-shrink-0 bg-blue-700"></div>
+        <p>Contain the time slots that are available to plan appliances in.</p>
       </div>
       <div class="mb-2 flex items-center">
-        <div class="mr-2 h-4 w-4 bg-green-700"></div>
-        <p>indicate that the planned energy used is drawn from solar panels.</p>
+        <div class="mr-2 h-4 w-4 flex-shrink-0 bg-green-700"></div>
+        <p>Indicate that the planned energy used is drawn from solar panels.</p>
       </div>
       <div class="flex items-center">
-        <div class="mr-2 h-4 w-4 bg-red-700"></div>
-        <p>indicate that the planned energy used is drawn from the national grid.</p>
+        <div class="mr-2 h-4 w-4 flex-shrink-0 bg-red-700"></div>
+        <p>Indicate that the planned energy used is drawn from the national grid.</p>
       </div>
       <div class="flex items-center">
-        <div class="mr-2 h-4 w-4 bg-red-950"></div>
+        <div class="mr-2 h-4 w-4 flex-shrink-0 bg-red-950"></div>
         <p>
           The algorithm attempted to plan energy usage at a location where energy was drawn from
           the national grid, but the household's time window was missing.
         </p>
       </div>
       <div class="flex items-center">
-        <div class="mr-2 h-4 w-4 bg-yellow-700"></div>
+        <div class="mr-2 h-4 w-4 flex-shrink-0 bg-yellow-700"></div>
         <p>
           The algorithm attempted to plan energy usage at a location where energy was drawn from
           the solar panels, but the household's time window was missing.

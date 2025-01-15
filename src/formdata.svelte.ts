@@ -132,8 +132,8 @@ export async function loadFormData() {
         },
       ],
       twinWorlds: {
-        "1": createTwinWorld("Twin World Small", 25, 5),
-        "2": createTwinWorld("Twin World Large", 75, 5),
+        "1": createTwinWorld("Twin World Small", 25, 2),
+        "2": createTwinWorld("Twin World Large", 75, 2),
       },
     },
     {
