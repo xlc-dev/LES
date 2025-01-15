@@ -69,7 +69,7 @@
       </button>
       <button
         class="cursor-pointer rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-300 hover:bg-blue-600"
-        onclick={downloadExcel}>
+        onclick={() => downloadExcel()}>
         Download
       </button>
     </div>

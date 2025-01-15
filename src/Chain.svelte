@@ -41,7 +41,8 @@
   let errors: { [field: string]: string } = $state({});
 
   // Helper function to check if a value is a valid number.
-  const isValidNumber = (value: any) => !isNaN(parseFloat(value)) && isFinite(value);
+  const isValidNumber = (value: any) =>
+    value !== null && value !== undefined && !isNaN(parseFloat(value)) && isFinite(value);
 
   function validateCurrentIteration(): boolean {
     // Clear previous errors
@@ -50,7 +51,7 @@
     // Validate Twinworld fields
     if (chainIterations[currentChainIndex]?.twinworld) {
       const value = chainIterations[currentChainIndex].twinworld.solarPanelCapacity;
-      if (value === null || value === undefined || value === "") {
+      if (value === null || value === undefined) {
         errors[`twinworld-solarPanelCapacity-${currentChainIndex}`] =
           "Solar Panel Capacity is required.";
       } else if (!isValidNumber(value) || Number(value) < 0) {
@@ -66,8 +67,7 @@
       // Price Network Buy Consumer
       if (
         costModel.priceNetworkBuyConsumer === null ||
-        costModel.priceNetworkBuyConsumer === undefined ||
-        costModel.priceNetworkBuyConsumer === ""
+        costModel.priceNetworkBuyConsumer === undefined
       ) {
         errors[`costmodel-priceNetworkBuyConsumer-${currentChainIndex}`] =
           "Price Network Buy Consumer is required.";
@@ -82,8 +82,7 @@
       // Price Network Sell Consumer
       if (
         costModel.priceNetworkSellConsumer === null ||
-        costModel.priceNetworkSellConsumer === undefined ||
-        costModel.priceNetworkSellConsumer === ""
+        costModel.priceNetworkSellConsumer === undefined
       ) {
         errors[`costmodel-priceNetworkSellConsumer-${currentChainIndex}`] =
           "Price Network Sell Consumer is required.";
@@ -96,11 +95,7 @@
       }
 
       // Fixed Price Ratio
-      if (
-        costModel.fixedPriceRatio === null ||
-        costModel.fixedPriceRatio === undefined ||
-        costModel.fixedPriceRatio === ""
-      ) {
+      if (costModel.fixedPriceRatio === null || costModel.fixedPriceRatio === undefined) {
         errors[`costmodel-fixedPriceRatio-${currentChainIndex}`] =
           "Fixed Price Ratio is required.";
       } else if (
@@ -115,11 +110,7 @@
     // Validate Algorithm fields
     if (chainIterations[currentChainIndex]?.algo) {
       const algo = chainIterations[currentChainIndex].algo;
-      if (
-        algo.maxTemperature === null ||
-        algo.maxTemperature === undefined ||
-        algo.maxTemperature === ""
-      ) {
+      if (algo.maxTemperature === null || algo.maxTemperature === undefined) {
         errors[`algo-maxTemperature-${currentChainIndex}`] = "Max Temperature is required.";
       } else if (!isValidNumber(algo.maxTemperature) || Number(algo.maxTemperature) < 0) {
         errors[`algo-maxTemperature-${currentChainIndex}`] =
@@ -130,11 +121,7 @@
     // Validate Energyflow fields
     if (chainIterations[currentChainIndex]?.energyflow) {
       const energyflow = chainIterations[currentChainIndex].energyflow;
-      if (
-        energyflow.solarPanelsFactor === null ||
-        energyflow.solarPanelsFactor === undefined ||
-        energyflow.solarPanelsFactor === ""
-      ) {
+      if (energyflow.solarPanelsFactor === null || energyflow.solarPanelsFactor === undefined) {
         errors[`energyflow-solarPanelsFactor-${currentChainIndex}`] =
           "Solar Panels Factor is required.";
       } else if (
@@ -145,11 +132,7 @@
           "Please enter a valid positive number.";
       }
 
-      if (
-        energyflow.energyUsageFactor === null ||
-        energyflow.energyUsageFactor === undefined ||
-        energyflow.energyUsageFactor === ""
-      ) {
+      if (energyflow.energyUsageFactor === null || energyflow.energyUsageFactor === undefined) {
         errors[`energyflow-energyUsageFactor-${currentChainIndex}`] =
           "Energy Usage Factor is required.";
       } else if (
