@@ -1424,7 +1424,11 @@
                   <div class="flex items-center justify-between">
                     <h4 class="text-lg font-semibold">Appliances</h4>
                     <button
-                      class="flex cursor-pointer items-center rounded-md bg-blue-500 px-3 py-2 text-white transition hover:bg-blue-600"
+                      class={`flex items-center rounded-md px-3 py-2 text-white transition ${
+                        (household.appliances?.length ?? 0) < 5
+                          ? "cursor-pointer bg-blue-500 hover:bg-blue-600"
+                          : "cursor-not-allowed bg-gray-300"
+                      }`}
                       disabled={(household.appliances?.length ?? 0) >= 5}
                       onclick={() => addAppliance(hIndex)}>
                       <svg
