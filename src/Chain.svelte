@@ -423,7 +423,7 @@
                 {/if}
               </fieldset>
             {/if}
-          
+
             {#if chainIterations[currentChainIndex].algo}
               <fieldset class="rounded-lg border-2 border-gray-300 p-4">
                 <legend class="mb-2 text-2xl font-bold text-gray-800">Algorithm</legend>
