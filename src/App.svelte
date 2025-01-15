@@ -43,16 +43,8 @@
   function loop() {
     runtime.startRuntime();
     loopManager.startLoop(() => {
-      if (simulationType.simulationType === "single") {
-        runtime.stopRuntime();
-        completed = true;
-      } else {
-        runtime.stopRuntime();
-        efficiencyResults.setEfficiencyResults([]);
-        startDate.setStartDate(0);
-        endDate.setEndDate(0);
-        // TODO: fix
-      }
+      runtime.stopRuntime();
+      completed = true;
     });
   }
 
@@ -143,7 +135,7 @@
   {:else if simulationType.simulationType === "single" && !dashboard.startDashboard}
     <Stepper onComplete={loop} />
   {:else if simulationType.simulationType === "chain" && !dashboard.startDashboard}
-    <Chain {loop} />
+    <Chain bind:completed />
   {:else}
     <div class="flex h-screen md:flex-col">
       {#if currentComponent.currentComponent !== "Stop"}
