@@ -16,6 +16,7 @@
 
   let showDatePicker: boolean = $state(false);
   let selectedDate: Date = $state(setMinDate);
+  let formattedDate: string = $derived(new Date(selectedDate).toLocaleDateString("en-US"));
 
   let weekDates: Date[] = $derived.by(() => {
     let curweekDates = [selectedDate];
@@ -65,8 +66,10 @@
           <div class="text-gray-800">{household.energyUsage}</div>
           <div class="font-semibold text-gray-600">Solar Panels:</div>
           <div class="text-gray-800">{household.solarPanels}</div>
-          <div class="font-semibold text-gray-600">Solar Panel Type:</div>
-          <div class="text-gray-800">{household.solarPanelType}</div>
+          {#if household.solarYieldYearly > 0}
+            <div class="font-semibold text-gray-600">Solar Panel Type:</div>
+            <div class="text-gray-800">{household.solarPanelType}</div>
+          {/if}
           <div class="font-semibold text-gray-600">Solar Yield Yearly:</div>
           <div class="text-gray-800">{household.solarYieldYearly}</div>
         </div>
@@ -111,27 +114,31 @@
       </div>
 
       <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        {#each weekDates as date}
-          <div
-            class="flex w-full flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <div class="mb-3 text-center text-lg font-semibold text-gray-700">
-              {date.toLocaleDateString("en-US", { weekday: "long" })}
+        {#key selectedDate}
+          {#each weekDates as date}
+            <div
+              class="flex w-full flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <div class="mb-3 text-center text-lg font-semibold text-gray-700">
+                {date.toLocaleDateString("en-US", { weekday: "long" })}
+              </div>
+              <table>
+                <tbody>
+                  <tr>
+                    <td class="flex items-center justify-center p-4" colspan={7}>
+                      {#key formattedDate}
+                        <SchedulableLoadGrid
+                          appliances={household.appliances}
+                          date={formattedDate}
+                          dateNoFormat={selectedDate}
+                          {hours} />
+                      {/key}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <table>
-              <tbody>
-                <tr>
-                  <td class="flex items-center justify-center p-4">
-                    <SchedulableLoadGrid
-                      appliances={household.appliances}
-                      date={date.toLocaleDateString("en-US")}
-                      dateNoFormat={date}
-                      {hours} />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        {/each}
+          {/each}
+        {/key}
       </div>
     </div>
   </div>

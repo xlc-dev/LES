@@ -99,7 +99,7 @@
       </button>
 
       {#if showDatePicker}
-        <div class="calendar absolute z-20 mt-2 w-72 lg:left-[15%] lg:translate-x-[-50%]">
+        <div class="calendar absolute z-20 mt-2 lg:translate-x-[-50%]">
           <DatePicker
             bind:value={selectedDate}
             min={setMinDate}

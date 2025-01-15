@@ -1411,6 +1411,7 @@
                   <h4 class="text-lg font-semibold">Appliances</h4>
                   <button
                     class="flex cursor-pointer items-center rounded-md bg-blue-500 px-3 py-2 text-white transition hover:bg-blue-600"
+                    disabled={household.appliances.length >= 5}
                     onclick={() => addAppliance(hIndex)}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
