@@ -113,6 +113,7 @@
         validatePositiveNumber
       );
     }
+
     return Object.keys(errors).length === 0;
   }
 
@@ -129,6 +130,7 @@
   }
 
   function previousChainIteration() {
+    // Even when going back, you might want to validate—but here we allow going back without validation.
     if (currentChainIndex > 0) {
       currentChainIndex--;
       loadEditors("costmodelalgo", chainIterations[currentChainIndex].costmodel.algorithm);
@@ -183,6 +185,7 @@
       animatedScroll: true,
       fontSize: "15px",
     });
+
     aceEditor.setValue(value, -1);
   }
 
@@ -308,6 +311,7 @@
                 </div>
               </fieldset>
             {/if}
+
             {#if chainIterations[currentChainIndex].costmodel}
               <fieldset class="rounded-lg border-2 border-gray-300 p-4">
                 <legend class="mb-2 text-2xl font-bold text-gray-800">Cost Model</legend>
@@ -336,6 +340,7 @@
                         validatePositiveNumber
                       );
                     }} />
+
                   {#if errors[`costmodel-priceNetworkBuyConsumer-${currentChainIndex}`]}
                     <p class="text-sm text-red-500">
                       {errors[`costmodel-priceNetworkBuyConsumer-${currentChainIndex}`]}
@@ -418,6 +423,7 @@
                 {/if}
               </fieldset>
             {/if}
+          
             {#if chainIterations[currentChainIndex].algo}
               <fieldset class="rounded-lg border-2 border-gray-300 p-4">
                 <legend class="mb-2 text-2xl font-bold text-gray-800">Algorithm</legend>
@@ -444,6 +450,7 @@
                         validatePositiveNumber
                       );
                     }} />
+
                   {#if errors[`algo-maxTemperature-${currentChainIndex}`]}
                     <p class="text-sm text-red-500">
                       {errors[`algo-maxTemperature-${currentChainIndex}`]}
@@ -464,6 +471,7 @@
                   </div>
                 {/if}
               </fieldset>
+
               {#if chainIterations[currentChainIndex].energyflow}
                 <fieldset class="rounded-lg border-2 border-gray-300 p-4">
                   <legend class="mb-2 text-2xl font-bold text-gray-800">Energyflow</legend>
@@ -490,6 +498,7 @@
                           validatePositiveNumber
                         );
                       }} />
+
                     {#if errors[`energyflow-solarPanelsFactor-${currentChainIndex}`]}
                       <p class="text-sm text-red-500">
                         {errors[`energyflow-solarPanelsFactor-${currentChainIndex}`]}
