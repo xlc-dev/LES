@@ -111,19 +111,25 @@ export function downloadExcel(name?: string): void {
   }
 
   function processGraphDataAndAddToWorkbook(graphData: GraphData, workbook: XLSX.WorkBook): void {
+    const graphTabNames: Record<keyof GraphData, string> = {
+      graph1: "Internal Energy Price",
+      graph2: "Individual Solar Energy",
+      graph3: "Total Solar Energy",
+      graph4: "Total Money Saved",
+    };
+
     Object.keys(graphData).forEach((graphKey) => {
-      const graphPoints: GraphPoint[] = graphData[graphKey as keyof GraphData].map(
-        (point: string) => {
-          const [xPart, yPart] = point.split(",");
-          return {
-            X: xPart.split(":")[1].trim(),
-            Y: yPart.split(":")[1].trim(),
-          };
-        }
-      );
+      const key = graphKey as keyof GraphData;
+      const graphPoints: GraphPoint[] = graphData[key].map((point: string) => {
+        const [xPart, yPart] = point.split(",");
+        return {
+          X: xPart.split(":")[1].trim(),
+          Y: yPart.split(":")[1].trim(),
+        };
+      });
 
       const worksheet = XLSX.utils.json_to_sheet(graphPoints);
-      XLSX.utils.book_append_sheet(workbook, worksheet, graphKey);
+      XLSX.utils.book_append_sheet(workbook, worksheet, graphTabNames[key]);
     });
   }
 
@@ -142,15 +148,17 @@ export function downloadExcel(name?: string): void {
 
   const timeDailiesSheet = XLSX.utils.json_to_sheet(timeDailies);
   XLSX.utils.book_append_sheet(workbook, timeDailiesSheet, "Time Dailies");
+
   processGraphDataAndAddToWorkbook(graphData, workbook);
   const dashboardSheet = XLSX.utils.json_to_sheet(dashboardData);
   XLSX.utils.book_append_sheet(workbook, dashboardSheet, "Dashboard Data");
+
   const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "binary" });
   const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = name + ".xlsx" || "session-data.xlsx";
+  a.download = name ? name + ".xlsx" : "session-data.xlsx";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

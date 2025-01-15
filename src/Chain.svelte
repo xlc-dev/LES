@@ -408,7 +408,7 @@
                     </p>
                   {/if}
                 </div>
-                {#if chainIterations[currentChainIndex].costmodel.name !== "Fixed Price" && chainIterations[currentChainIndex].costmodel.algorithm !== "TEMO"}
+                {#if chainIterations[currentChainIndex].costmodel.name !== "Fixed Price" && chainIterations[currentChainIndex].costmodel.name !== "TEMO"}
                   <div>
                     <label
                       for="costModelAlgo-{currentChainIndex}"
