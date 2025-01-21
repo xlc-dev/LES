@@ -420,7 +420,7 @@
               <fieldset class="rounded-lg border-2 border-gray-300 p-4">
                 <legend class="mb-2 text-2xl font-bold text-gray-800">Algorithm</legend>
                 <div class="mb-4">
-                  {#if chainIterations[currentChainIndex].algo.name !== "Greedy Planning" && chainIterations[currentChainIndex].algo.algorithm !== "Simulated Annealing"}
+                  {#if chainIterations[currentChainIndex].algo.name !== "Greedy Planning" && chainIterations[currentChainIndex].algo.name !== "Simulated Annealing"}
                     <div>
                       <label
                         for="algoSource-{currentChainIndex}"
