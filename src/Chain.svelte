@@ -92,14 +92,6 @@
         validatePositiveNumber
       );
     }
-    const algo = chainIterations[currentChainIndex]?.algo;
-    if (algo) {
-      validateField(
-        `algo-maxTemperature-${currentChainIndex}`,
-        algo.maxTemperature,
-        validatePositiveNumber
-      );
-    }
     const energyflow = chainIterations[currentChainIndex]?.energyflow;
     if (energyflow) {
       validateField(
@@ -428,48 +420,20 @@
               <fieldset class="rounded-lg border-2 border-gray-300 p-4">
                 <legend class="mb-2 text-2xl font-bold text-gray-800">Algorithm</legend>
                 <div class="mb-4">
-                  <label
-                    for="maxTemp-{currentChainIndex}"
-                    class="mb-1 block text-lg text-gray-700">
-                    Max Temperature
-                  </label>
-                  <input
-                    id="maxTemp-{currentChainIndex}"
-                    type="number"
-                    required
-                    step="any"
-                    min="0"
-                    class="text-les-highlight w-full rounded-lg border-2 border-gray-400 p-2"
-                    bind:value={chainIterations[currentChainIndex].algo.maxTemperature}
-                    oninput={(e) => {
-                      const value = +e.currentTarget.value;
-                      chainIterations[currentChainIndex].algo.maxTemperature = value;
-                      validateField(
-                        `algo-maxTemperature-${currentChainIndex}`,
-                        value,
-                        validatePositiveNumber
-                      );
-                    }} />
-
-                  {#if errors[`algo-maxTemperature-${currentChainIndex}`]}
-                    <p class="text-sm text-red-500">
-                      {errors[`algo-maxTemperature-${currentChainIndex}`]}
-                    </p>
+                  {#if chainIterations[currentChainIndex].algo.name !== "Greedy Planning" && chainIterations[currentChainIndex].algo.algorithm !== "Simulated Annealing"}
+                    <div>
+                      <label
+                        for="algoSource-{currentChainIndex}"
+                        class="mb-1 block text-lg text-gray-700">
+                        Algorithm
+                      </label>
+                      <div
+                        id="algorithm"
+                        class="text-les-highlight h-40 w-full rounded-lg border-2 border-gray-400 p-2">
+                      </div>
+                    </div>
                   {/if}
                 </div>
-                {#if chainIterations[currentChainIndex].algo.name !== "Greedy Planning" && chainIterations[currentChainIndex].algo.algorithm !== "Simulated Annealing"}
-                  <div>
-                    <label
-                      for="algoSource-{currentChainIndex}"
-                      class="mb-1 block text-lg text-gray-700">
-                      Algorithm
-                    </label>
-                    <div
-                      id="algorithm"
-                      class="text-les-highlight h-40 w-full rounded-lg border-2 border-gray-400 p-2">
-                    </div>
-                  </div>
-                {/if}
               </fieldset>
 
               {#if chainIterations[currentChainIndex].energyflow}

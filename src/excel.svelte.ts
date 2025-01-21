@@ -88,7 +88,6 @@ export function downloadExcel(name?: string): void {
         label: "Twin World Solar Panels Factor",
         value: stepperData.stepperData.energyflow.solarPanelsFactor,
       },
-      { label: "Algorithm Max Temperature", value: stepperData.stepperData.algo.maxTemperature },
       {
         label: "Total Saved by Own Solar Panels",
         value: `${sumEfficiencyIndividual.toFixed(2)} kWh`,

@@ -73,8 +73,8 @@
   });
 
   const defaultEditorValues: { [key: string]: string } = {
-    costmodel: `function costModel() {\n\treturn buyCustomer * ratio + sellCustomer * (1 - ratio);\n}\n`,
-    algo: `function run(context) {\n}\n`,
+    costmodel: `/* Documentation:\n *\n * The variables:\n *   buyConsumer\n *   sellConsumer\n *   ratio\n * are available for use.\n * These get passed in the costModel function.\n * The values are set in the form fields above by you,\n * so you know what comes in.\n *\n * Do *NOT* edit the costModel parameters or name of the function.\n * This will break your function and it will not work.\n */\nfunction costModel(buyConsumer, sellConsumer, ratio) {\n\t// Example algorithm:\n\treturn buyCustomer * ratio + sellConsumer * (1 - ratio);\n}\n`,
+    algo: `/* Documentation:\n *\n * Constants:\n * totalAvailableEnergy: The total available energy for the households.\n * totalStartDate: The startdate of the selected CSV file.\n * startDate: The start date of the current chunk.\n * endDate: The end date of the current chunk.\n * energyflowDataSim: The current chunk CSV energyflow sorted by timestamp.\n * energyflowDataSolar: The current chunk energyflow sorted by solar produced.\n * ensureValidBitmap: A function you can call to make sure when working with bitmaps that they use 24 bits.\n *\n * Call these constants with context.constantName within your run() function. For example: context.startDate.\n * These are all constants, so you cannot change any of the values.\n * If you desire to do so, make a new variable with the value of the constant and change that value in the function.\n * It will not change the original value though.\n *\n * Do *NOT* edit the run function parameter or name of the function.\n * This will break your function and it will not work.\n */\nfunction run(context) {\n}\n`,
   };
 
   const ApplianceTypes = [
@@ -142,6 +142,47 @@
     twinWorld.households.push(newHousehold);
     updateFoldedHouseholds(twinWorld);
     errors.households[newHousehold.id] = {};
+  }
+
+  function duplicateHousehold(hIndex: number) {
+    const twinWorld = getSelectedTwinWorld();
+    if (!twinWorld) return;
+
+    const sourceHousehold = twinWorld.households[hIndex];
+    const baseName = sourceHousehold.name;
+    const duplicates = twinWorld.households.filter((h) => h.name.startsWith(baseName + " (copy"));
+    const copyNumber = duplicates.length + 1;
+    const newName = `${baseName} (copy ${copyNumber})`;
+
+    const newHouseholdId = generateHouseholdId();
+    const newHousehold: Household = {
+      ...sourceHousehold,
+      id: newHouseholdId,
+      name: newName,
+      appliances: sourceHousehold.appliances
+        ? sourceHousehold.appliances.map((appliance) => {
+            const newApplianceId = generateApplianceId();
+            return {
+              ...appliance,
+              id: newApplianceId,
+              timeDaily: appliance.timeDaily.map((time) => ({
+                ...time,
+                id: generateTimeDailiesId(),
+              })),
+            };
+          })
+        : [],
+    };
+
+    twinWorld.households.push(newHousehold);
+    updateFoldedHouseholds(twinWorld);
+    errors.households[newHousehold.id] = {};
+    if (newHousehold.appliances) {
+      errors.appliances[newHousehold.id] = {};
+      newHousehold.appliances.forEach((appliance) => {
+        errors.appliances[newHousehold.id][appliance.id] = {};
+      });
+    }
   }
 
   function deleteHousehold(index: number) {
@@ -656,22 +697,19 @@
           algorithm,
         };
       } else if (isAlgoStep(currentStepData)) {
-        const maxTemperature =
-          Number(currentFormFields.find((field) => field.name === "maxTemperature")?.value) || 0;
         const algorithm =
           currentFormFields.find((field) => field.name === "algorithm")?.value?.toString() || "";
         currentStepData.algos[existingItem.id] = {
           ...currentStepData.algos[existingItem.id],
-          maxTemperature,
           algorithm,
         };
       } else if (isEnergyflowStep(currentStepData)) {
-        const energyflowCsvField = currentFormFields.find(
-          (field) => field.name === "energyflowCsv"
+        const energyflowCSVField = currentFormFields.find(
+          (field) => field.name === "energyflowCSV"
         );
-        if (energyflowCsvField && energyflowCsvField.value instanceof File) {
+        if (energyflowCSVField && energyflowCSVField.value instanceof File) {
           try {
-            const energyflowData = await readCSV(energyflowCsvField.value);
+            const energyflowData = await readCSV(energyflowCSVField.value);
             currentStepData.energyflows[existingItem.id] = {
               ...currentStepData.energyflows[existingItem.id],
               solarPanelsFactor: energyflowData.solarPanelsFactor,
@@ -680,7 +718,7 @@
               data: energyflowData.data,
             };
           } catch {
-            energyflowCsvField.error = "Invalid CSV file.";
+            energyflowCSVField.error = "Invalid CSV file.";
             return;
           }
         } else {
@@ -754,8 +792,6 @@
           algorithm,
         };
       } else if (isAlgoStep(currentStepData)) {
-        const maxTemperature =
-          Number(currentFormFields.find((field) => field.name === "maxTemperature")?.value) || 0;
         const algorithmField = currentFormFields.find((field) => field.name === "algorithm");
         let algorithm = "";
         if (algorithmField?.value) {
@@ -766,16 +802,15 @@
         currentStepData.algos[newItem.id] = {
           name: newItem.name,
           description: newItem.description,
-          maxTemperature,
           algorithm,
         };
       } else if (isEnergyflowStep(currentStepData)) {
-        const energyflowCsvField = currentFormFields.find(
-          (field) => field.name === "energyflowCsv"
+        const energyflowCSVField = currentFormFields.find(
+          (field) => field.name === "energyflowCSV"
         );
-        if (energyflowCsvField && energyflowCsvField.value instanceof File) {
+        if (energyflowCSVField && energyflowCSVField.value instanceof File) {
           try {
-            const energyflowData = await readCSV(energyflowCsvField.value);
+            const energyflowData = await readCSV(energyflowCSVField.value);
             currentStepData.energyflows[newItem.id] = {
               solarPanelsFactor: energyflowData.solarPanelsFactor,
               energyUsageFactor: energyflowData.energyUsageFactor,
@@ -783,7 +818,7 @@
               data: energyflowData.data,
             };
           } catch {
-            energyflowCsvField.error = "Invalid CSV file.";
+            energyflowCSVField.error = "Invalid CSV file.";
             return;
           }
         } else {
@@ -875,9 +910,7 @@
       if (algorithmField) algorithmField.value = costModel.algorithm;
     } else if (isAlgoStep(currentStepData)) {
       const algo = currentStepData.algos[option.id];
-      const maxTempField = currentFormFields.find((field) => field.name === "maxTemperature");
       const algorithmField = currentFormFields.find((field) => field.name === "algorithm");
-      if (maxTempField) maxTempField.value = algo.maxTemperature.toString();
       if (algorithmField) algorithmField.value = algo.algorithm;
     } else if (isEnergyflowStep(currentStepData)) {
       const energyflow = currentStepData.energyflows[option.id];
@@ -1327,23 +1360,42 @@
                     {/if}
                   </div>
                 </div>
-                <button
-                  class="flex cursor-pointer items-center text-red-500 transition hover:underline"
-                  onclick={() => deleteHousehold(hIndex)}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="mr-1 h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  Delete
-                </button>
+                <div class="flex items-center space-x-2">
+                  <button
+                    class="flex cursor-pointer items-center text-blue-500 transition hover:underline"
+                    onclick={() => duplicateHousehold(hIndex)}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="mr-1 h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 7V3m8 4V3M5 11h14M5 19h14M5 15h14" />
+                    </svg>
+                    Duplicate
+                  </button>
+                  <button
+                    class="flex cursor-pointer items-center text-red-500 transition hover:underline"
+                    onclick={() => deleteHousehold(hIndex)}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="mr-1 h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Delete
+                  </button>
+                </div>
               </div>
 
               {#if !foldedHouseholds[hIndex]}
@@ -1654,7 +1706,7 @@
   {/if}
 {/snippet}
 
-<div class="mx-auto flex max-w-3xl flex-col items-center justify-center space-y-8 px-2 py-8">
+<div class="mx-auto flex max-w-4xl flex-col items-center justify-center space-y-8 px-2 py-8">
   {@render progressbar()}
   {#if formData.formData.length === 0}
     <Spinner />

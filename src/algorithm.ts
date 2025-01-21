@@ -1,4 +1,10 @@
-import { HOURS_IN_WEEK, SECONDS_IN_DAY, SECONDS_IN_HOUR, unixToHour } from "./utils";
+import {
+  ensureValidBitmap,
+  HOURS_IN_WEEK,
+  SECONDS_IN_DAY,
+  SECONDS_IN_HOUR,
+  unixToHour,
+} from "./utils";
 
 import { planGreedy, planSimulatedAnnealing } from "./planners";
 
@@ -42,7 +48,6 @@ function getEnergyflowStartEndDate(energyflow: Energyflow): {
  * @param {Energyflow["data"]} params.energyflowDataSim - The simulated energyflow data.
  * @returns {{
  *   totalStartDate: number,
- *   totalEndDate: number,
  *   startDate: number,
  *   endDate: number,
  *   daysInChunk: number
@@ -57,7 +62,6 @@ function getEnergyflowChunkStartEndDates({
   energyflowDataSim: Energyflow["data"];
 }): {
   totalStartDate: number;
-  totalEndDate: number;
   startDate: number;
   endDate: number;
   daysInChunk: number;
@@ -81,7 +85,6 @@ function getEnergyflowChunkStartEndDates({
 
   return {
     totalStartDate,
-    totalEndDate,
     startDate,
     endDate,
     daysInChunk,
@@ -228,13 +231,7 @@ function setupPlanning(
     };
   }
 
-  const {
-    totalStartDate,
-    totalEndDate: _,
-    startDate,
-    endDate,
-    daysInChunk,
-  } = getEnergyflowChunkStartEndDates({
+  const { totalStartDate, startDate, endDate, daysInChunk } = getEnergyflowChunkStartEndDates({
     energyflow: energyflowDataStepper,
     energyflowDataSim,
   });
@@ -391,7 +388,6 @@ export function loop(
         currentAvailable,
         solarProduced,
         currentUsed,
-        algo,
         householdPlanning,
         totalStartDate
       );
@@ -408,7 +404,15 @@ export function loop(
     }
 
     if (algo.name !== "Simulated Annealing" && algo.name !== "Greedy Planning") {
-      const context = { totalAvailableEnergy };
+      const context = {
+        totalAvailableEnergy,
+        totalStartDate,
+        startDate,
+        endDate,
+        energyflowDataSim,
+        energyflowDataSolar,
+        ensureValidBitmap,
+      };
 
       try {
         // Create a new function with 'context' as a parameter.
