@@ -189,7 +189,7 @@ export function planSimulatedAnnealing(
 
     const selectedAppliance =
       selectedHousehold.appliances[
-      Math.floor(Math.random() * selectedHousehold.appliances.length)
+        Math.floor(Math.random() * selectedHousehold.appliances.length)
       ];
 
     const applianceNewStarttime = startDate + Math.floor(Math.random() * 24) * SECONDS_IN_HOUR;
