@@ -68,7 +68,6 @@ type CostModel = {
 type Algo = {
   name: string;
   description: string;
-  maxTemperature: number;
   algorithm: string;
 };
 

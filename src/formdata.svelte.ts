@@ -18,10 +18,7 @@ const defaultCostModels: { [key: string]: CostModel } = {
     priceNetworkBuyConsumer: 0.4,
     priceNetworkSellConsumer: 0.1,
     fixedPriceRatio: 0.5,
-    algorithm: `function costModel() {
-  return buyCustomer * ratio + sellCustomer * (1 - ratio);
-}
-`,
+    algorithm: "",
   },
   TEMO: {
     name: "TEMO",
@@ -30,10 +27,7 @@ const defaultCostModels: { [key: string]: CostModel } = {
     priceNetworkBuyConsumer: 0.4,
     priceNetworkSellConsumer: 0.1,
     fixedPriceRatio: 0.5,
-    algorithm: `function costModel() {
-  return buyCustomer * ratio + sellCustomer * (1 - ratio);
-}
-`,
+    algorithm: "",
   },
 };
 
@@ -45,15 +39,13 @@ const defaultAlgorithms: { [key: string]: Algo } = {
     name: "Greedy Planning",
     description:
       "An initial planning that puts appliances in their local optimum through a greedy algorithm. Will not optimize further than one pass through all appliances.",
-    maxTemperature: 10000,
-    algorithm: ``,
+    algorithm: "",
   },
   "Simulated Annealing": {
     name: "Simulated Annealing",
     description:
       "An algorithm that improves on a given algorithm by randomly changing the time of planned in appliances. The conditions for what changes becomes stricter over time, resulting in a further optimized solution.",
-    maxTemperature: 10000,
-    algorithm: ``,
+    algorithm: "",
   },
 };
 
@@ -123,7 +115,7 @@ export async function loadFormData() {
         {
           name: "solarPanelCapacity",
           label: "Solar Panel Capacity",
-          description: "Enter the average yield of a single solar panel in a year",
+          description: "Enter the average yield of a single solar panel in a year (kWh/year)",
           type: "input",
           dataType: "int",
           placeholder: "340",
@@ -218,7 +210,7 @@ export async function loadFormData() {
           type: "editor",
           required: true,
           minLength: 10,
-          value: `function costModel() {\n\treturn buyCustomer * ratio + sellCustomer * (1 - ratio);\n}\n`,
+          value: "",
         },
       ],
       costModels: {
@@ -266,17 +258,6 @@ export async function loadFormData() {
           placeholder: "My own algorithm",
           maxLength: 300,
           required: true,
-        },
-        {
-          label: "Max Temperature",
-          name: "maxTemperature",
-          description: "Sets the max temperature for your algorithm",
-          type: "input",
-          dataType: "int",
-          placeholder: "10000",
-          min: 0,
-          max: 10000,
-          required: false,
         },
         {
           label: "Custom Algorithm",
@@ -348,9 +329,10 @@ export async function loadFormData() {
           min: 0,
         },
         {
-          name: "energyflowCsv",
+          name: "energyflowCSV",
           label: "Energyflow CSV",
-          description: "Upload a energyflow CSV file to use for the simulation",
+          description:
+            "Upload a energyflow CSV file to use for the simulation. The values inside the CSV file that the system expect is: timestamp, energy_used, solar_produced",
           type: "file",
           required: true,
         },

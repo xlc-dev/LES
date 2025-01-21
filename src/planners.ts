@@ -166,7 +166,6 @@ export function planGreedy({
  * @param {number[]} currentAvailable - An array representing the currently available energy.
  * @param {number[]} solarProduced - An array representing the solar energy produced.
  * @param {number[]} currentUsed - An array representing the energy currently used.
- * @param {Algo} algo - The algorithm configuration or settings.
  * @param {Household[]} householdPlanning - An array of households involved in the planning.
  * @param {number} startDate - The start date of the simulation.
  */
@@ -176,14 +175,13 @@ export function planSimulatedAnnealing(
   currentAvailable: number[],
   solarProduced: number[],
   currentUsed: number[],
-  algo: Algo,
   householdPlanning: Household[],
   startDate: number
 ): void {
-  for (let temperature = 0; temperature < algo.maxTemperature; temperature++) {
+  for (let temperature = 0; temperature < 10000; temperature++) {
     if (currentAvailable.every((value) => value <= 0)) break;
 
-    const effectiveTemperature = 1 - temperature / algo.maxTemperature;
+    const effectiveTemperature = 1 - temperature / 10000;
     const householdRandom = Math.floor(Math.random() * planningLength);
     const selectedHousehold = householdPlanning[householdRandom];
 

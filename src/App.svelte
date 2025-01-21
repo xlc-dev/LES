@@ -24,6 +24,7 @@
   } from "./state.svelte";
 
   import HomepageLogo from "/public/homepagelogo.png";
+  import HomepageLogo2 from "/public/homepagelogo2.png";
   import Favicon from "/public/favicon.png";
 
   const dashboard = getDashboard();
@@ -76,7 +77,10 @@
 
 {#snippet msg()}
   <div class="mx-auto max-w-2xl p-8">
-    <img src={HomepageLogo} class="mx-auto w-75 rounded-lg" alt="LES Logo" />
+    <div class="flex flex-col justify-center gap-8 lg:flex-row">
+      <img src={HomepageLogo} class="mx-auto w-75 rounded-lg" alt="LES Logo" />
+      <img src={HomepageLogo2} class="mx-auto w-75 rounded-lg bg-white" alt="LES Logo 2" />
+    </div>
     <h1 class="pt-4 text-center text-4xl font-bold">Local Energy System Simulation</h1>
     <p class="py-4 text-center text-lg">
       Welcome to the LES Research application. You can determine the efficiency of algorithms and

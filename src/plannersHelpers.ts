@@ -113,12 +113,8 @@ function energyEfficiencyDay(
   } else {
     try {
       const algoWithParams = costmodel.algorithm.replace(
-        "cost_model()",
-        `cost_model(
-          buy_consumer=${costmodel.priceNetworkBuyConsumer},
-          sell_consumer=${costmodel.priceNetworkSellConsumer},
-          ratio=${ratio}
-        )`
+        /costModel\s*\(\s*buyConsumer\s*,\s*sellConsumer\s*,\s*ratio\s*\)/,
+        `costModel(buyConsumer=${costmodel.priceNetworkBuyConsumer}, sellConsumer=${costmodel.priceNetworkSellConsumer}, ratio=${ratio})`
       );
       const dynamicCostModel = new Function("return " + algoWithParams)();
       energyPrice = dynamicCostModel();
